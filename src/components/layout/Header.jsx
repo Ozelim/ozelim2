@@ -221,7 +221,7 @@ export default function Header() {
           {/* Right side */}
           <div className="flex items-center gap-3">
             <ThemeToggle
-              className={
+              className={ 
                 scrolled
                   ? ''
                   : 'border-white/30! text-white! hover:bg-white/10! dark:border-(--site-accent)/30! dark:text-(--site-accent)! dark:hover:bg-(--site-accent)/10!'
