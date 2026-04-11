@@ -226,7 +226,7 @@ export default function Header() {
                   ? ''
                   : 'border-white/30! text-white! hover:bg-white/10! dark:border-(--site-accent)/30! dark:text-(--site-accent)! dark:hover:bg-(--site-accent)/10!'
               }
-            />
+            /> 
             <Link href="/profile">
               <motion.button
                 whileHover={{ scale: 1.08 }}
