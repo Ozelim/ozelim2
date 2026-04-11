@@ -220,7 +220,7 @@ export default function Header() {
           </nav>
           {/* Right side */}
           <div className="flex items-center gap-3">
-            <ThemeToggle 
+            <ThemeToggle
               className={
                 scrolled
                   ? ''
