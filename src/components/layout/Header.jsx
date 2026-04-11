@@ -216,7 +216,7 @@ export default function Header() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </div> 
           </nav>
           {/* Right side */}
           <div className="flex items-center gap-3">
