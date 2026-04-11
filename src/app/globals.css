@@ -1,26 +1,625 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Light theme (default CSS vars; html.dark overrides for dark theme) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --font-display / --font-body: заданы через next/font на <html> (layout.js) */
+  --color-forest: #0f3d0f;
+  --color-forest-mid: #1a6b1a;
+  --color-forest-light: #2d8a2d;
+  /* Акцент: в светлой теме — зелёный primary; в .dark — золото/лайм */
+  --site-accent: #166534;
+  --site-accent-bright: #22c55e;
+  --site-gradient-from: #028f3a;
+  --site-gradient-to: #45e07e;
+  --site-on-accent: #ffffff;
+  --site-ring: rgb(22 101 52 / 0.08);
+  --site-shadow-soft: rgb(22 101 52 / 0.25);
+  --site-shadow-strong: rgb(22 101 52 / 0.35);
+  --site-shadow-glow: rgb(22 101 52 / 0.45);
+  --color-gold: var(--site-accent);
+  --color-lime: var(--site-accent-bright);
+
+  color-scheme: light;
+  --app-bg: #edf5ee;
+  --app-fg: #0f1f11;
+  --app-muted: #3d5240;
+  --app-subtle: #5a6e5c;
+  --app-faint: #7a8c7c;
+  --app-card: #ffffff;
+  --app-elevated: #e2ebe3;
+  --app-surface-deep: #d4e0d6;
+  --app-border: rgb(26 107 26 / 0.22);
+  --app-header-scrolled: rgb(237 245 238 / 0.92);
+  --app-mobile-menu-bg: rgb(255 255 255 / 0.97);
+  --app-mobile-menu-border: rgb(26 107 26 / 0.18);
+  --app-code-bg: #d8e5da;
+  --app-panel: #f3faf3;
+  --app-panel-strong: #e8f2e9;
+  --app-input-bg: rgb(255 255 255 / 0.92);
+  --app-nav-inactive: rgb(15 31 17 / 0.72);
+  --app-nav-hover: #0f1f11;
+  --app-tagline: #2d6b2d;
+  --app-scrim-from: rgb(0 0 0 / 0.72);
+  --app-scrim-mid: rgb(0 0 0 / 0.35);
+  --app-scrim-side: rgb(0 0 0 / 0.45);
+}
+
+.dark {
+  --site-accent: #ffd700;
+  --site-accent-bright: #c8ff00;
+  --site-gradient-from: #ffd700;
+  --site-gradient-to: #c8ff00;
+  --site-on-accent: #030f03;
+  --site-ring: rgb(255 215 0 / 0.08);
+  --site-shadow-soft: rgb(255 215 0 / 0.28);
+  --site-shadow-strong: rgb(255 215 0 / 0.35);
+  --site-shadow-glow: rgb(255 215 0 / 0.5);
+  --color-gold: #ffd900;
+  --color-lime: #c8ff00;
+
+  color-scheme: dark;
+  --app-bg: #030f03;
+  --app-fg: #f0f9f0;
+  --app-muted: rgb(240 249 240 / 0.72);
+  --app-subtle: rgb(240 249 240 / 0.5);
+  --app-faint: rgb(240 249 240 / 0.35);
+  --app-card: #0a1f0a;
+  --app-elevated: #0c240c;
+  --app-surface-deep: #040d04;
+  --app-border: rgb(26 107 26 / 0.2);
+  --app-header-scrolled: rgb(3 15 3 / 0.82);
+  --app-mobile-menu-bg: rgb(3 15 3 / 0.95);
+  --app-mobile-menu-border: rgb(255 215 0 / 0.15);
+  --app-code-bg: #030f03;
+  --app-panel: rgb(10 42 10 / 0.45);
+  --app-panel-strong: rgb(10 42 10 / 0.65);
+  --app-input-bg: rgb(10 42 10 / 0.8);
+  --app-nav-inactive: rgb(255 255 255 / 0.7);
+  --app-nav-hover: #ffffff;
+  --app-tagline: #86c986;
+  --app-scrim-from: rgb(3 15 3 / 0.65);
+  --app-scrim-mid: rgb(3 15 3 / 0.32);
+  --app-scrim-side: rgb(3 15 3 / 0.48);
+}
+
+/*
+ * Profile: в светлой теме акцент — зелёный primary; в тёмной — золото (как на сайте).
+ */
+main.profile-main {
+  --profile-accent: #166534;
+  --profile-accent-bright: #22c55e;
+  --profile-accent-soft: rgb(22 101 52 / 0.12);
+  --profile-accent-border: rgb(22 101 52 / 0.22);
+  --profile-accent-dim: rgb(22 101 52 / 0.45);
+  --profile-on-accent: #ffffff;
+  --profile-gradient-from: #14532d;
+  --profile-gradient-to: #16a34a;
+}
+
+.dark main.profile-main {
+  --profile-accent: #ffd700;
+  --profile-accent-bright: #c8ff00;
+  --profile-accent-soft: rgb(255 215 0 / 0.12);
+  --profile-accent-border: rgb(255 215 0 / 0.22);
+  --profile-accent-dim: rgb(255 215 0 / 0.45);
+  --profile-on-accent: #030f03;
+  --profile-gradient-from: #ffd700;
+  --profile-gradient-to: #c8ff00;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-app-bg: var(--app-bg);
+  --color-app-fg: var(--app-fg);
+  --color-app-muted: var(--app-muted);
+  --color-app-subtle: var(--app-subtle);
+  --color-app-faint: var(--app-faint);
+  --color-app-card: var(--app-card);
+  --color-app-elevated: var(--app-elevated);
+  --color-app-surface-deep: var(--app-surface-deep);
+  --color-app-border: var(--app-border);
+  --color-app-header-scrolled: var(--app-header-scrolled);
+  --color-app-code-bg: var(--app-code-bg);
+  --color-app-panel: var(--app-panel);
+  --color-app-panel-strong: var(--app-panel-strong);
+  --color-app-input-bg: var(--app-input-bg);
+  --color-app-nav-inactive: var(--app-nav-inactive);
+  --color-app-nav-hover: var(--app-nav-hover);
+  --color-app-tagline: var(--app-tagline);
+  --color-app-scrim-from: var(--app-scrim-from);
+  --color-app-scrim-mid: var(--app-scrim-mid);
+  --color-app-scrim-side: var(--app-scrim-side);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  background-color: var(--app-bg);
+  color: var(--app-fg);
+  overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
+
+/*
+ * Light theme: remap legacy white text outside the first block (usually Hero).
+ * Profile uses <main class="profile-main"> — excluded; ProfilePage sets its own tokens.
+ */
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) {
+  color: var(--app-fg);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .text-white {
+  color: var(--app-fg);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .text-white\/60 {
+  color: color-mix(in srgb, var(--app-fg) 60%, transparent);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .text-white\/70 {
+  color: color-mix(in srgb, var(--app-fg) 70%, transparent);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .text-white\/50 {
+  color: color-mix(in srgb, var(--app-fg) 50%, transparent);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .text-white\/40 {
+  color: color-mix(in srgb, var(--app-fg) 40%, transparent);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .text-white\/30 {
+  color: color-mix(in srgb, var(--app-fg) 30%, transparent);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .text-white\/80 {
+  color: color-mix(in srgb, var(--app-fg) 80%, transparent);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .border-white\/10 {
+  border-color: color-mix(in srgb, var(--app-fg) 10%, transparent);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .border-white\/20 {
+  border-color: color-mix(in srgb, var(--app-fg) 20%, transparent);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .border-white\/25 {
+  border-color: color-mix(in srgb, var(--app-fg) 25%, transparent);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .hover\:border-white\/25:hover {
+  border-color: color-mix(in srgb, var(--app-fg) 25%, transparent);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .placeholder-white\/30::placeholder {
+  color: color-mix(in srgb, var(--app-fg) 30%, transparent);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .hover\:text-white:hover {
+  color: var(--app-fg);
+}
+
+html:not(.dark) main:not(.profile-main) > *:not(:first-child) .hover\:text-white\/60:hover {
+  color: color-mix(in srgb, var(--app-fg) 60%, transparent);
+}
+
+/*
+ * Profile is wrapped in <main class="profile-main"> (excluded above).
+ * Remap legacy white text to foreground in light theme; keep photo overlays via .media-contrast.
+ */
+html:not(.dark) main.profile-main .text-white {
+  color: var(--app-fg);
+}
+
+html:not(.dark) main.profile-main .text-white\/60 {
+  color: color-mix(in srgb, var(--app-fg) 60%, transparent);
+}
+
+html:not(.dark) main.profile-main .text-white\/70 {
+  color: color-mix(in srgb, var(--app-fg) 70%, transparent);
+}
+
+html:not(.dark) main.profile-main .text-white\/50 {
+  color: color-mix(in srgb, var(--app-fg) 50%, transparent);
+}
+
+html:not(.dark) main.profile-main .text-white\/45 {
+  color: color-mix(in srgb, var(--app-fg) 45%, transparent);
+}
+
+html:not(.dark) main.profile-main .text-white\/40 {
+  color: color-mix(in srgb, var(--app-fg) 40%, transparent);
+}
+
+html:not(.dark) main.profile-main .text-white\/35 {
+  color: color-mix(in srgb, var(--app-fg) 35%, transparent);
+}
+
+html:not(.dark) main.profile-main .text-white\/30 {
+  color: color-mix(in srgb, var(--app-fg) 30%, transparent);
+}
+
+html:not(.dark) main.profile-main .text-white\/25 {
+  color: color-mix(in srgb, var(--app-fg) 25%, transparent);
+}
+
+html:not(.dark) main.profile-main .text-white\/20 {
+  color: color-mix(in srgb, var(--app-fg) 20%, transparent);
+}
+
+html:not(.dark) main.profile-main .text-white\/80 {
+  color: color-mix(in srgb, var(--app-fg) 80%, transparent);
+}
+
+html:not(.dark) main.profile-main .hover\:text-white:hover {
+  color: var(--app-fg);
+}
+
+html:not(.dark) main.profile-main .hover\:text-white\/60:hover {
+  color: color-mix(in srgb, var(--app-fg) 60%, transparent);
+}
+
+html:not(.dark) main.profile-main .border-white\/10 {
+  border-color: color-mix(in srgb, var(--app-fg) 10%, transparent);
+}
+
+html:not(.dark) main.profile-main .border-white\/20 {
+  border-color: color-mix(in srgb, var(--app-fg) 20%, transparent);
+}
+
+html:not(.dark) main.profile-main .placeholder-white\/30::placeholder {
+  color: color-mix(in srgb, var(--app-fg) 30%, transparent);
+}
+
+/* Photo strips in profile: keep light text on images */
+html:not(.dark) main.profile-main .media-contrast .text-white {
+  color: #ffffff !important;
+}
+
+html:not(.dark) main.profile-main .media-contrast .text-white\/50 {
+  color: rgb(255 255 255 / 0.5) !important;
+}
+
+html:not(.dark) main.profile-main .media-contrast .text-white\/60 {
+  color: rgb(255 255 255 / 0.6) !important;
+}
+
+html:not(.dark) main.profile-main .media-contrast .text-white\/70 {
+  color: rgb(255 255 255 / 0.7) !important;
+}
+
+html:not(.dark) main.profile-main .media-contrast .text-white\/80 {
+  color: rgb(255 255 255 / 0.8) !important;
+}
+
+html:not(.dark) main.profile-main .media-contrast .text-white\/45 {
+  color: rgb(255 255 255 / 0.45) !important;
+}
+
+html:not(.dark) main.profile-main .media-contrast .text-white\/40 {
+  color: rgb(255 255 255 / 0.4) !important;
+}
+
+html:not(.dark) main.profile-main .media-contrast .text-white\/30 {
+  color: rgb(255 255 255 / 0.3) !important;
+}
+
+html:not(.dark) main.profile-main .media-contrast .hover\:text-white:hover {
+  color: #ffffff !important;
+}
+
+html:not(.dark) main.profile-main .media-contrast .hover\:text-white\/60:hover {
+  color: rgb(255 255 255 / 0.6) !important;
+}
+
+/* Light theme: lift emerald panels to light surfaces (still inside themed pages) */
+html:not(.dark) main .bg-\[\#0a2a0a\]\/20 {
+  background-color: color-mix(in srgb, var(--app-card) 88%, transparent) !important;
+}
+
+html:not(.dark) main .bg-\[\#0a2a0a\]\/30 {
+  background-color: color-mix(in srgb, var(--app-card) 90%, transparent) !important;
+}
+
+html:not(.dark) main .bg-\[\#0a2a0a\]\/40 {
+  background-color: color-mix(in srgb, var(--app-card) 94%, transparent) !important;
+}
+
+html:not(.dark) main .bg-\[\#0a2a0a\]\/50 {
+  background-color: color-mix(in srgb, var(--app-card) 92%, transparent) !important;
+}
+
+html:not(.dark) main .bg-\[\#0a2a0a\]\/60 {
+  background-color: color-mix(in srgb, var(--app-card) 93%, transparent) !important;
+}
+
+html:not(.dark) main .bg-\[\#0a2a0a\]\/80 {
+  background-color: color-mix(in srgb, var(--app-card) 96%, transparent) !important;
+}
+
+html:not(.dark) main .bg-\[\#0a2a0a\]\/20 {
+  background-color: color-mix(in srgb, var(--app-elevated) 55%, var(--app-bg)) !important;
+}
+
+html:not(.dark) main .bg-\[\#0a2a0a\] {
+  background-color: var(--app-elevated) !important;
+}
+
+/* Filter trigger buttons: light background in light theme */
+html:not(.dark) main .bg-\[\#0f3d0f\]\/60 {
+  background-color: color-mix(in srgb, var(--app-elevated) 80%, transparent) !important;
+}
+html:not(.dark) main .bg-\[\#0f3d0f\]\/40 {
+  background-color: color-mix(in srgb, var(--app-elevated) 60%, transparent) !important;
+}
+html:not(.dark) main .bg-\[\#1a6b1a\]\/20 {
+  background-color: color-mix(in srgb, var(--site-accent) 12%, transparent) !important;
+}
+html:not(.dark) main .bg-\[\#1a6b1a\]\/30 {
+  background-color: color-mix(in srgb, var(--site-accent) 18%, transparent) !important;
+}
+
+/* Tour card body: remap white text to foreground in light theme */
+html:not(.dark) main .tour-card-body .text-white {
+  color: var(--app-fg);
+}
+html:not(.dark) main .tour-card-body .text-white\/50 {
+  color: color-mix(in srgb, var(--app-fg) 50%, transparent);
+}
+html:not(.dark) main .tour-card-body .text-white\/40 {
+  color: color-mix(in srgb, var(--app-fg) 40%, transparent);
+}
+
+/* Tour carousel header: remap white text to foreground in light theme */
+html:not(.dark) main .tour-carousel-header .text-white {
+  color: var(--app-fg);
+}
+html:not(.dark) main .tour-carousel-header .border-white\/20 {
+  border-color: color-mix(in srgb, var(--app-fg) 20%, transparent);
+}
+html:not(.dark) main .tour-carousel-header .bg-white\/10 {
+  background-color: color-mix(in srgb, var(--app-fg) 10%, transparent);
+}
+
+/* Text on top of photos must stay light */
+html:not(.dark) main .media-contrast .text-white {
+  color: #ffffff !important;
+}
+
+html:not(.dark) main .media-contrast .text-white\/50 {
+  color: rgb(255 255 255 / 0.5) !important;
+}
+
+html:not(.dark) main .media-contrast .text-white\/60 {
+  color: rgb(255 255 255 / 0.6) !important;
+}
+
+html:not(.dark) main .media-contrast .text-white\/70 {
+  color: rgb(255 255 255 / 0.7) !important;
+}
+
+html:not(.dark) main .media-contrast .text-white\/80 {
+  color: rgb(255 255 255 / 0.8) !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--app-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #1a6b1a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--site-accent);
+}
+
+/* Noise texture overlay */
+.noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Gradient text */
+.text-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--site-gradient-from),
+    var(--site-gradient-to)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-green {
+  background: linear-gradient(135deg, #52aa52, #86c986);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hero parallax base */
+.hero-bg {
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Glass morphism */
+.glass {
+  background: rgb(15 61 15 / 0.18);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgb(22 101 52 / 0.18);
+}
+
+.dark .glass {
+  background: rgb(15 61 15 / 0.3);
+  border-color: rgb(255 215 0 / 0.1);
+}
+
+.glass-dark {
+  background: rgb(255 255 255 / 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgb(26 107 26 / 0.15);
+}
+
+.dark .glass-dark {
+  background: rgb(3 15 3 / 0.7);
+  border-color: rgb(255 215 0 / 0.08);
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s ease;
+}
+.card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 24px 48px rgb(0 0 0 / 0.12),
+    0 0 0 1px rgb(22 101 52 / 0.22);
+}
+
+.dark .card-hover:hover {
+  box-shadow: 0 32px 64px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 215 0 / 0.2);
+}
+
+/* Page transition overlay */
+.page-transition {
+  animation: pageIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pageIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Shimmer effect */
+.shimmer-btn {
+  background: linear-gradient(
+    90deg,
+    var(--site-gradient-from),
+    var(--site-gradient-to),
+    var(--site-gradient-from)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* Section divider */
+.divider-gold {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--site-accent),
+    transparent
+  );
+}
+
+/* Tab underline */
+.tab-active::after {
+  content: '';
+  display: block;
+  height: 2px;
+  background: var(--site-accent);
+  border-radius: 1px;
+  margin-top: 4px;
+}
+
+/* Range inputs — цвет «золота» / primary из темы */
+input.range-thumb-gold::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--site-accent);
+  border: 2px solid var(--site-on-accent);
+  cursor: pointer;
+}
+input.range-thumb-gold::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--site-accent);
+  border: 2px solid var(--site-on-accent);
+  cursor: pointer;
+}
+
+/* Accordion */
+.accordion-content {
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+/* Carousel */
+.carousel-track {
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Swipe carousel */
+.swipe-track {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Fade carousel */
+.fade-item {
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+/* Line clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Marquee */
+.marquee-wrapper {
+  overflow: hidden;
+}
+.marquee-inner {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Counter animation */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hide scrollbar */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
