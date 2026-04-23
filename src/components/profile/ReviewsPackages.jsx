@@ -1,11 +1,14 @@
 'use client'
-import { useState } from 'react'
-import { Star, MessageSquare, Edit2, Trash2, Check, X, Zap } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Star, MessageSquare, Edit2, Trash2, Check, X, Zap, MapPin, ExternalLink } from 'lucide-react'
 import { Card, CardBody, Badge, Button, SectionHeader, EmptyState, Modal, Textarea, cn } from './ui'
-import { MOCK_REVIEWS, PACKAGE_FEATURES } from '../../lib/mockData'
+import { PACKAGE_FEATURES } from '../../lib/mockData'
 import Image from 'next/image'
+import Link from 'next/link'
 
 // ─── REVIEWS ─────────────────────────────────────────────────────────────────
+const REVIEW_FALLBACK_IMG = "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=75";
+
 function StarRating({ value, onChange }) {
   const [hover, setHover] = useState(0)
   return (
@@ -26,24 +29,35 @@ function StarRating({ value, onChange }) {
   )
 }
 
+function formatReviewDate(iso) {
+  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
 function ReviewCard({ review, onEdit, onDelete }) {
-  const stars = Array(5).fill(0)
   return (
     <Card>
       <CardBody>
         <div className="flex items-start gap-4">
-          <div className="relative shrink-0">
+          <div className="relative shrink-0 w-16 h-16 rounded-xl overflow-hidden">
             <Image
-              src={review.img}
-              alt={review.tour}
-              width={64}
-              height={64}
-              className="w-16 h-16 rounded-xl object-cover"
+              src={review.hero_image || REVIEW_FALLBACK_IMG}
+              alt={review.resort_name}
+              fill
+              className="object-cover"
+              sizes="64px"
             />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-1">
-              <h4 className="text-white font-semibold text-sm truncate">{review.tour}</h4>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <h4 className="text-white font-semibold text-sm truncate">{review.resort_name}</h4>
+                <Link
+                  href={`/resort/${review.resort_id}`}
+                  className="shrink-0 w-4 h-4 text-white/30 hover:text-(--profile-accent) transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Link>
+              </div>
               <div className="flex gap-1.5 shrink-0">
                 <button onClick={() => onEdit(review)} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-(--profile-accent) hover:bg-(--profile-accent-soft) transition-all">
                   <Edit2 className="w-3.5 h-3.5" />
@@ -55,13 +69,19 @@ function ReviewCard({ review, onEdit, onDelete }) {
             </div>
             <div className="flex items-center gap-2 mb-2">
               <div className="flex gap-0.5">
-                {stars.map((_, i) => (
-                  <Star key={i} className={cn('w-3 h-3', i < review.rating ? 'text-(--profile-accent)' : 'text-app-faint')} fill={i < review.rating ? 'currentColor' : 'none'} stroke="currentColor" />
+                {[1,2,3,4,5].map(i => (
+                  <Star key={i} className={cn('w-3 h-3', i <= review.rating ? 'text-(--profile-accent)' : 'text-app-faint')} fill={i <= review.rating ? 'currentColor' : 'none'} stroke="currentColor" />
                 ))}
               </div>
               <span className="text-white/30 text-xs">·</span>
-              <span className="text-white/35 text-xs">{review.date}</span>
+              <span className="text-white/35 text-xs">{formatReviewDate(review.created_at)}</span>
             </div>
+            {review.location && (
+              <div className="flex items-center gap-1 text-white/35 text-xs mb-1">
+                <MapPin className="w-3 h-3" />
+                {review.location}
+              </div>
+            )}
             <p className="text-white/60 text-sm leading-relaxed">{review.text}</p>
           </div>
         </div>
@@ -71,23 +91,66 @@ function ReviewCard({ review, onEdit, onDelete }) {
 }
 
 export function Reviews() {
-  const [reviews, setReviews] = useState(MOCK_REVIEWS)
+  const [reviews, setReviews] = useState(null)
   const [editModal, setEditModal] = useState(null)
   const [editText, setEditText] = useState('')
   const [editRating, setEditRating] = useState(5)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/reviews?my=true')
+      .then(r => r.json())
+      .then(({ reviews: rv }) => setReviews(rv ?? []))
+      .catch(() => setReviews([]))
+  }, [])
 
   function openEdit(rev) { setEditModal(rev); setEditText(rev.text); setEditRating(rev.rating) }
-  function saveEdit() {
-    setReviews(prev => prev.map(r => r.id === editModal.id ? { ...r, text: editText, rating: editRating } : r))
-    setEditModal(null)
+
+  async function saveEdit() {
+    if (!editModal || saving) return
+    setSaving(true)
+    try {
+      await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resort_id: editModal.resort_id, rating: editRating, text: editText }),
+      })
+      setReviews(prev => prev.map(r => r.id === editModal.id ? { ...r, text: editText, rating: editRating } : r))
+      setEditModal(null)
+    } catch {
+      // silently ignore
+    } finally {
+      setSaving(false)
+    }
   }
-  function deleteReview(id) { setReviews(prev => prev.filter(r => r.id !== id)) }
+
+  async function deleteReview(id) {
+    await fetch(`/api/reviews?id=${id}`, { method: 'DELETE' }).catch(() => {})
+    setReviews(prev => prev.filter(r => r.id !== id))
+  }
+
+  if (reviews === null) {
+    return (
+      <div className="space-y-5">
+        <SectionHeader title="Мои отзывы" subtitle="Загрузка..." />
+        <div className="space-y-3">
+          {[1, 2].map(i => (
+            <div key={i} className="h-28 rounded-2xl bg-white/5 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const subtitle = reviews.length === 0 ? 'Нет отзывов'
+    : reviews.length === 1 ? '1 отзыв'
+    : `${reviews.length} отзыв${reviews.length < 5 ? 'а' : 'ов'}`
 
   return (
     <div className="space-y-5">
-      <SectionHeader title="Мои отзывы" subtitle={`${reviews.length} отзыва`} />
+      <SectionHeader title="Мои отзывы" subtitle={subtitle} />
       {reviews.length === 0
-        ? <EmptyState icon={MessageSquare} title="Отзывов пока нет" subtitle="Ваши отзывы о поездках появятся здесь" />
+        ? <EmptyState icon={MessageSquare} title="Отзывов пока нет" subtitle="Нажмите «Оставить отзыв» на странице курорта, чтобы добавить первый" />
         : <div className="space-y-3">{reviews.map(r => <ReviewCard key={r.id} review={r} onEdit={openEdit} onDelete={deleteReview} />)}</div>
       }
 
@@ -100,7 +163,9 @@ export function Reviews() {
           <Textarea label="Текст отзыва" value={editText} onChange={e => setEditText(e.target.value)} rows={5} />
           <div className="flex gap-3 justify-end">
             <Button variant="ghost" onClick={() => setEditModal(null)}>Отмена</Button>
-            <Button variant="primary" onClick={saveEdit}><Check className="w-4 h-4" />Сохранить</Button>
+            <Button variant="primary" onClick={saveEdit} disabled={saving}>
+              <Check className="w-4 h-4" />{saving ? 'Сохранение...' : 'Сохранить'}
+            </Button>
           </div>
         </div>
       </Modal>

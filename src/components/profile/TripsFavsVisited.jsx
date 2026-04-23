@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Plane,
   MapPin,
@@ -22,8 +22,9 @@ import {
   EmptyState,
   cn,
 } from "./ui";
-import { MOCK_TRIPS, MOCK_VISITED, MOCK_FAVORITES } from "../../lib/mockData";
+import { MOCK_TRIPS, MOCK_VISITED } from "../../lib/mockData";
 import Image from "next/image";
+import Link from "next/link";
 
 // ─── TRIP HISTORY ────────────────────────────────────────────────────────────
 function TripCard({ trip }) {
@@ -253,12 +254,15 @@ export function VisitedPlaces() {
 }
 
 // ─── FAVORITES ────────────────────────────────────────────────────────────────
+
+const FALLBACK_IMG = "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=75";
+
 function FavoriteCard({ fav, onRemove }) {
   return (
     <Card hover className="overflow-hidden group relative">
       <div className="relative h-36 overflow-hidden media-contrast">
         <Image
-          src={fav.img}
+          src={fav.hero_image || FALLBACK_IMG}
           alt={fav.name}
           fill
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -275,13 +279,17 @@ function FavoriteCard({ fav, onRemove }) {
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
-          <button className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors">
+          <Link
+            href={`/resort/${fav.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+          >
             <ExternalLink className="w-3.5 h-3.5" />
-          </button>
+          </Link>
         </div>
         <div className="absolute bottom-3 left-3 flex items-center gap-1">
           <Star className="w-3 h-3 fill-(--profile-accent) text-(--profile-accent)" />
-          <span className="text-(--profile-accent) text-xs font-bold">{fav.rating}</span>
+          <span className="text-(--profile-accent) text-xs font-bold">{Number(fav.rating).toFixed(1)}</span>
         </div>
       </div>
       <CardBody>
@@ -294,9 +302,9 @@ function FavoriteCard({ fav, onRemove }) {
         <div className="flex items-center justify-between">
           <span className="text-white/40 text-xs flex items-center gap-1">
             <MapPin className="w-3 h-3" />
-            {fav.region}
+            {fav.location || "Казахстан"}
           </span>
-          <Badge variant="ghost">{fav.type}</Badge>
+          <Badge variant="ghost">{fav.category || "Курорт"}</Badge>
         </div>
       </CardBody>
     </Card>
@@ -304,22 +312,44 @@ function FavoriteCard({ fav, onRemove }) {
 }
 
 export function Favorites() {
-  const [items, setItems] = useState(MOCK_FAVORITES);
-  function remove(id) {
+  const [items, setItems] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/favorites")
+      .then((r) => r.json())
+      .then(({ favorites }) => setItems(favorites ?? []))
+      .catch(() => setItems([]));
+  }, []);
+
+  async function remove(id) {
     setItems((prev) => prev.filter((f) => f.id !== id));
+    await fetch(`/api/favorites?resort_id=${id}`, { method: "DELETE" }).catch(() => {});
+  }
+
+  if (items === null) {
+    return (
+      <div className="space-y-5">
+        <SectionHeader title="Избранное" subtitle="Загрузка..." />
+        <div className="grid sm:grid-cols-2 gap-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="h-48 rounded-2xl bg-white/5 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-5">
       <SectionHeader
         title="Избранное"
-        subtitle={`${items.length} сохранённых мест и туров`}
+        subtitle={`${items.length} сохранённых курортов`}
       />
       {items.length === 0 ? (
         <EmptyState
           icon={Heart}
           title="Ничего не сохранено"
-          subtitle="Добавляйте туры и места в избранное"
+          subtitle="Нажмите на сердечко на странице курорта, чтобы добавить его сюда"
         />
       ) : (
         <div className="grid sm:grid-cols-2 gap-4">

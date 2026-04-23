@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Compass,
@@ -44,10 +44,18 @@ const serviceLinks = [
 
 export default function Header() {
   const pathname = usePathname()
+  const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [servicesOpen, setServicesOpen] = useState(false)
+  const [currentUser, setCurrentUser] = useState(null)
   const servicesRef = useRef(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(d => {
+      if (d?.user) setCurrentUser(d.user)
+    }).catch(() => {})
+  }, [pathname])
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40)
@@ -227,16 +235,27 @@ export default function Header() {
                   : 'border-white/30! text-white! hover:bg-white/10! dark:border-(--site-accent)/30! dark:text-(--site-accent)! dark:hover:bg-(--site-accent)/10!'
               }
             /> 
-            <Link href="/profile">
+            {currentUser ? (
               <motion.button
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 rounded-full border border-(--site-accent)/30 flex items-center justify-center text-(--site-accent) hover:bg-(--site-accent)/10 transition-colors duration-300 group relative"
+                onClick={() => router.push('/profile')}
+                className="w-10 h-10 rounded-full bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) flex items-center justify-center text-(--site-on-accent) font-semibold text-sm shadow-[0_0_12px_var(--site-shadow-soft)] transition-all"
+                title={currentUser.name}
               >
-                <User className="w-4.5 h-4.5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-(--site-accent-bright) rounded-full border-2 border-app-bg" />
+                {currentUser.name?.charAt(0).toUpperCase()}
               </motion.button>
-            </Link>
+            ) : (
+              <Link href="/login">
+                <motion.button
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-10 h-10 rounded-full border border-(--site-accent)/30 flex items-center justify-center text-(--site-accent) hover:bg-(--site-accent)/10 transition-colors duration-300"
+                >
+                  <User className="w-4.5 h-4.5" />
+                </motion.button>
+              </Link>
+            )}
 
             {/* Mobile menu btn */}
             <button

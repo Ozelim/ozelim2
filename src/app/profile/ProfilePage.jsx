@@ -41,6 +41,7 @@ import {
 } from "../../components/profile/PackageSections";
 import { BalanceSection } from "../../components/profile/BalanceSection";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
@@ -108,7 +109,7 @@ function NavItem({ item, active, onClick, badge }) {
 }
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
-function Sidebar({ user, nav, active, onNavigate, collapsed }) {
+function Sidebar({ user, nav, active, onNavigate, collapsed, onLogout }) {
   const pkg = user.activePackage;
   const pkgInfo = pkg ? PACKAGE_FEATURES[pkg] : null;
 
@@ -145,7 +146,7 @@ function Sidebar({ user, nav, active, onNavigate, collapsed }) {
           <div className="flex-1 rounded-lg bg-amber-50 dark:bg-amber-400/10 border border-amber-200 dark:border-amber-400/20 px-2.5 py-2">
             <div className="text-[9px] uppercase tracking-wide text-amber-500/70 dark:text-amber-400/60 mb-0.5">Бонусы</div>
             <div className="text-amber-600 dark:text-amber-400 text-xs font-semibold">
-              {user.bonuses?.toLocaleString("ru-RU")} Б
+              {user.bonus?.toLocaleString("ru-RU")} Б
             </div>
           </div>
         </div>
@@ -187,7 +188,10 @@ function Sidebar({ user, nav, active, onNavigate, collapsed }) {
 
       {/* Footer */}
       <div className="px-3 pb-4 pt-2 border-t border-app-border">
-        <button className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-app-faint hover:text-red-400 hover:bg-red-400/5 dark:text-white/35 transition-all">
+        <button
+          onClick={onLogout}
+          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-app-faint hover:text-red-400 hover:bg-red-400/5 dark:text-white/35 transition-all"
+        >
           <LogOut className="w-4 h-4" />
           Выйти
         </button>
@@ -267,8 +271,14 @@ function ActiveSection({ section, user, onNavigate, setUser }) {
 }
 
 // ─── MAIN EXPORT ─────────────────────────────────────────────────────────────
-export default function ProfilePage() {
-  const [user, setUser] = useState(MOCK_USER);
+export default function ProfilePage({ dbUser }) {
+  const router = useRouter();
+  const [user, setUser] = useState({
+    ...MOCK_USER,
+    ...dbUser,
+    balance: dbUser?.balance ?? 0,
+    bonus: dbUser?.bonus ?? 0,
+  });
   const [activeSection, setActiveSection] = useState("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -279,6 +289,11 @@ export default function ProfilePage() {
     setActiveSection(sectionId);
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
   }
 
   return (
@@ -332,6 +347,7 @@ export default function ProfilePage() {
                 onNavigate={navigate}
                 collapsed={false}
                 onMenuToggle={() => setMobileMenuOpen(false)}
+                onLogout={handleLogout}
               />
             </div>
           </>
@@ -373,6 +389,7 @@ export default function ProfilePage() {
                   active={activeSection}
                   onNavigate={navigate}
                   collapsed={false}
+                  onLogout={handleLogout}
                 />
               </div>
             </div>

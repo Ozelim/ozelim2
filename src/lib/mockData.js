@@ -13,7 +13,7 @@ export const MOCK_USER = {
   // 'none' | 'family' | 'corporate' | 'agent'
   activePackage: 'family',
   balance: 125000,
-  bonuses: 3840,
+  bonus: 3840,
 }
 
 export const MOCK_TRIPS = [

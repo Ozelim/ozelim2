@@ -304,7 +304,7 @@ export function BalanceSection({ user, setUser }) {
   }
 
   const balance = user.balance ?? 0;
-  const bonuses = user.bonuses ?? 0;
+  const bonus = user.bonus ?? 0;
 
   return (
     <div className="space-y-6">
@@ -338,7 +338,7 @@ export function BalanceSection({ user, setUser }) {
             <div className="text-xs font-medium text-amber-600/70 dark:text-amber-400/60 uppercase tracking-wider">Бонусные баллы</div>
           </div>
           <div className="text-3xl font-bold text-amber-700 dark:text-amber-400" style={{ fontFamily: "Cormorant Garamond, serif" }}>
-            {bonuses.toLocaleString("ru-RU")} <span className="text-xl text-amber-500/60 dark:text-amber-400/50">Б</span>
+            {bonus.toLocaleString("ru-RU")} <span className="text-xl text-amber-500/60 dark:text-amber-400/50">Б</span>
           </div>
           <div className="text-[11px] text-amber-500/60 dark:text-amber-400/40">Начисляются за каждую поездку</div>
         </div>
