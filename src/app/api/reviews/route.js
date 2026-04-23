@@ -2,38 +2,17 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import sql from "@/lib/db";
 
-async function ensureTables() {
+// The `resorts` and `reviews` tables are owned by the main admin panel, so we
+// only patch in the columns our UI needs — never recreate them with a
+// different shape.
+async function ensureReviewColumns() {
+  await sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS user_id INTEGER`;
+  await sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW()`;
+  await sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()`;
   await sql`
-    CREATE TABLE IF NOT EXISTS resorts (
-      id               SERIAL PRIMARY KEY,
-      name             TEXT NOT NULL,
-      location         TEXT,
-      category         TEXT DEFAULT 'Курорт · Казахстан',
-      hero_image       TEXT,
-      rating           NUMERIC(3,1) DEFAULT 0,
-      review_count     INTEGER DEFAULT 0,
-      price_from       INTEGER DEFAULT 0,
-      room_count       INTEGER DEFAULT 0,
-      procedures_count INTEGER DEFAULT 0,
-      description      TEXT,
-      gallery          JSONB DEFAULT '[]',
-      address          TEXT,
-      phone            TEXT,
-      created_at       TIMESTAMPTZ DEFAULT NOW()
-    )
-  `;
-  await sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_resorts_name ON resorts(name)`;
-  await sql`
-    CREATE TABLE IF NOT EXISTS reviews (
-      id         SERIAL PRIMARY KEY,
-      user_id    INTEGER NOT NULL,
-      resort_id  INTEGER NOT NULL,
-      rating     INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
-      text       TEXT NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW(),
-      UNIQUE(user_id, resort_id)
-    )
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_reviews_user_resort
+    ON reviews(user_id, resort_id)
+    WHERE user_id IS NOT NULL
   `;
 }
 
@@ -42,48 +21,60 @@ export const dynamic = "force-dynamic";
 // GET /api/reviews?resort_id=X  — reviews for a resort (with user names)
 // GET /api/reviews?my=true       — current user's reviews (with resort info)
 export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const resortId = searchParams.get("resort_id");
+  const my = searchParams.get("my");
+
+  const user = await getCurrentUser();
+
   try {
-    await ensureTables();
-    const { searchParams } = new URL(request.url);
-    const resortId = searchParams.get("resort_id");
-    const my = searchParams.get("my");
+    await ensureReviewColumns();
 
     if (my) {
-      const user = await getCurrentUser();
       if (!user) return NextResponse.json({ reviews: [] });
       const rows = await sql`
-        SELECT rv.id, rv.rating, rv.text, rv.created_at, rv.resort_id,
-               r.name AS resort_name, r.hero_image, r.location
+        SELECT rv.id,
+               rv.rating,
+               rv.content AS text,
+               rv.created_at,
+               rv.resort_id,
+               r.name AS resort_name,
+               COALESCE(r.images->>0, NULL) AS hero_image,
+               COALESCE(r.region, r.resort_area) AS location
         FROM reviews rv
         JOIN resorts r ON r.id = rv.resort_id
         WHERE rv.user_id = ${user.id}
-        ORDER BY rv.created_at DESC
+        ORDER BY rv.created_at DESC NULLS LAST
       `;
       return NextResponse.json({ reviews: rows });
     }
 
     if (resortId) {
-      const user = await getCurrentUser();
       const rows = await sql`
-        SELECT rv.id, rv.rating, rv.text, rv.created_at, rv.user_id,
-               u.name AS user_name
+        SELECT rv.id,
+               rv.rating,
+               rv.content AS text,
+               rv.created_at,
+               rv.user_id,
+               COALESCE(u.name, rv.author_name, 'Гость') AS user_name
         FROM reviews rv
-        JOIN users u ON u.id = rv.user_id
+        LEFT JOIN users u ON u.id = rv.user_id
         WHERE rv.resort_id = ${resortId}
-        ORDER BY rv.created_at DESC
+          AND COALESCE(rv.status, 'approved') <> 'rejected'
+        ORDER BY rv.created_at DESC NULLS LAST
       `;
       return NextResponse.json({ reviews: rows, currentUserId: user?.id ?? null });
     }
 
-    return NextResponse.json({ reviews: [] });
+    return NextResponse.json({ reviews: [], currentUserId: user?.id ?? null });
   } catch (err) {
     console.error("GET /api/reviews error:", err);
-    return NextResponse.json({ reviews: [] });
+    return NextResponse.json({ reviews: [], currentUserId: user?.id ?? null });
   }
 }
 
 // POST /api/reviews  body: { resort_id, rating, text }
-// Upserts: one review per user per resort
+// One review per user per resort — upsert on (user_id, resort_id).
 export async function POST(request) {
   try {
     const user = await getCurrentUser();
@@ -94,17 +85,21 @@ export async function POST(request) {
       return NextResponse.json({ error: "Все поля обязательны" }, { status: 400 });
     }
 
-    await ensureTables();
+    await ensureReviewColumns();
+
+    const authorName = [user.name, user.surname].filter(Boolean).join(" ").trim() || user.email;
 
     const [row] = await sql`
-      INSERT INTO reviews (user_id, resort_id, rating, text)
-      VALUES (${user.id}, ${resort_id}, ${rating}, ${text.trim()})
-      ON CONFLICT (user_id, resort_id) DO UPDATE
-        SET rating = EXCLUDED.rating, text = EXCLUDED.text, updated_at = NOW()
-      RETURNING id, rating, text, created_at, user_id
+      INSERT INTO reviews (user_id, resort_id, rating, content, author_name, status, created_at, updated_at)
+      VALUES (${user.id}, ${resort_id}, ${rating}, ${text.trim()}, ${authorName}, 'approved', NOW(), NOW())
+      ON CONFLICT (user_id, resort_id) WHERE user_id IS NOT NULL DO UPDATE
+        SET rating = EXCLUDED.rating,
+            content = EXCLUDED.content,
+            updated_at = NOW()
+      RETURNING id, rating, content AS text, created_at, user_id
     `;
 
-    return NextResponse.json({ ok: true, review: { ...row, user_name: user.name } });
+    return NextResponse.json({ ok: true, review: { ...row, user_name: authorName } });
   } catch (err) {
     console.error("POST /api/reviews error:", err);
     return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });
@@ -121,7 +116,7 @@ export async function DELETE(request) {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "id обязателен" }, { status: 400 });
 
-    await ensureTables();
+    await ensureReviewColumns();
     await sql`DELETE FROM reviews WHERE id = ${id} AND user_id = ${user.id}`;
 
     return NextResponse.json({ ok: true });

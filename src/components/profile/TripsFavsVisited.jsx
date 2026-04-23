@@ -64,7 +64,9 @@ function TripCard({ trip }) {
           </span>
         </div>
         <div className="flex items-center justify-between pt-1">
-          <span className="text-(--profile-accent) font-bold">{trip.price}</span>
+          <span className="text-(--profile-accent) font-bold">
+            {trip.price}
+          </span>
           <Button variant="secondary" size="sm">
             Подробнее <ExternalLink className="w-3 h-3" />
           </Button>
@@ -255,7 +257,8 @@ export function VisitedPlaces() {
 
 // ─── FAVORITES ────────────────────────────────────────────────────────────────
 
-const FALLBACK_IMG = "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=75";
+const FALLBACK_IMG =
+  "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=75";
 
 function FavoriteCard({ fav, onRemove }) {
   return (
@@ -289,7 +292,9 @@ function FavoriteCard({ fav, onRemove }) {
         </div>
         <div className="absolute bottom-3 left-3 flex items-center gap-1">
           <Star className="w-3 h-3 fill-(--profile-accent) text-(--profile-accent)" />
-          <span className="text-(--profile-accent) text-xs font-bold">{Number(fav.rating).toFixed(1)}</span>
+          <span className="text-(--profile-accent) text-xs font-bold">
+            {Number(fav.rating).toFixed(1)}
+          </span>
         </div>
       </div>
       <CardBody>
@@ -317,13 +322,19 @@ export function Favorites() {
   useEffect(() => {
     fetch("/api/favorites")
       .then((r) => r.json())
-      .then(({ favorites }) => setItems(favorites ?? []))
+      .then(({ favorites }) => {
+        console.log(favorites, 'f');
+        
+        setItems(favorites ?? [])
+      })
       .catch(() => setItems([]));
   }, []);
 
   async function remove(id) {
     setItems((prev) => prev.filter((f) => f.id !== id));
-    await fetch(`/api/favorites?resort_id=${id}`, { method: "DELETE" }).catch(() => {});
+    await fetch(`/api/favorites?resort_id=${id}`, { method: "DELETE" }).catch(
+      () => {},
+    );
   }
 
   if (items === null) {
@@ -332,7 +343,10 @@ export function Favorites() {
         <SectionHeader title="Избранное" subtitle="Загрузка..." />
         <div className="grid sm:grid-cols-2 gap-4">
           {[1, 2].map((i) => (
-            <div key={i} className="h-48 rounded-2xl bg-white/5 animate-pulse" />
+            <div
+              key={i}
+              className="h-48 rounded-2xl bg-white/5 animate-pulse"
+            />
           ))}
         </div>
       </div>
