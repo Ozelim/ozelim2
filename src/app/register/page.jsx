@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Compass } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Compass, Gift } from "lucide-react";
 
 function InputField({ label, type: initialType, id, value, onChange, icon: Icon, placeholder, error }) {
   const [show, setShow] = useState(false);
@@ -45,12 +45,50 @@ function InputField({ label, type: initialType, id, value, onChange, icon: Icon,
   );
 }
 
-export default function RegisterPage() {
+const REF_COOKIE_DAYS = 30;
+
+function readRefCookie() {
+  if (typeof document === "undefined") return "";
+  const m = document.cookie.match(/(?:^|;\s*)ref_code=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : "";
+}
+
+function writeRefCookie(code) {
+  if (typeof document === "undefined") return;
+  const maxAge = REF_COOKIE_DAYS * 24 * 60 * 60;
+  const secure = typeof location !== "undefined" && location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `ref_code=${encodeURIComponent(code)}; Max-Age=${maxAge}; Path=/; SameSite=Lax${secure}`;
+}
+
+function RegisterPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [ref, setRef] = useState("");
+  const [refNotice, setRefNotice] = useState("");
+
+  useEffect(() => {
+    const fromUrl = (searchParams.get("ref") || "").trim();
+    if (fromUrl && /^\d{10}$/.test(fromUrl)) {
+      writeRefCookie(fromUrl);
+      try { localStorage.setItem("ref_code", fromUrl); } catch {}
+      setRef(fromUrl);
+      setRefNotice("Вы регистрируетесь по реферальной ссылке");
+      return;
+    }
+    if (fromUrl && !/^\d{10}$/.test(fromUrl)) {
+      setRefNotice("Реферальный код некорректен и будет проигнорирован");
+    }
+    const fromCookie = readRefCookie();
+    if (fromCookie) { setRef(fromCookie); return; }
+    try {
+      const stored = localStorage.getItem("ref_code");
+      if (stored) setRef(stored);
+    } catch {}
+  }, [searchParams]);
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
@@ -77,10 +115,19 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          ref: ref || undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setServerError(data.error); return; }
+      try { localStorage.removeItem("ref_code"); } catch {}
+      if (data.refInvalid) {
+        setRefNotice("Реферальный код не найден — регистрация прошла без него");
+      }
       router.push("/");
     } finally {
       setLoading(false);
@@ -138,6 +185,20 @@ export default function RegisterPage() {
               className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center"
             >
               {serverError}
+            </motion.div>
+          )}
+
+          {refNotice && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-5 px-4 py-3 rounded-xl bg-(--site-accent)/10 border border-(--site-accent)/25 text-(--site-accent) text-sm flex items-center gap-2"
+            >
+              <Gift className="w-4 h-4 shrink-0" />
+              <span className="flex-1">{refNotice}</span>
+              {ref && /^\d{10}$/.test(ref) && (
+                <span className="font-mono text-xs opacity-70">{ref}</span>
+              )}
             </motion.div>
           )}
 
@@ -216,5 +277,13 @@ export default function RegisterPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterPageInner />
+    </Suspense>
   );
 }

@@ -19,6 +19,7 @@ import {
   X,
   Zap,
   Wallet,
+  Share2,
 } from "lucide-react";
 
 import { MOCK_USER, PACKAGE_FEATURES } from "../../lib/mockData";
@@ -40,6 +41,7 @@ import {
   CorporateSection,
 } from "../../components/profile/PackageSections";
 import { BalanceSection } from "../../components/profile/BalanceSection";
+import { ReferralsSection } from "../../components/profile/ReferralsSection";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -54,6 +56,7 @@ function buildNav(pkg) {
     { id: "visited", label: "Посещённые места", icon: MapPin },
     { id: "favorites", label: "Избранное", icon: Heart },
     { id: "reviews", label: "Отзывы", icon: MessageSquare },
+    { id: "referrals", label: "Рефералы", icon: Share2 },
     { id: "packages", label: "Пакеты", icon: Package },
   ];
 
@@ -250,6 +253,8 @@ function ActiveSection({ section, user, onNavigate, setUser }) {
       return <Favorites />;
     case "reviews":
       return <Reviews />;
+    case "referrals":
+      return <ReferralsSection />;
     case "packages":
       return (
         <PackagesSection

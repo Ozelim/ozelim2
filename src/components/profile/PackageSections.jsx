@@ -1,15 +1,43 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { UserPlus, Trash2, Users, Copy, Check, BarChart2, Building2, User, Baby } from 'lucide-react'
-import { Card, CardHeader, CardBody, Button, Input, Select, Badge, Modal, SectionHeader, Avatar, cn, Toast } from './ui'
-import { MOCK_FAMILY_MEMBERS, MOCK_EMPLOYEES, MOCK_AGENT_INVITES } from '../../lib/mockData'
+import { Card, CardHeader, CardBody, Button, Input, Select, Badge, Modal, SectionHeader, Avatar, EmptyState, cn, Toast } from './ui'
+import { MOCK_EMPLOYEES, MOCK_AGENT_INVITES } from '../../lib/mockData'
 
 // ─── FAMILY PACKAGE ───────────────────────────────────────────────────────────
 export function FamilySection() {
-  const [members, setMembers] = useState(MOCK_FAMILY_MEMBERS)
+  const [members, setMembers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState({ name: '', type: 'adult', relation: '', age: '' })
   const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const [removingId, setRemovingId] = useState(null)
+  const [toast, setToast] = useState(null)
+
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 2500)
+  }, [])
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      try {
+        const res = await fetch('/api/family', { cache: 'no-store' })
+        const data = await res.json()
+        if (!alive) return
+        if (!res.ok) setLoadError(data.error || 'Не удалось загрузить список')
+        else setMembers(data.members || [])
+      } catch {
+        if (alive) setLoadError('Ошибка сети')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   const adults = members.filter(m => m.type === 'adult')
   const children = members.filter(m => m.type === 'child')
@@ -19,22 +47,64 @@ export function FamilySection() {
   function validate() {
     const e = {}
     if (!form.name.trim()) e.name = 'Введите имя'
-    if (!form.age || isNaN(Number(form.age))) e.age = 'Введите возраст'
+    const ageNum = Number(form.age)
+    if (!form.age || isNaN(ageNum) || ageNum < 0 || ageNum >= 150) e.age = 'Введите корректный возраст'
     if (form.type === 'adult' && !canAddAdult) e.type = 'Максимум 2 взрослых'
     if (form.type === 'child' && !canAddChild) e.type = 'Максимум 3 детей'
     return e
   }
 
-  function handleAdd() {
+  async function handleAdd() {
     const e = validate()
     if (Object.keys(e).length) { setErrors(e); return }
-    setMembers(prev => [...prev, { id: Date.now(), ...form, age: Number(form.age) }])
-    setForm({ name: '', type: 'adult', relation: '', age: '' })
-    setErrors({})
-    setModal(false)
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/family', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          type: form.type,
+          relation: form.relation,
+          age: Number(form.age),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        showToast(data.error || 'Не удалось добавить', 'error')
+        return
+      }
+      setMembers(prev => [...prev, data.member])
+      setForm({ name: '', type: 'adult', relation: '', age: '' })
+      setErrors({})
+      setModal(false)
+      showToast('Участник добавлен', 'success')
+    } catch {
+      showToast('Ошибка сети', 'error')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  function remove(id) { setMembers(prev => prev.filter(m => m.id !== id)) }
+  async function remove(id) {
+    setRemovingId(id)
+    try {
+      const res = await fetch(`/api/family?id=${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) {
+        showToast(data.error || 'Не удалось удалить', 'error')
+        return
+      }
+      setMembers(prev => prev.filter(m => m.id !== id))
+      showToast('Участник удалён', 'success')
+    } catch {
+      showToast('Ошибка сети', 'error')
+    } finally {
+      setRemovingId(null)
+    }
+  }
+
+  const canAddAny = canAddAdult || canAddChild
 
   return (
     <div className="space-y-5">
@@ -42,12 +112,25 @@ export function FamilySection() {
         title="Семейный пакет"
         subtitle="Управление членами семьи"
         action={
-          <Button variant="primary" size="sm" onClick={() => setModal(true)}>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setModal(true)}
+            disabled={loading || !canAddAny}
+          >
             <UserPlus className="w-4 h-4" />
             Добавить
           </Button>
         }
       />
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm shadow-lg">
+          <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+        </div>
+      )}
+
+      {loadError && <Toast message={loadError} type="error" />}
 
       {/* Counters */}
       <div className="grid grid-cols-2 gap-3">
@@ -86,49 +169,74 @@ export function FamilySection() {
       </div>
 
       {/* Members list */}
-      {['adult', 'child'].map(type => {
-        const group = members.filter(m => m.type === type)
-        if (group.length === 0) return null
-        return (
-          <div key={type}>
-            <div className="text-white/40 text-xs uppercase tracking-widest mb-3">
-              {type === 'adult' ? `Взрослые (${group.length}/2)` : `Дети (${group.length}/3)`}
+      {loading ? (
+        <div className="space-y-2">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="h-14 rounded-xl border border-app-border bg-app-card/40 animate-pulse" />
+          ))}
+        </div>
+      ) : members.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="Пока нет участников"
+          subtitle="Добавьте членов семьи, чтобы они могли пользоваться семейным пакетом"
+        />
+      ) : (
+        ['adult', 'child'].map(type => {
+          const group = members.filter(m => m.type === type)
+          if (group.length === 0) return null
+          return (
+            <div key={type}>
+              <div className="text-white/40 text-xs uppercase tracking-widest mb-3">
+                {type === 'adult' ? `Взрослые (${group.length}/2)` : `Дети (${group.length}/3)`}
+              </div>
+              <div className="space-y-2">
+                {group.map(member => {
+                  const isRemoving = removingId === member.id
+                  return (
+                    <Card key={member.id} className="p-3 flex items-center gap-3">
+                      <Avatar name={member.name} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white text-sm font-medium">{member.name}</div>
+                        <div className="text-white/40 text-xs">
+                          {member.relation ? `${member.relation} · ` : ''}{member.age} лет
+                        </div>
+                      </div>
+                      <Badge variant={type === 'adult' ? 'completed' : 'pending'}>
+                        {type === 'adult' ? 'Взрослый' : 'Ребёнок'}
+                      </Badge>
+                      <button
+                        onClick={() => remove(member.id)}
+                        disabled={isRemoving}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all shrink-0 disabled:opacity-40 disabled:pointer-events-none"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </Card>
+                  )
+                })}
+              </div>
             </div>
-            <div className="space-y-2">
-              {group.map(member => (
-                <Card key={member.id} className="p-3 flex items-center gap-3">
-                  <Avatar name={member.name} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-white text-sm font-medium">{member.name}</div>
-                    <div className="text-white/40 text-xs">{member.relation} · {member.age} лет</div>
-                  </div>
-                  <Badge variant={type === 'adult' ? 'completed' : 'pending'}>
-                    {type === 'adult' ? 'Взрослый' : 'Ребёнок'}
-                  </Badge>
-                  <button onClick={() => remove(member.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all shrink-0">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )
-      })}
+          )
+        })
+      )}
 
-      <Modal open={modal} onClose={() => setModal(false)} title="Добавить участника">
+      <Modal open={modal} onClose={() => { if (!submitting) setModal(false) }} title="Добавить участника">
         <div className="space-y-4">
           <Select label="Тип" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} error={errors.type}>
-            <option value="adult">Взрослый</option>
-            <option value="child">Ребёнок</option>
+            <option value="adult" disabled={!canAddAdult}>Взрослый{!canAddAdult ? ' (лимит)' : ''}</option>
+            <option value="child" disabled={!canAddChild}>Ребёнок{!canAddChild ? ' (лимит)' : ''}</option>
           </Select>
           <Input label="Имя и фамилия" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} error={errors.name} placeholder="Ерлан Ахметов" />
           <div className="grid grid-cols-2 gap-3">
             <Input label="Родство" value={form.relation} onChange={e => setForm(f => ({ ...f, relation: e.target.value }))} placeholder="Супруг, дочь..." />
-            <Input label="Возраст" type="number" value={form.age} onChange={e => setForm(f => ({ ...f, age: e.target.value }))} error={errors.age} placeholder="35" />
+            <Input label="Возраст" type="number" min={0} max={149} value={form.age} onChange={e => setForm(f => ({ ...f, age: e.target.value }))} error={errors.age} placeholder="35" />
           </div>
           <div className="flex gap-3 justify-end pt-2">
-            <Button variant="ghost" onClick={() => setModal(false)}>Отмена</Button>
-            <Button variant="primary" onClick={handleAdd}><UserPlus className="w-4 h-4" />Добавить</Button>
+            <Button variant="ghost" onClick={() => setModal(false)} disabled={submitting}>Отмена</Button>
+            <Button variant="primary" onClick={handleAdd} disabled={submitting}>
+              {submitting ? 'Добавление…' : (<><UserPlus className="w-4 h-4" />Добавить</>)}
+            </Button>
           </div>
         </div>
       </Modal>
