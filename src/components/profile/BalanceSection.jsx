@@ -1,8 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { Wallet, Gift, Plus, ArrowUpRight, CheckCircle, ChevronDown } from "lucide-react";
-import { Button, Input, Select, SectionHeader, cn } from "./ui";
+import { useCallback, useEffect, useState } from "react";
+import {
+  Wallet,
+  Gift,
+  Plus,
+  ArrowUpRight,
+  CheckCircle,
+  ChevronDown,
+  Inbox,
+  Loader2,
+} from "lucide-react";
+import { Badge, Button, EmptyState, SectionHeader, Toast, cn } from "./ui";
 
 const BANKS = [
   "Народный банк Казахстана",
@@ -18,6 +27,25 @@ const BANKS = [
   "Home Credit Bank Kazakhstan",
   "Нурбанк",
 ];
+
+const STATUS_META = {
+  created: { label: "На рассмотрении", variant: "pending" },
+  success: { label: "Успешно", variant: "active" },
+  rejected: { label: "Отклонена", variant: "danger" },
+};
+
+function formatDate(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 // ─── Deposit modal ────────────────────────────────────────────────────────────
 function DepositPanel({ onClose, onSuccess }) {
@@ -94,7 +122,7 @@ function DepositPanel({ onClose, onSuccess }) {
 }
 
 // ─── Withdrawal form ──────────────────────────────────────────────────────────
-function WithdrawPanel({ onClose, onSuccess, maxAmount }) {
+function WithdrawPanel({ onClose, onSuccess, maxAmount, onError }) {
   const [form, setForm] = useState({
     amount: "",
     bank: "",
@@ -103,6 +131,7 @@ function WithdrawPanel({ onClose, onSuccess, maxAmount }) {
     iin: "",
   });
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -131,11 +160,50 @@ function WithdrawPanel({ onClose, onSuccess, maxAmount }) {
     return errs;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    if (submitting) return;
+
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    onSuccess(form);
+
+    setSubmitting(true);
+    try {
+      const payload = {
+        amount: parseInt(form.amount, 10),
+        bankName: form.bank,
+        iban: form.iban.replace(/\s/g, "").toUpperCase(),
+        accountHolder: form.owner.trim(),
+        iin: form.iin,
+      };
+
+      const res = await fetch("/api/withdrawals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const message = data?.error || "Не удалось создать заявку";
+        if (res.status === 409) {
+          setErrors((e) => ({ ...e, amount: message }));
+        }
+        onError?.(message);
+        return;
+      }
+
+      onSuccess({
+        withdrawal: data.withdrawal,
+        balance: typeof data.balance === "number" ? data.balance : null,
+      });
+    } catch (err) {
+      console.error("withdrawal request failed:", err);
+      onError?.("Ошибка сети. Попробуйте ещё раз.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -153,9 +221,10 @@ function WithdrawPanel({ onClose, onSuccess, maxAmount }) {
             placeholder="Введите сумму"
             value={form.amount}
             onChange={(e) => set("amount", e.target.value)}
+            disabled={submitting}
             className={cn(
               "w-full rounded-xl border bg-app-input-bg text-app-fg dark:bg-[#0a2a0a]/80 dark:text-white text-sm px-3.5 py-2.5 pr-10 transition-all duration-200",
-              "focus:outline-none focus:ring-2",
+              "focus:outline-none focus:ring-2 disabled:opacity-60",
               errors.amount
                 ? "border-red-500/50 focus:ring-red-500/30"
                 : "border-[#1a6b1a]/30 focus:ring-(--profile-accent)/25 focus:border-(--profile-accent)/45"
@@ -164,7 +233,9 @@ function WithdrawPanel({ onClose, onSuccess, maxAmount }) {
           <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-app-faint dark:text-white/30 text-sm pointer-events-none">₸</span>
         </div>
         {errors.amount && <p className="text-xs text-red-400 mt-1 flex items-center gap-1">⚠ {errors.amount}</p>}
-        <p className="text-[11px] text-app-faint dark:text-white/30 mt-1">Минимум 100 ₸</p>
+        <p className="text-[11px] text-app-faint dark:text-white/30 mt-1">
+          Минимум 100 ₸ · Доступно {maxAmount.toLocaleString("ru-RU")} ₸
+        </p>
       </div>
 
       {/* Bank */}
@@ -176,9 +247,10 @@ function WithdrawPanel({ onClose, onSuccess, maxAmount }) {
           <select
             value={form.bank}
             onChange={(e) => set("bank", e.target.value)}
+            disabled={submitting}
             className={cn(
               "w-full rounded-xl border bg-app-input-bg text-app-fg dark:bg-[#0a2a0a]/80 dark:text-white text-sm px-3.5 py-2.5 appearance-none transition-all duration-200",
-              "focus:outline-none focus:ring-2",
+              "focus:outline-none focus:ring-2 disabled:opacity-60",
               errors.bank
                 ? "border-red-500/50 focus:ring-red-500/30"
                 : "border-[#1a6b1a]/30 focus:ring-(--profile-accent)/25 focus:border-(--profile-accent)/45"
@@ -202,9 +274,10 @@ function WithdrawPanel({ onClose, onSuccess, maxAmount }) {
           placeholder="KZ00 0000 0000 0000 0000"
           value={form.iban}
           onChange={(e) => set("iban", e.target.value.toUpperCase())}
+          disabled={submitting}
           className={cn(
             "w-full rounded-xl border bg-app-input-bg text-app-fg dark:bg-[#0a2a0a]/80 dark:text-white text-sm px-3.5 py-2.5 transition-all duration-200 font-mono",
-            "focus:outline-none focus:ring-2",
+            "focus:outline-none focus:ring-2 disabled:opacity-60",
             errors.iban
               ? "border-red-500/50 focus:ring-red-500/30"
               : "border-[#1a6b1a]/30 focus:ring-(--profile-accent)/25 focus:border-(--profile-accent)/45"
@@ -223,9 +296,10 @@ function WithdrawPanel({ onClose, onSuccess, maxAmount }) {
           placeholder="ИМЯ ФАМИЛИЯ"
           value={form.owner}
           onChange={(e) => set("owner", e.target.value.toUpperCase())}
+          disabled={submitting}
           className={cn(
             "w-full rounded-xl border bg-app-input-bg text-app-fg dark:bg-[#0a2a0a]/80 dark:text-white text-sm px-3.5 py-2.5 transition-all duration-200 uppercase",
-            "focus:outline-none focus:ring-2",
+            "focus:outline-none focus:ring-2 disabled:opacity-60",
             errors.owner
               ? "border-red-500/50 focus:ring-red-500/30"
               : "border-[#1a6b1a]/30 focus:ring-(--profile-accent)/25 focus:border-(--profile-accent)/45"
@@ -247,9 +321,10 @@ function WithdrawPanel({ onClose, onSuccess, maxAmount }) {
           placeholder="000000000000"
           value={form.iin}
           onChange={(e) => set("iin", e.target.value.replace(/\D/g, "").slice(0, 12))}
+          disabled={submitting}
           className={cn(
             "w-full rounded-xl border bg-app-input-bg text-app-fg dark:bg-[#0a2a0a]/80 dark:text-white text-sm px-3.5 py-2.5 transition-all duration-200 font-mono tracking-widest",
-            "focus:outline-none focus:ring-2",
+            "focus:outline-none focus:ring-2 disabled:opacity-60",
             errors.iin
               ? "border-red-500/50 focus:ring-red-500/30"
               : "border-[#1a6b1a]/30 focus:ring-(--profile-accent)/25 focus:border-(--profile-accent)/45"
@@ -260,8 +335,19 @@ function WithdrawPanel({ onClose, onSuccess, maxAmount }) {
       </div>
 
       <div className="flex gap-2 pt-1">
-        <Button variant="secondary" className="flex-1" onClick={onClose} type="button">Отмена</Button>
-        <Button variant="primary" className="flex-1" type="submit">Отправить заявку</Button>
+        <Button variant="secondary" className="flex-1" onClick={onClose} type="button" disabled={submitting}>
+          Отмена
+        </Button>
+        <Button variant="primary" className="flex-1" type="submit" disabled={submitting || maxAmount <= 0}>
+          {submitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Отправка…
+            </>
+          ) : (
+            "Отправить заявку"
+          )}
+        </Button>
       </div>
     </form>
   );
@@ -289,18 +375,120 @@ function SuccessState({ type, onClose }) {
   );
 }
 
+// ─── Withdraw history ─────────────────────────────────────────────────────────
+function WithdrawHistory({ items, loading }) {
+  if (loading && items.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-10 text-app-subtle dark:text-white/45 text-sm gap-2">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        Загрузка заявок…
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        icon={Inbox}
+        title="Заявок пока нет"
+        subtitle="Отправьте первую заявку на вывод средств — она появится здесь."
+      />
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-app-border">
+      {items.map((w) => {
+        const meta = STATUS_META[w.status] ?? STATUS_META.created;
+        return (
+          <li key={w.id} className="py-4 first:pt-0 last:pb-0">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div className="text-app-fg dark:text-white font-semibold text-base">
+                {w.amount.toLocaleString("ru-RU")} ₸
+              </div>
+              <Badge variant={meta.variant}>{meta.label}</Badge>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs text-app-subtle dark:text-white/55">
+              <div className="flex justify-between gap-2">
+                <span className="text-app-faint dark:text-white/35">Банк</span>
+                <span className="text-app-fg dark:text-white/85 truncate text-right">{w.bankName}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span className="text-app-faint dark:text-white/35">IBAN</span>
+                <span className="font-mono text-app-fg dark:text-white/85 truncate text-right">{w.iban}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span className="text-app-faint dark:text-white/35">Владелец</span>
+                <span className="text-app-fg dark:text-white/85 truncate text-right">{w.accountHolder}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span className="text-app-faint dark:text-white/35">ИИН</span>
+                <span className="font-mono text-app-fg dark:text-white/85 truncate text-right">{w.iin}</span>
+              </div>
+              <div className="flex justify-between gap-2 sm:col-span-2">
+                <span className="text-app-faint dark:text-white/35">Создана</span>
+                <span className="text-app-muted dark:text-white/55">{formatDate(w.createdAt)}</span>
+              </div>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 // ─── MAIN EXPORT ─────────────────────────────────────────────────────────────
 export function BalanceSection({ user, setUser }) {
   // "idle" | "deposit" | "withdraw" | "deposit-success" | "withdraw-success"
   const [mode, setMode] = useState("idle");
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [loadingList, setLoadingList] = useState(true);
+  const [toast, setToast] = useState(null); // { message, type }
+
+  const showToast = useCallback((message, type = "success") => {
+    setToast({ message, type });
+    if (typeof window !== "undefined") {
+      window.clearTimeout(showToast._t);
+      showToast._t = window.setTimeout(() => setToast(null), 3500);
+    }
+  }, []);
+
+  const loadWithdrawals = useCallback(async () => {
+    try {
+      const res = await fetch("/api/withdrawals", { cache: "no-store" });
+      if (!res.ok) throw new Error("failed");
+      const data = await res.json();
+      setWithdrawals(Array.isArray(data.withdrawals) ? data.withdrawals : []);
+    } catch (err) {
+      console.error("load withdrawals failed:", err);
+    } finally {
+      setLoadingList(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadWithdrawals();
+  }, [loadWithdrawals]);
 
   function handleDepositSuccess(amount) {
     setUser((u) => ({ ...u, balance: (u.balance || 0) + amount }));
     setMode("deposit-success");
   }
 
-  function handleWithdrawSuccess(_form) {
+  function handleWithdrawSuccess({ withdrawal, balance }) {
+    if (withdrawal) {
+      setWithdrawals((prev) => [withdrawal, ...prev]);
+    }
+    if (typeof balance === "number") {
+      setUser((u) => ({ ...u, balance }));
+    }
+    showToast("Заявка создана", "success");
     setMode("withdraw-success");
+    loadWithdrawals();
+  }
+
+  function handleWithdrawError(message) {
+    showToast(message, "error");
   }
 
   const balance = user.balance ?? 0;
@@ -308,6 +496,12 @@ export function BalanceSection({ user, setUser }) {
 
   return (
     <div className="space-y-6">
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 max-w-sm">
+          <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+        </div>
+      )}
+
       <SectionHeader
         title="Баланс"
         subtitle="Управление средствами на счёте"
@@ -358,7 +552,9 @@ export function BalanceSection({ user, setUser }) {
             </button>
             <button
               onClick={() => setMode("withdraw")}
-              className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium text-app-subtle dark:text-white/50 hover:text-app-fg dark:hover:text-white hover:bg-app-fg/4 dark:hover:bg-white/5 transition-colors"
+              disabled={balance <= 0}
+              className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium text-app-subtle dark:text-white/50 hover:text-app-fg dark:hover:text-white hover:bg-app-fg/4 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+              title={balance <= 0 ? "Недостаточно средств" : undefined}
             >
               <ArrowUpRight className="w-4 h-4" />
               Вывести
@@ -394,6 +590,7 @@ export function BalanceSection({ user, setUser }) {
             <WithdrawPanel
               onClose={() => setMode("idle")}
               onSuccess={handleWithdrawSuccess}
+              onError={handleWithdrawError}
               maxAmount={balance}
             />
           </div>
@@ -408,6 +605,24 @@ export function BalanceSection({ user, setUser }) {
             />
           </div>
         )}
+      </div>
+
+      {/* History */}
+      <div className="rounded-2xl border border-app-border bg-app-card dark:bg-[#0a2a0a]/60 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-app-fg dark:text-white font-semibold text-lg" style={{ fontFamily: "Cormorant Garamond, serif" }}>
+              История заявок
+            </h3>
+            <p className="text-app-subtle dark:text-white/45 text-xs mt-0.5">
+              Все ваши заявки на вывод средств
+            </p>
+          </div>
+          {loadingList && withdrawals.length > 0 && (
+            <Loader2 className="w-4 h-4 animate-spin text-app-faint dark:text-white/35" />
+          )}
+        </div>
+        <WithdrawHistory items={withdrawals} loading={loadingList} />
       </div>
     </div>
   );
