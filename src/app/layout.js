@@ -1,10 +1,8 @@
-'use client'
 import './globals.css'
+import PageWrapper from './PageWrapper'
 import Header from '@/components/layout/Header'
 import SupportChat from '@/components/sections/SupportChat'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
-import { usePathname } from 'next/navigation'
-import { AnimatePresence, motion } from 'framer-motion'
 import { Cormorant_Garamond, DM_Sans } from 'next/font/google'
 
 const cormorant = Cormorant_Garamond({
@@ -22,9 +20,12 @@ const dmSans = DM_Sans({
   weight: ['300', '400', '500', '600', '700'],
 })
 
-export default function RootLayout({
-  children,
-}) {
+export const metadata = {
+  title: 'Ozelim',
+  description: 'Туроператор Ozelim',
+};
+
+export default function RootLayout({ children }) {
   return (
     <html lang="ru" suppressHydrationWarning className={`${cormorant.variable} ${dmSans.variable}`}>
       <body className="bg-app-bg text-app-fg font-body antialiased">
@@ -35,22 +36,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  )
-}
-
-function PageWrapper({ children }) {
-  const pathname = usePathname()
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={pathname}
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -16 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
   )
 }
