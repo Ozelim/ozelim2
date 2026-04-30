@@ -1,367 +1,248 @@
 "use client";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Hero from "@/components/sections/Hero";
 import Footer, { MarqueeTicker } from "@/components/sections/Footer";
 import {
-  Scale,
-  Gavel,
-  Globe2,
-  FileText,
-  Landmark,
+  Sparkles,
+  Building2,
+  FileSignature,
+  ChevronLeft,
+  ChevronRight,
+  Handshake,
+  Globe,
+  Plane,
   ShieldCheck,
-  ChevronDown,
-  ArrowRight,
-  Check,
-  Briefcase,
   HandCoins,
+  Stethoscope,
 } from "lucide-react";
-import Image from "next/image";
 
-const functions = [
+const offerings = [
+  {
+    icon: Stethoscope,
+    text: "Цифровой ассистент по подбору санаториев по заболеваниям и патологиям",
+  },
+  {
+    icon: Plane,
+    text: "Авторские туры и культурно-познавательные маршруты",
+  },
   {
     icon: ShieldCheck,
-    title: "Защита прав потребителей в сфере внутреннего туризма",
-    desc: "Это важный аспект, который включает в себя обеспечение соблюдения прав клиентов, путешествующих внутри страны. В рамках этой защиты рассматриваются ключевые моменты: предоставление достоверной информации, качество услуг, разрешение споров, возмещение ущерба, а также представление интересов туриста в суде и других органах.",
+    text: "Миграционно-визовая, правовая и страховая поддержка",
   },
   {
-    icon: Gavel,
-    title: "Представительство в суде",
-    desc: "Это процесс, при котором юрист или адвокат представляет интересы юридических лиц в судебном разбирательстве. Члены Ассоциации могут рассчитывать на профессиональную юридическую помощь в любых судебных разбирательствах, связанных с их деятельностью.",
-  },
-  {
-    icon: Globe2,
-    title: "Международное сопровождение",
-    desc: "Это комплекс услуг, который обеспечивает поддержку и консультации для клиентов, занимающихся международной деятельностью. Это может включать в себя помощь в вопросах, связанных с международным правом, налогами, договорами, а также сопровождение в юридических вопросах и урегулировании споров между сторонами.",
-  },
-  {
-    icon: Landmark,
-    title: "Оформление документов на земельный участок по Казахстану",
-    desc: "Это профессиональная юридическая помощь в получении документов на земельный участок, который включает в себя несколько этапов: правильная подача заявки на получение земельного участка, подготовка и сбор необходимых документов, процесс получения разрешения на землю, получение кадастрового паспорта на землю и регистрация прав на него в соответствующем органе.",
+    icon: Handshake,
+    text: "Административная поддержка Ассоциации туристов Казахстана",
   },
   {
     icon: HandCoins,
-    title: "Получение кредитов и Грантов для туристических направлений",
-    desc: "Оформление и разработка документов для получения льготных кредитов и Грантов для туристических направлений является важным шагом для развития туристических проектов. Этот процесс включает в себя несколько ключевых этапов: подготовка бизнес-планов, составление необходимых заявок, юридически правильная подача заявок в государственные и частные организации, предоставляющие кредиты и Гранты, получение всех необходимых разрешений и лицензий для ведения деятельности, подготовка и согласование договоров, следование инструкциям и согласование всех условий с потенциальными инвесторами или кредиторами.",
+    text: "Эндаумент фонд на базе МФЦА для поддержки туристических проектов",
   },
 ];
 
-const additionalServices = [
+const partners = [
+  "Юридическая компания ТОО «GRT COMPANY»",
+  "ТОО «Центр сертификации специалистов «САПА»",
+  "Web-студия ИП «TAS Prog»",
+  "ТОО «PROFIL-KZ»",
+  "Миграционно-визовый консалтинг ИП Мукатаева А.К.",
+  "АО «Страховая компания «НОМАД Иншуранс»",
+  "Объединение индивидуальных предпринимателей и юридических лиц «Ассоциация туристов Казахстана «OzElim»",
+  "Акционерное общество «Дочерняя компания Народного Банка Казахстана по страхованию жизни «Халык-Life»",
+  "Некоммерческая организация «Endowment fund of the Association of Tourists of Kazakhstan» — Эндаумент фонд «OzElim» на базе МФЦА",
+  "Отдел туризма при ГУ «Управление физической культуры и спорта Павлодарской области»",
+  "Совет Деловых Женщин Павлодарской области",
+  "ТОО «Y. Taxi Qazaqstan»",
+  "ИП «TURAN TOUR»",
+  "ТОО «PALMA TUR»",
+  "ТОО «Нуртау»",
+  "ИП «МЕЙРБАЕВ М.Ж.»",
+  "ТОО «Айдабол Курылыс»",
+  "ИП Нуржумбаева",
+  "ТОО «Компания «Пять звезд»",
+  "ТОО «Международная ассоциация клубов», г. Алматы",
+];
+
+const memorandums = [
   {
-    title: "Консультации и правовая поддержка",
-    body: (
-      <>
-        <p className="mb-3">
-          Юридическая консультация является основополагающей частью правовой
-          поддержки членов Ассоциации.
-        </p>
-        <p className="mb-2 text-white/70">Особое внимание уделяется следующим аспектам:</p>
-        <ul className="list-disc pl-5 space-y-1.5 text-white/70">
-          <li>Разъяснение норм законодательства в сфере туризма;</li>
-          <li>Предоставление рекомендаций по правовому оформлению сделок;</li>
-          <li>Помощь в решении правовых вопросов.</li>
-        </ul>
-        <p className="mt-3">
-          Консультации позволяют членам Ассоциации получать актуальную
-          информацию о своих правах и обязанностях.
-        </p>
-      </>
-    ),
+    title: "Меморандум №1",
+    desc: "О сотрудничестве с ГУ «Управление физической культуры и спорта Павлодарской области».",
   },
   {
-    title: "Представление интересов в судах",
-    body: (
-      <p>
-        Юристы Центра представляют интересы членов Ассоциации в судах всех
-        инстанций — от подготовки доказательной базы до участия в заседаниях
-        и обжалования решений.
-      </p>
-    ),
+    title: "Меморандум №2",
+    desc: "Соглашение о совместной работе по развитию внутреннего туризма в регионе.",
   },
   {
-    title: "Разработка и анализ договоров",
-    body: (
-      <p>
-        Подготовка, проверка и сопровождение договоров с туристическими
-        агентствами, гостиницами, перевозчиками и партнёрами — с учётом
-        отраслевых рисков и судебной практики.
-      </p>
-    ),
+    title: "Меморандум №3",
+    desc: "Меморандум о сотрудничестве с Народным Банком Казахстана по гостевым программам.",
   },
   {
-    title: "Защита прав потребителей",
-    body: (
-      <p>
-        Помощь туристам при нарушении их прав на качество, безопасность и
-        информацию: претензионная работа, возврат стоимости услуг и
-        компенсация ущерба.
-      </p>
-    ),
+    title: "Меморандум №4",
+    desc: "Соглашение по обмену опытом и сопровождению туристических услуг с партнёрами.",
   },
 ];
 
-function Accordion({ items }) {
-  const [open, setOpen] = useState(0);
-  return (
-    <div className="rounded-2xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 overflow-hidden divide-y divide-[#1a6b1a]/20">
-      {items.map((item, i) => {
-        const isOpen = open === i;
-        return (
-          <div key={item.title}>
-            <button
-              type="button"
-              onClick={() => setOpen(isOpen ? -1 : i)}
-              className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left text-white hover:bg-[#0a2a0a]/60 transition-colors"
-            >
-              <span className="font-semibold">
-                {i + 1}. {item.title}
-              </span>
-              <ChevronDown
-                className={`w-4 h-4 text-(--site-accent) shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
-              />
-            </button>
-            <AnimatePresence initial={false}>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-6 pb-5 text-sm text-white/70 leading-relaxed">
-                    {item.body}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-export default function AssociationPage() {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [topic, setTopic] = useState("");
+export default function LegalPage() {
+  const [memIdx, setMemIdx] = useState(0);
+  const visible = 4;
+  const next = () =>
+    setMemIdx((i) => Math.min(i + 1, Math.max(0, memorandums.length - visible)));
+  const prev = () => setMemIdx((i) => Math.max(0, i - 1));
 
   return (
     <main>
       <Hero
         title="Ассоциация"
         highlight="туристов Казахстана"
-        subtitle="Центр правовой защиты внутренних туристов Казахстана — юридическая поддержка туристов, агентств и партнёров отрасли."
+        subtitle="Открой Казахстан вместе с OzElim — экосистема партнёров, услуг и сервисов для безопасных и полезных путешествий."
         badge="OzElim"
       />
       <MarqueeTicker />
 
-      {/* Director intro */}
+      {/* Hero block */}
       <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-[auto_1fr] gap-10 items-start">
+        <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mx-auto lg:mx-0"
+            className="rounded-3xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 p-8 md:p-12"
           >
-            <div className="w-56 h-72 rounded-3xl overflow-hidden border border-(--site-accent)/30 bg-[#061506]/60 flex items-center justify-center">
-              <Briefcase className="w-14 h-14 text-(--site-accent)/40" />
-            </div>
-            <div className="text-center mt-4">
-              <div
-                className="text-white font-bold text-lg"
+            <div className="text-center mb-8">
+              <Sparkles className="w-10 h-10 text-(--site-accent) mx-auto mb-4" />
+              <h2
+                className="text-4xl md:text-5xl font-bold text-white mb-4"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
-                Султанов Искандер Серикович
-              </div>
-              <div className="text-white/40 text-xs mt-1">
-                Юрист Ассоциации, директор «GRT COMPANY»
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <div className="text-(--site-accent) text-xs uppercase tracking-widest mb-3">
-              Центр правовой защиты
-            </div>
-            <h2
-              className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight"
-              style={{ fontFamily: "Cormorant Garamond, serif" }}
-            >
-              Центр правовой защиты внутренних туристов{" "}
-              <span className="text-gradient">Казахстана</span>
-            </h2>
-            <p className="text-white/70 leading-relaxed mb-4">
-              Казахстанские туристы на мировом рынке отличаются требовательностью
-              к качеству оказываемых услуг в сфере туризма, на которое каждый
-              имеет право. Законодательством закреплены основные права
-              потребителя: право на качество и безопасность услуги, на
-              получение необходимой информации об услуге, а также право на
-              государственную и общественную защиту в случае нарушения его прав
-              и интересов.
-            </p>
-            <p className="text-white/55 leading-relaxed">
-              Юрист с многолетней профессиональной работой в правовой системе,
-              директор юридической компании «GRT COMPANY», автор эксклюзивной
-              системы создания и управления Эндаумент фондами в Казахстане,
-              автор инновационной методики управления человеческими ресурсами,
-              профессиональный эксперт по физиогномике. Международный «complaints
-              officer» — уполномоченный по рассмотрению жалоб от пользователей,
-              юрист Ассоциации туристов Казахстана «OzElim».
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Mission banner */}
-      <section className="px-6 pb-12">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="rounded-3xl border border-[#1a6b1a]/30 bg-[#0a2a0a]/40 p-8 md:p-10 grid md:grid-cols-[auto_1fr] gap-8 items-center"
-          >
-            <div className="w-44 h-44 rounded-2xl border border-(--site-accent)/30 bg-[#061506]/60 flex items-center justify-center shrink-0 mx-auto md:mx-0">
-              <Scale className="w-16 h-16 text-(--site-accent)/60" />
-            </div>
-            <div>
-              <p className="text-white/75 leading-relaxed mb-4">
-                Члены Ассоциации «Öz Elim» на выгодных условиях имеют уникальный
-                доступ к широкому спектру юридических услуг, которые направлены
-                на защиту их прав, поддержку туристических проектов, а также
-                содействие развитию туристической отрасли в Казахстане.
+                Открой Казахстан вместе с{" "}
+                <span className="text-gradient">OzElim!</span>
+              </h2>
+              <p className="text-white/65 max-w-3xl mx-auto leading-relaxed">
+                Мы объединяем людей, сервисы, знания и технологии, чтобы сделать
+                путешествия по Казахстану доступными, комфортными и полезными.
               </p>
-              <p className="text-white/55 leading-relaxed text-sm">
-                Центр правовой защиты внутренних туристов Казахстана предлагает
-                услуги по защите прав граждан, путешествующих внутри страны.
-                Центр предоставляет консультации по вопросам соблюдения
-                туристических прав, урегулирования споров с туристическими
-                агентствами, гостиницами и другими предприятиями сферы туризма.
-              </p>
+            </div>
+
+            <div className="text-(--site-accent) font-semibold mb-4">
+              OzElim — это:
+            </div>
+            <div className="grid md:grid-cols-2 gap-3">
+              {offerings.map((o, i) => (
+                <motion.div
+                  key={o.text}
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05 }}
+                  className="flex items-start gap-3 p-4 rounded-2xl border border-[#1a6b1a]/20 bg-[#061506]/60"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center shrink-0">
+                    <o.icon className="w-4 h-4 text-(--site-accent)" />
+                  </div>
+                  <p className="text-white/75 text-sm leading-relaxed">
+                    {o.text}
+                  </p>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Functions list */}
-      <section className="px-6 pb-16">
-        <div className="max-w-5xl mx-auto">
+      {/* Partners */}
+      <section className="px-6 pb-20 bg-[#0a2a0a]/20">
+        <div className="max-w-7xl mx-auto py-14">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-white mb-8"
+            className="text-3xl md:text-4xl font-bold text-white text-center mb-10"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
-            Основные функции Центра
+            Наши партнёры
           </motion.h2>
-          <div className="space-y-5">
-            {functions.map((f, i) => (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-                className="rounded-2xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 p-6 md:p-7 flex gap-5"
-              >
-                <div className="w-12 h-12 rounded-xl bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center shrink-0">
-                  <f.icon className="w-5 h-5 text-(--site-accent)" />
-                </div>
-                <div>
-                  <h3
-                    className="text-white font-bold text-lg mb-2"
-                    style={{ fontFamily: "Cormorant Garamond, serif" }}
-                  >
-                    {f.title}
-                  </h3>
-                  <p className="text-white/55 text-sm leading-relaxed">
-                    {f.desc}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+
+          <div className="rounded-3xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 p-6 md:p-8">
+            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3">
+              {partners.map((p, i) => (
+                <motion.div
+                  key={p}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.02 }}
+                  className="flex items-start gap-3 py-2"
+                >
+                  <div className="w-6 h-6 rounded-md bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <Building2 className="w-3 h-3 text-(--site-accent)" />
+                  </div>
+                  <p className="text-white/70 text-sm leading-relaxed">{p}</p>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Additional services accordion */}
-      <section className="px-6 pb-20 bg-[#0a2a0a]/20">
-        <div className="max-w-4xl mx-auto py-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-white mb-8 text-center"
-            style={{ fontFamily: "Cormorant Garamond, serif" }}
-          >
-            Дополнительные юридические услуги
-          </motion.h2>
-          <Accordion items={additionalServices} />
-        </div>
-      </section>
-
-      {/* CTA form */}
+      {/* Memorandums carousel */}
       <section className="px-6 py-20">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="rounded-3xl border border-(--site-accent)/30 bg-linear-to-br from-(--site-accent)/10 to-transparent p-8 md:p-10"
-          >
-            <div className="text-center mb-8">
-              <h3
-                className="text-3xl md:text-4xl font-bold text-white mb-3"
-                style={{ fontFamily: "Cormorant Garamond, serif" }}
-              >
-                Профессиональное решение Ваших проблем!
-              </h3>
-              <p className="text-white/55 text-sm">
-                Оставьте заявку — мы свяжемся с вами и подберём подходящий формат
-                юридической поддержки.
-              </p>
-            </div>
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="grid md:grid-cols-3 gap-3"
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-10">
+            <h2
+              className="text-3xl md:text-4xl font-bold text-white"
+              style={{ fontFamily: "Cormorant Garamond, serif" }}
             >
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ваше имя"
-                className="px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-white placeholder-white/30 text-sm focus:outline-none focus:border-(--site-accent)/50"
-              />
-              <input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+7 (___) ___-__-__"
-                className="px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-white placeholder-white/30 text-sm focus:outline-none focus:border-(--site-accent)/50"
-              />
-              <input
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="Тема обращения"
-                className="px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-white placeholder-white/30 text-sm focus:outline-none focus:border-(--site-accent)/50"
-              />
-              <motion.button
-                type="submit"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="md:col-span-3 mt-2 py-3.5 rounded-xl bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-bold text-sm flex items-center justify-center gap-2"
+              Меморандумы
+            </h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={prev}
+                disabled={memIdx === 0}
+                className="w-10 h-10 rounded-full border border-white/15 text-white flex items-center justify-center hover:border-(--site-accent) hover:text-(--site-accent) transition-colors disabled:opacity-30"
               >
-                Оставить заявку
-                <ArrowRight className="w-4 h-4" />
-              </motion.button>
-            </form>
-          </motion.div>
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={next}
+                disabled={memIdx >= memorandums.length - visible}
+                className="w-10 h-10 rounded-full border border-white/15 text-white flex items-center justify-center hover:border-(--site-accent) hover:text-(--site-accent) transition-colors disabled:opacity-30"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {memorandums
+              .slice(memIdx, memIdx + visible)
+              .map((m, i) => (
+                <motion.div
+                  key={`${m.title}-${memIdx + i}`}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="rounded-2xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 p-5 flex flex-col gap-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <FileSignature className="w-5 h-5 text-(--site-accent)" />
+                    <span className="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full border border-(--site-accent)/30 text-(--site-accent)">
+                      PDF
+                    </span>
+                  </div>
+                  <div className="aspect-[3/4] rounded-xl border border-dashed border-[#1a6b1a]/40 bg-[#030f03]/60 flex items-center justify-center text-white/25 text-xs">
+                    Документ
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold text-sm mb-1">
+                      {m.title}
+                    </div>
+                    <p className="text-white/45 text-xs leading-relaxed">
+                      {m.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+          </div>
         </div>
       </section>
 

@@ -4,7 +4,7 @@ import { MapPin, Clock, Users, Star, ArrowRight, Heart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-const tours = [
+const kurorts = [
   {
     img: 'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600&q=75',
     country: 'Испания',
@@ -79,7 +79,7 @@ const tours = [
   },
 ]
 
-export default function TourCards() {
+export default function KurortCards() {
   return (
     <section className="py-20 px-6">
       <div className="max-w-7xl mx-auto">
@@ -99,16 +99,16 @@ export default function TourCards() {
             </h2>
           </div>
           <button className="flex items-center gap-2 text-(--site-accent) text-sm hover:gap-3 transition-all group">
-            <Link href="/tours" className="flex items-center gap-2 text-(--site-accent) text-sm hover:gap-3 transition-all group">
-              Все туры <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <Link href="/trips" className="flex items-center gap-2 text-(--site-accent) text-sm hover:gap-3 transition-all group">
+              Все курорты <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </button>
         </motion.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tours.map((tour, i) => (
+          {kurorts.map((kurort, i) => (
             <motion.div
-              key={tour.title}
+              key={kurort.title}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -118,8 +118,8 @@ export default function TourCards() {
               {/* Image */}
               <div className="relative h-52 overflow-hidden media-contrast">
                 <Image
-                  src={tour.img}
-                  alt={tour.title}
+                  src={kurort.img}
+                  alt={kurort.title}
                   fill
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   sizes="(max-width: 768px) 100vw, 33vw"
@@ -127,7 +127,7 @@ export default function TourCards() {
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-[#030f03]/80 to-transparent" />
 
-                {tour.hot && (
+                {kurort.hot && (
                   <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-(--site-accent) text-(--site-on-accent) text-xs font-bold">
                     🔥 Горящий
                   </div>
@@ -139,8 +139,8 @@ export default function TourCards() {
 
                 <div className="absolute bottom-3 left-3 flex items-center gap-1 text-(--site-accent)">
                   <Star className="w-3.5 h-3.5 fill-current" />
-                  <span className="text-sm font-bold">{tour.rating}</span>
-                  <span className="text-white/50 text-xs">({tour.reviews})</span>
+                  <span className="text-sm font-bold">{kurort.rating}</span>
+                  <span className="text-white/50 text-xs">({kurort.reviews})</span>
                 </div>
               </div>
 
@@ -148,28 +148,28 @@ export default function TourCards() {
               <div className="p-5">
                 <div className="flex items-center gap-1.5 text-white/50 text-xs mb-2">
                   <MapPin className="w-3 h-3" />
-                  {tour.city}, {tour.country}
+                  {kurort.city}, {kurort.country}
                 </div>
                 <h3
                   className="text-white font-bold text-xl mb-4"
                   style={{ fontFamily: 'Cormorant Garamond, serif' }}
                 >
-                  {tour.title}
+                  {kurort.title}
                 </h3>
                 <div className="flex items-center gap-4 text-sm text-white/50 mb-5">
                   <span className="flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" />
-                    {tour.days} дней
+                    {kurort.days} дней
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5" />
-                    {tour.group} чел.
+                    {kurort.group} чел.
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-white/40 text-xs">от</div>
-                    <div className="text-(--site-accent) font-bold text-xl">€ {tour.price.toLocaleString()}</div>
+                    <div className="text-(--site-accent) font-bold text-xl">€ {kurort.price.toLocaleString()}</div>
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}

@@ -1,5 +1,5 @@
 import Hero from "@/components/sections/Hero";
-import TourCards from "@/components/sections/TourCards";
+import KurortCards from "@/components/sections/KurortCards";
 import TourTabs from "@/components/sections/TourTabs";
 import WhyUs from "@/components/sections/WhyUs";
 import Carousel1 from "@/components/sections/Carousel1";
@@ -19,9 +19,8 @@ export default function HomePage() {
 
       <MarqueeTicker />
       <NewsBlock />
-      <TourCards />
+      <KurortCards />
       <TourTabs />
-      <WhyUs />
 
       {/* Carousels section */}
       <section className="py-20 px-6">
@@ -45,6 +44,8 @@ export default function HomePage() {
           <Carousel3 />
         </div>
       </section>
+
+      <WhyUs />
 
       <Accordion />
       <MarqueeTicker />

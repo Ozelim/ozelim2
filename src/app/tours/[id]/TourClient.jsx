@@ -448,7 +448,7 @@ export default function TourClient({ tour }) {
             transition={{ duration: 0.6 }}
           >
             <Link
-              href="/tours"
+              href="/trips"
               className="inline-flex items-center gap-2 text-white/50 hover:text-white/80 text-sm mb-6 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />

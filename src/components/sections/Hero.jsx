@@ -25,19 +25,19 @@ import { TourSelectionDialog } from "../tour-selection/tour-selection";
 
 // ─── Service tiles ────────────────────────────────────────────────────────────
 const TILES = [
-  { label: "Туры",                           icon: Plane,       href: "/tours" },
+  { label: "Поездки",                        icon: Plane,       href: "/trips" },
   { label: "Визы",                           icon: FileCheck,   href: "https://vizapro.kz", external: true },
-  { label: "Halyk Life",                     icon: ShieldCheck, href: "/insurance" },
+  { label: "Halyk Life",                     icon: ShieldCheck, image: "/halyk-life.png", href: "/insurance" },
   { label: "Фонд",                           icon: HandCoins,   href: "/endowment" },
   { label: "Ассоциация туристов Казахстана", icon: UsersRound,  href: "/association" },
   { label: "Правовая защита",                icon: Scale,       href: "/legal" },
-  { label: "Nomad Insurance",                icon: Waves,       href: "/sanatoriums" },
+  { label: "Nomad Insurance",                icon: Waves,       image: "/nomad.svg", href: "/sanatoriums" },
   { label: "АВИА ЖД билеты",                icon: Ticket,      href: "/tickets" },
   { label: "О нас",                icon: Users,      href: "/about" },
   { label: `Вопрос-ответ`,                icon: MessageCircleQuestion,      href: "/faq" },
 ];
 
-// ─── Tour cards data (tours hero) ─────────────────────────────────────────────
+// ─── Tour cards data (trips page hero) ───────────────────────────────────────
 const TOURS = [
   {
     img: "https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600&q=75",
@@ -267,7 +267,7 @@ function TourCarousel() {
 export default function Hero({ title, subtitle, highlight }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const isTours = pathname === "/tours";
+  const isTrips = pathname === "/trips";
   const showTiles = isHome;
 
   return (
@@ -298,7 +298,7 @@ export default function Hero({ title, subtitle, highlight }) {
         <div
           className={[
             "text-center px-6 max-w-5xl mx-auto w-full",
-            showTiles || isTours
+            showTiles || isTrips
               ? "pt-28 md:pt-32 lg:pt-36"
               : "flex-1 flex flex-col justify-center",
           ].join(" ")}
@@ -311,7 +311,7 @@ export default function Hero({ title, subtitle, highlight }) {
             style={{
               fontFamily: "Cormorant Garamond, serif",
               fontSize:
-                showTiles || isTours
+                showTiles || isTrips
                   ? "clamp(3.1rem, 9vw, 6.4rem)"
                   : "clamp(3.5rem, 10vw, 7rem)",
             }}
@@ -357,10 +357,10 @@ export default function Hero({ title, subtitle, highlight }) {
                 whileTap={{ scale: 0.97 }}
                 className="px-8 py-4 rounded-full border border-white/30 text-white hover:border-[#FFD700]/50 hover:bg-white/5 font-medium text-sm tracking-wider uppercase transition-colors"
               >
-                <Link href="/tours">Посмотреть поездки</Link>
+                <Link href="/trips">Посмотреть поездки</Link>
               </motion.button>
             )}
-            {!isHome && !isTours && (
+            {!isHome && !isTrips && (
               <motion.button
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
@@ -395,7 +395,10 @@ export default function Hero({ title, subtitle, highlight }) {
                     whileTap={{ scale: 0.97 }}
                     className={`group flex flex-col items-center justify-center gap-3 rounded-2xl border border-(--site-accent)/30 bg-(--site-accent)/10 backdrop-blur-sm hover:bg-(--site-accent)/20 hover:border-(--site-accent)/60 transition-all duration-300 cursor-pointer p-5`}
                   >
-                    <tile.icon className="w-10 h-10 text-green-300 dark:text-(--site-accent-bright)" strokeWidth={1.5} />
+                    {tile.image
+                      ? <Image src={tile.image} alt={tile.label} width={40} height={40} className="w-10 h-10 object-contain" />
+                      : <tile.icon className="w-10 h-10 text-green-300 dark:text-(--site-accent-bright)" strokeWidth={1.5} />
+                    }
                     <span className="text-white font-semibold text-center leading-tight line-clamp-2">
                       {tile.label} <br/>  <span className="opacity-0">1</span>
                     </span>
@@ -406,8 +409,8 @@ export default function Hero({ title, subtitle, highlight }) {
           </div>
         )}
 
-        {/* ── Tour cards carousel (tours page only) ── */}
-        {isTours && <TourCarousel />}
+        {/* ── Tour cards carousel (trips page only) ── */}
+        {isTrips && <TourCarousel />}
       </div>
     </section>
   );

@@ -21,7 +21,7 @@ import Image from "next/image";
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA
 // ─────────────────────────────────────────────────────────────────────────────
-const RESORTS = [
+export const RESORTS = [
   {
     id: 1,
     name: "Боровое",
@@ -590,25 +590,6 @@ function ListPanel({ selId, onSelect, twoCols = false }) {
 
   return (
     <div className="w-full h-full flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="shrink-0 px-4 pt-4 pb-3 border-b border-[#1a6b1a]/20 backdrop-blur-sm">
-        <div className="flex items-baseline gap-2 mb-0.5">
-          <h1
-            className="font-semibold tracking-tight"
-            style={{
-              fontFamily: "Cormorant Garamond, Georgia, serif",
-              fontSize: 24,
-            }}
-          >
-            Курорты Казахстана
-          </h1>
-          <span className="text-xs text-stone-400">{RESORTS.length} мест</span>
-        </div>
-        <p className="text-sm text-stone-500">
-          Откройте природные жемчужины великой страны
-        </p>
-      </div>
-
       {/* Cards */}
       <div
         key={`l${listKey}`}
@@ -655,243 +636,6 @@ function ListPanel({ selId, onSelect, twoCols = false }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MAP PANEL  (light tile, bounded zoom)
-// ─────────────────────────────────────────────────────────────────────────────
-// function MapPanel({ selId, onSelect }) {
-//   const containerRef = useRef(null)
-//   const mapRef = useRef(null)
-//   const markersRef = useRef({})
-//   const prevSelRef = useRef(null)
-//   const leafletRef = useRef(null)
-//   const resizeObserverRef = useRef(null)
-
-//   // Build marker HTML (inline style — no className dependency)
-//   const markerHtml = useCallback((isSel) => `
-//     <div style="
-//       width:38px;height:38px;border-radius:50%;
-//       display:flex;align-items:center;justify-content:center;
-//       font-size:17px;cursor:pointer;
-//       background:${isSel ? 'rgba(251,191,36,0.22)' : 'rgba(255,255,255,0.92)'};
-//       border:2px solid ${isSel ? '#f59e0b' : 'rgba(251,191,36,0.6)'};
-//       backdrop-filter:blur(10px);
-//       box-shadow:${isSel
-//         ? '0 0 20px rgba(251,191,36,0.55),0 4px 16px rgba(0,0,0,0.25)'
-//         : '0 4px 12px rgba(0,0,0,0.18)'
-//       };
-//       transform:${isSel ? 'scale(1.28)' : 'scale(1)'};
-//       transition:all 0.35s cubic-bezier(0.16,1,0.3,1);
-//       ${isSel ? 'animation: markerPulse 1.8s infinite;' : ''}
-//     ">🏔</div>
-//   `, [])
-
-//   const popupHtml = useCallback((r) => `
-//     <div style="
-//       background:#fff;
-//       border:1px solid rgba(214,211,209,0.8);
-//       border-radius:14px;overflow:hidden;
-//       font-family:'DM Sans',system-ui,sans-serif;color:#1c1917;
-//       box-shadow:0 20px 48px rgba(0,0,0,0.15),0 0 0 1px rgba(0,0,0,0.04);
-//       min-width:210px;
-//     ">
-//       <div style="position:relative;height:110px;overflow:hidden;">
-//         <img src="${r.images[0]}" style="width:100%;height:100%;object-fit:cover;"
-//           onerror="this.src='https://picsum.photos/200/110'">
-//         <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,rgba(0,0,0,0.45));"></div>
-//         <div style="position:absolute;top:8px;right:8px;
-//           background:rgba(255,255,255,0.92);border-radius:6px;padding:2px 7px;
-//           font-size:11px;font-weight:700;color:#b45309;">
-//           ★ ${r.rating}
-//         </div>
-//       </div>
-//       <div style="padding:10px 12px 13px;">
-//         <div style="font-size:9px;color:#a8a29e;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;">${r.region}</div>
-//         <h3 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;font-weight:600;
-//           color:#1c1917;margin-bottom:5px;line-height:1.2;">${r.name}</h3>
-//         <p style="font-size:11px;color:#78716c;line-height:1.55;
-//           display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-//           margin-bottom:8px;">${r.description}</p>
-//         <div style="display:flex;gap:5px;flex-wrap:wrap;">
-//           ${r.tags.slice(0, 2).map(t => `
-//             <span style="font-size:9px;padding:2px 8px;border-radius:20px;
-//               background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;font-weight:500;">
-//               ${t}
-//             </span>`).join('')}
-//         </div>
-//       </div>
-//     </div>
-//   `, [])
-
-//   useEffect(() => {
-//     if (!containerRef.current || mapRef.current) return
-
-//     // Dynamically load Leaflet
-//     const link = document.createElement('link')
-//     link.rel = 'stylesheet'
-//     link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'
-//     document.head.appendChild(link)
-
-//     const script = document.createElement('script')
-//     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'
-//     script.onload = () => {
-//       const L = window.L
-//       leafletRef.current = L
-
-//       const map = L.map(containerRef.current, {
-//         center: [48, 67],
-//         zoom: MAP_MIN_ZOOM,
-//         // ── Zoom bounds — can't zoom out beyond Kazakhstan ──────────────
-//         minZoom: MAP_MIN_ZOOM,
-//         maxZoom: MAP_MAX_ZOOM,
-//         // Tight bounds — map viewport won't leave Kazakhstan region
-//         maxBounds: KZ_BOUNDS,
-//         maxBoundsViscosity: 1.0,   // 1.0 = hard stop, no rubber-band outside
-//         zoomControl: true,
-//       })
-
-//       // ── Light tile layer (CartoDB Positron) ──────────────────────────────
-//       L.tileLayer(
-//         'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-//         {
-//           attribution: '© <a href="https://openstreetmap.org">OSM</a> © <a href="https://carto.com">CARTO</a>',
-//           subdomains: 'abcd',
-//           maxZoom: 20,
-//         }
-//       ).addTo(map)
-
-//       // Style zoom control & move to right-center
-//       // Move zoom controls to right center of the map container
-//       const zc = map.zoomControl;
-//       if (zc) {
-//         const el = zc.getContainer();
-//         if (el && containerRef.current) {
-//           // Remove from leaflet's default docking and absolutely position in parent
-//           containerRef.current.appendChild(el);
-
-//           // Style container (border, shadow, etc.), with dark background
-//           el.style.cssText += `
-//             border: 3px solid #036400;
-//             border-radius: 10px;
-//             overflow: hidden;
-//             box-shadow: 0 2px 8px rgba(0,0,0,0.24);
-//             position: absolute;
-//             right: 20px;
-//             top: 50%;
-//             left: unset !important;
-//             transform: translateY(-50%);
-//             z-index: 1000;
-//             background: #006900;
-//           `;
-
-//           // Clean up conflicting Leaflet classes
-//           el.classList.remove("leaflet-top", "leaflet-bottom", "leaflet-left", "leaflet-right");
-//         }
-//       }
-
-//       // Add markers
-//       RESORTS.forEach(r => {
-//         const icon = L.divIcon({
-//           className: '',
-//           html: markerHtml(false),
-//           iconSize: [38, 38],
-//           iconAnchor: [19, 19],
-//           popupAnchor: [0, -24],
-//         })
-//         const popup = L.popup({ closeButton: false, className: '', maxWidth: 240 })
-//           .setContent(popupHtml(r))
-//         const marker = L.marker(r.coords, { icon })
-//           .bindPopup(popup)
-//           .addTo(map)
-//           .on('click', () => onSelect(r))
-//         markersRef.current[r.id] = marker
-//       })
-
-//       mapRef.current = map
-
-//       if (resizeObserverRef.current) {
-//         resizeObserverRef.current.disconnect()
-//         resizeObserverRef.current = null
-//       }
-//       resizeObserverRef.current = new ResizeObserver(() => {
-//         applyKzMapConstraints(L, map)
-//       })
-//       resizeObserverRef.current.observe(containerRef.current)
-//       applyKzMapConstraints(L, map)
-//     }
-//     document.body.appendChild(script)
-
-//     return () => {
-//       if (resizeObserverRef.current) {
-//         resizeObserverRef.current.disconnect()
-//         resizeObserverRef.current = null
-//       }
-//       if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; markersRef.current = {} }
-//     }
-//   }, [markerHtml, popupHtml, onSelect])
-
-//   // React to selection changes
-//   useEffect(() => {
-//     const L = leafletRef.current
-//     if (!L || !mapRef.current) return
-
-//     // Reset previous marker
-//     if (prevSelRef.current && markersRef.current[prevSelRef.current]) {
-//       markersRef.current[prevSelRef.current].setIcon(
-//         L.divIcon({ className: '', html: markerHtml(false), iconSize: [38, 38], iconAnchor: [19, 19], popupAnchor: [0, -24] })
-//       )
-//     }
-
-//     if (!selId) { prevSelRef.current = null; return }
-
-//     const resort = RESORTS.find(r => r.id === selId)
-//     if (!resort) return
-
-//     mapRef.current.flyTo(resort.coords, 8, { duration: 1.3, easeLinearity: 0.2 })
-//     const marker = markersRef.current[selId]
-//     if (marker) {
-//       marker.setIcon(
-//         L.divIcon({ className: '', html: markerHtml(true), iconSize: [38, 38], iconAnchor: [19, 19], popupAnchor: [0, -24] })
-//       )
-//       setTimeout(() => marker.openPopup(), 750)
-//     }
-//     prevSelRef.current = selId
-//   }, [selId, markerHtml])
-
-//   return (
-//     <div className="w-full h-full relative ">
-//       {/* Leaflet container */}
-//       <div ref={containerRef} className="w-full h-full" />
-
-//       {/* Label badge */}
-//       <div className="absolute top-3 left-1/2 -translate-x-1/2 z-500 pointer-events-none
-//         bg-white/85 backdrop-blur-sm border border-stone-200 rounded-full px-3.5 py-1 shadow-sm">
-//         <span className="text-[11px] font-medium text-stone-600 tracking-widest uppercase">
-//           Казахстан
-//         </span>
-//       </div>
-
-//       {/* Leaflet popup light overrides injected once */}
-//       <style>{`
-//         .leaflet-popup-content-wrapper{background:transparent!important;box-shadow:none!important;padding:0!important;border:none!important;}
-//         .leaflet-popup-content{margin:0!important;width:auto!important;}
-//         .leaflet-popup-tip-container{display:none!important;}
-//         .leaflet-container{background:#f8f7f5!important;}
-//         .leaflet-control-zoom a{
-//           background:#fff!important;color:#57534e!important;
-//           border-color:#e7e5e4!important;font-size:16px!important;
-//           transition:all 0.2s!important;
-//         }
-//         .leaflet-control-zoom a:hover{background:#f5f5f4!important;color:#f59e0b!important;}
-//         .leaflet-control-attribution{background:rgba(255,255,255,0.75)!important;color:#a8a29e!important;font-size:9px!important;}
-//         .leaflet-control-attribution a{color:#d97706!important;}
-//         @keyframes markerPulse{
-//           0%,100%{box-shadow:0 0 20px rgba(251,191,36,0.55),0 4px 16px rgba(0,0,0,0.25);}
-//           50%{box-shadow:0 0 32px rgba(251,191,36,0.8),0 0 0 10px rgba(251,191,36,0);}
-//         }
-//       `}</style>
-//     </div>
-//   )
-// }
 
 function MapPanel({ selId, onSelect }) {
   const containerRef = useRef(null);
@@ -1087,30 +831,9 @@ function TopBar({ mode, setMode, isMobile }) {
 
   return (
     <div
-      className="flex items-center justify-between px-4 py-2.5
+      className="flex items-center justify-center px-4 py-2.5
       backdrop-blur-md border-b border-[#1a6b1a]/20 shadow-sm shrink-0 z-10"
     >
-      {/* Logo */}
-      <div className="flex items-center gap-2.5">
-        <div
-          className="w-8 h-8 rounded-full bg-linear-to-br from-amber-400 to-amber-600
-          flex items-center justify-center shadow-md text-white shrink-0"
-        >
-          <Mountain className="w-4 h-4" />
-        </div>
-        <div className="leading-tight">
-          <div
-            className="font-semibold text-base tracking-tight"
-            style={{ fontFamily: "Cormorant Garamond, Georgia, serif" }}
-          >
-            Kazakhstan
-          </div>
-          <div className="text-[9px] uppercase tracking-widest text-stone-400">
-            Discover · Explore
-          </div>
-        </div>
-      </div>
-
       {/* Mode switcher */}
       {!isMobile ? (
         <div className="flex gap-0.5rounded-xl p-1 border rounded-2xl">
@@ -1153,22 +876,6 @@ function TopBar({ mode, setMode, isMobile }) {
         </div>
       )}
 
-      {/* Stats */}
-      {!isMobile && (
-        <div className="flex gap-5">
-          {[
-            { v: "9", l: "Курортов" },
-            { v: "4.7★", l: "Рейтинг" },
-          ].map((s) => (
-            <div key={s.l} className="text-center">
-              <div className="text-amber-500 font-bold text-sm leading-none">
-                {s.v}
-              </div>
-              <div className="text-stone-400 text-[10px] mt-0.5">{s.l}</div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
