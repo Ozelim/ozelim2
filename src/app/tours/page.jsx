@@ -423,7 +423,7 @@ export default function ToursPage() {
       </section> */}
 
       {/* Carousel promo */}
-      <section className="py-12 px-6">
+      {/* <section className="py-12 px-6">
         <div className="max-w-7xl mx-auto">
           <h2
             className="text-3xl font-bold text-white mb-8"
@@ -433,7 +433,7 @@ export default function ToursPage() {
           </h2>
           <Carousel1 />
         </div>
-      </section>
+      </section> */}
 
       <Accordion />
       <MarqueeTicker />

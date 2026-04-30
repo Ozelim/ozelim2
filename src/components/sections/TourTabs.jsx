@@ -70,7 +70,7 @@ export default function TourTabs() {
             className="text-5xl font-bold text-white mb-3"
             style={{ fontFamily: 'Cormorant Garamond, serif' }}
           >
-            Наши маршруты
+            Наши туры
           </h2>
           <p className="text-white/50">Откройте мир вместе с нами — от горных вершин до тропических пляжей</p>
         </motion.div>

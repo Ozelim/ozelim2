@@ -76,11 +76,11 @@ export default function WhyUs() {
             className="text-5xl md:text-6xl font-bold text-white mb-4"
             style={{ fontFamily: 'Cormorant Garamond, serif' }}
           >
-            Опыт, которому{' '}
-            <span className="text-gradient">доверяют</span>
+            Путешествие, в котором{' '}
+            <span className="text-gradient">действительно можно отдохнуть</span>
           </h2>
           <p className="text-white/50 max-w-xl mx-auto leading-relaxed">
-            За 12 лет работы мы создали тысячи незабываемых путешествий и заработали репутацию самого надёжного туроператора страны.
+            Мы уже подобрали вам идеальный вариант, вам следует лишь выбрать, где вы хотите оказаться.
           </p>
         </motion.div>
 

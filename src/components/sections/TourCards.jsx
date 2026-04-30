@@ -90,12 +90,12 @@ export default function TourCards() {
           className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12"
         >
           <div>
-            <div className="text-(--site-accent) text-xs uppercase tracking-widest mb-2">Туры</div>
+            <div className="text-(--site-accent) text-xs uppercase tracking-widest mb-2">Курорты</div>
             <h2
               className="text-5xl font-bold text-white"
               style={{ fontFamily: 'Cormorant Garamond, serif' }}
             >
-              Популярные направления
+              Популярные курортные зоны
             </h2>
           </div>
           <button className="flex items-center gap-2 text-(--site-accent) text-sm hover:gap-3 transition-all group">

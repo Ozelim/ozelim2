@@ -26,12 +26,12 @@ import { TourSelectionDialog } from "../tour-selection/tour-selection";
 // ─── Service tiles ────────────────────────────────────────────────────────────
 const TILES = [
   { label: "Туры",                           icon: Plane,       href: "/tours" },
-  { label: "Визы",                           icon: FileCheck,   href: "/visas" },
-  { label: "Страхование",                    icon: ShieldCheck, href: "/insurance" },
-  { label: "Фонд",                           icon: HandCoins,   href: "/foundation" },
+  { label: "Визы",                           icon: FileCheck,   href: "https://vizapro.kz", external: true },
+  { label: "Halyk Life",                     icon: ShieldCheck, href: "/insurance" },
+  { label: "Фонд",                           icon: HandCoins,   href: "/endowment" },
   { label: "Ассоциация туристов Казахстана", icon: UsersRound,  href: "/association" },
   { label: "Правовая защита",                icon: Scale,       href: "/legal" },
-  { label: "Санатории",                      icon: Waves,       href: "/sanatoriums" },
+  { label: "Nomad Insurance",                icon: Waves,       href: "/sanatoriums" },
   { label: "АВИА ЖД билеты",                icon: Ticket,      href: "/tickets" },
   { label: "О нас",                icon: Users,      href: "/about" },
   { label: `Вопрос-ответ`,                icon: MessageCircleQuestion,      href: "/faq" },
@@ -357,7 +357,7 @@ export default function Hero({ title, subtitle, highlight }) {
                 whileTap={{ scale: 0.97 }}
                 className="px-8 py-4 rounded-full border border-white/30 text-white hover:border-[#FFD700]/50 hover:bg-white/5 font-medium text-sm tracking-wider uppercase transition-colors"
               >
-                <Link href="/tours">Посмотреть туры</Link>
+                <Link href="/tours">Посмотреть поездки</Link>
               </motion.button>
             )}
             {!isHome && !isTours && (
@@ -386,6 +386,8 @@ export default function Hero({ title, subtitle, highlight }) {
                   <motion.a
                     key={tile.label}
                     href={tile.href}
+                    target={tile.external ? "_blank" : undefined}
+                    rel={tile.external ? "noopener noreferrer" : undefined}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.75 + i * 0.06, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}

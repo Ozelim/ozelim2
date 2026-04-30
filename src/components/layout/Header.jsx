@@ -26,11 +26,11 @@ import Image from 'next/image'
 
 const navLinks = [
   { href: '/', label: 'Главная' },
-  { href: '/tours', label: 'Туры' },
+  { href: '/tours', label: 'Поездки' },
 ]
 
 const serviceLinks = [
-  { label: 'Туры',                           icon: Plane,                   href: '/tours' },
+  { label: 'Поездки',                        icon: Plane,                   href: '/tours' },
   { label: 'Визы',                           icon: FileCheck,               href: '/visas' },
   { label: 'Страхование',                    icon: ShieldCheck,             href: '/insurance' },
   { label: 'Фонд',                           icon: HandCoins,               href: '/foundation' },

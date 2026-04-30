@@ -22,6 +22,11 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  MapPin,
+  Minus,
+  Plus,
+  User,
+  Baby,
 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Slider } from "../ui/slider";
@@ -43,13 +48,27 @@ const ration = [
   { id: "idk", label: "Пока не знаю" },
 ];
 
-const people = [
-  { id: "adult", label: "1 взрослый" },
-  { id: "two-adults", label: "2 взрослых" },
-  { id: "adult-kid", label: "1 взрослый + ребёнок" },
-  { id: "two-adults-kid", label: "2 взрослых + ребёнок" },
-  { id: "two-adults-two-kids", label: "2 взрослых + 2 ребёнка" },
-  { id: "three-adults", label: "3 взрослых" },
+const KZ_REGIONS = [
+  { id: "abay", label: "Абайская область" },
+  { id: "akmola", label: "Акмолинская область" },
+  { id: "aktobe", label: "Актюбинская область" },
+  { id: "almaty-region", label: "Алматинская область" },
+  { id: "atyrau", label: "Атырауская область" },
+  { id: "vko", label: "Восточно-Казахстанская область" },
+  { id: "zhambyl", label: "Жамбылская область" },
+  { id: "zhetysu", label: "Жетысуская область" },
+  { id: "zko", label: "Западно-Казахстанская область" },
+  { id: "karaganda", label: "Карагандинская область" },
+  { id: "kostanay", label: "Костанайская область" },
+  { id: "kyzylorda", label: "Кызылординская область" },
+  { id: "mangystau", label: "Мангистауская область" },
+  { id: "pavlodar", label: "Павлодарская область" },
+  { id: "sko", label: "Северо-Казахстанская область" },
+  { id: "turkestan", label: "Туркестанская область" },
+  { id: "ulytau", label: "Улытауская область" },
+  { id: "astana-city", label: "Астана" },
+  { id: "almaty-city", label: "Алматы" },
+  { id: "shymkent-city", label: "Шымкент" },
 ];
 
 const contacts = [
@@ -57,7 +76,45 @@ const contacts = [
   { id: "phone", label: "Звонок", icon: Phone },
 ];
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
+
+// Counter row for adults/children selection
+function CounterRow({ icon: Icon, label, hint, value, onChange, min, max }) {
+  const dec = () => onChange(Math.max(min, value - 1));
+  const inc = () => onChange(Math.min(max, value + 1));
+  return (
+    <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-(--app-border) bg-(--app-panel)">
+      <div className="flex items-center gap-3">
+        <Icon className="w-5 h-5 text-(--site-accent-bright) shrink-0" />
+        <div>
+          <div className="text-sm font-semibold text-(--app-fg)">{label}</div>
+          {hint && (
+            <div className="text-[11px] text-(--app-faint)">{hint}</div>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={dec}
+          disabled={value <= min}
+          className="w-8 h-8 rounded-full border border-(--app-border) text-(--app-fg) flex items-center justify-center disabled:opacity-30 hover:border-(--site-accent)/60 transition-colors"
+        >
+          <Minus className="w-3.5 h-3.5" />
+        </button>
+        <span className="w-6 text-center text-(--app-fg) font-semibold">{value}</span>
+        <button
+          type="button"
+          onClick={inc}
+          disabled={value >= max}
+          className="w-8 h-8 rounded-full border border-(--app-border) text-(--app-fg) flex items-center justify-center disabled:opacity-30 hover:border-(--site-accent)/60 transition-colors"
+        >
+          <Plus className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // Shared option card
 function OptionCard({ selected, onClick, children }) {
@@ -87,10 +144,11 @@ export function TourSelectionDialog() {
   const [direction, setDirection] = React.useState(1);
 
   const [selectedTimeframe, setSelectedTimeframe] = React.useState("");
-  const [tourDuration, setTourDuration] = React.useState(7);
+  const [selectedRegion, setSelectedRegion] = React.useState("");
+  const [tourDuration, setTourDuration] = React.useState(5);
   const [selectedRation, setSelectedRation] = React.useState("");
-  const [selectedPeople, setSelectedPeople] = React.useState("");
-  const [customPeople, setCustomPeople] = React.useState("");
+  const [adultsCount, setAdultsCount] = React.useState(2);
+  const [childrenCount, setChildrenCount] = React.useState(0);
   const [selectedContact, setSelectedContact] = React.useState("");
   const [name, setName] = React.useState("");
   const [phone, setPhone] = React.useState("");
@@ -108,23 +166,25 @@ export function TourSelectionDialog() {
 
   const canProceed =
     (step === 1 && selectedTimeframe) ||
-    (step === 2 && tourDuration) ||
-    (step === 3 && selectedRation) ||
-    (step === 4 && (selectedPeople || customPeople)) ||
-    (step === 5 && selectedContact) ||
-    (step === 6 && name && phone);
+    (step === 2 && selectedRegion) ||
+    (step === 3 && tourDuration) ||
+    (step === 4 && selectedRation) ||
+    (step === 5 && (adultsCount > 0 || childrenCount > 0)) ||
+    (step === 6 && selectedContact) ||
+    (step === 7 && name && phone);
 
   const handleSubmit = () => {
-    console.log({ selectedTimeframe, tourDuration, selectedRation, selectedPeople: selectedPeople || customPeople, selectedContact, name, phone });
+    console.log({ selectedTimeframe, selectedRegion, tourDuration, selectedRation, adultsCount, childrenCount, selectedContact, name, phone });
     setOpen(false);
     setTimeout(() => {
       setStep(1);
       setDirection(1);
       setSelectedTimeframe("");
-      setTourDuration(7);
+      setSelectedRegion("");
+      setTourDuration(5);
       setSelectedRation("");
-      setSelectedPeople("");
-      setCustomPeople("");
+      setAdultsCount(2);
+      setChildrenCount(0);
       setSelectedContact("");
       setName("");
       setPhone("");
@@ -139,6 +199,7 @@ export function TourSelectionDialog() {
 
   const stepTitles = [
     "Когда планируете отдых?",
+    "В какую область вы хотите поехать?",
     "Продолжительность тура",
     "Тип питания",
     "Состав группы",
@@ -228,8 +289,29 @@ export function TourSelectionDialog() {
                 </div>
               )}
 
-              {/* Step 2: Duration */}
+              {/* Step 2: Region */}
               {step === 2 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[340px] overflow-y-auto pr-1">
+                  {KZ_REGIONS.map((r) => (
+                    <OptionCard
+                      key={r.id}
+                      selected={selectedRegion === r.id}
+                      onClick={() => {
+                        setSelectedRegion(r.id);
+                        autoNext(3);
+                      }}
+                    >
+                      <span className="flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-(--site-accent-bright) shrink-0" />
+                        <span className="text-sm font-medium text-(--app-fg)">{r.label}</span>
+                      </span>
+                    </OptionCard>
+                  ))}
+                </div>
+              )}
+
+              {/* Step 3: Duration */}
+              {step === 3 && (
                 <div className="space-y-8">
                   <div className="text-center">
                     <span className="text-6xl font-bold bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) bg-clip-text text-transparent">
@@ -241,19 +323,19 @@ export function TourSelectionDialog() {
                   </div>
                   <div className="px-2">
                     <Slider
-                      min={3}
-                      max={30}
-                      defaultValue={[tourDuration]}
+                      min={1}
+                      max={10}
+                      value={[tourDuration]}
                       onValueChange={([v]) => setTourDuration(v)}
                       className="w-full"
                     />
                     <div className="flex justify-between mt-2 text-xs text-(--app-faint)">
-                      <span>3 дня</span>
-                      <span>30 дней</span>
+                      <span>1 день</span>
+                      <span>10 дней</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-4 gap-2">
-                    {[7, 10, 14, 21].map((d) => (
+                    {[3, 5, 7, 10].map((d) => (
                       <button
                         key={d}
                         type="button"
@@ -271,8 +353,8 @@ export function TourSelectionDialog() {
                 </div>
               )}
 
-              {/* Step 3: Ration */}
-              {step === 3 && (
+              {/* Step 4: Ration */}
+              {step === 4 && (
                 <div className="grid grid-cols-2 gap-2.5">
                   {ration.map((r) => (
                     <OptionCard
@@ -280,7 +362,7 @@ export function TourSelectionDialog() {
                       selected={selectedRation === r.id}
                       onClick={() => {
                         setSelectedRation(r.id);
-                        autoNext(4);
+                        autoNext(5);
                       }}
                     >
                       <span className="flex items-center gap-2">
@@ -292,41 +374,35 @@ export function TourSelectionDialog() {
                 </div>
               )}
 
-              {/* Step 4: People */}
-              {step === 4 && (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {people.map((p) => (
-                      <OptionCard
-                        key={p.id}
-                        selected={selectedPeople === p.id}
-                        onClick={() => {
-                          setSelectedPeople(p.id);
-                          setCustomPeople("");
-                          autoNext(5);
-                        }}
-                      >
-                        <span className="flex items-center gap-2">
-                          <Users className="w-3.5 h-3.5 text-(--site-accent-bright) shrink-0" />
-                          <span className="text-sm font-medium text-(--app-fg)">{p.label}</span>
-                        </span>
-                      </OptionCard>
-                    ))}
-                  </div>
-                  <Input
-                    placeholder="Другой состав..."
-                    value={customPeople}
-                    onChange={(e) => {
-                      setCustomPeople(e.target.value);
-                      setSelectedPeople("");
-                    }}
-                    className="bg-(--app-panel) border-(--app-border) text-(--app-fg) placeholder:text-(--app-faint) rounded-xl focus-visible:ring-(--site-accent)/50 focus-visible:border-(--site-accent)"
+              {/* Step 5: People — adults & children counters */}
+              {step === 5 && (
+                <div className="space-y-4">
+                  <CounterRow
+                    icon={User}
+                    label="Взрослые"
+                    hint="максимум 2"
+                    value={adultsCount}
+                    onChange={setAdultsCount}
+                    min={1}
+                    max={2}
                   />
+                  <CounterRow
+                    icon={Baby}
+                    label="Дети"
+                    hint="до 7"
+                    value={childrenCount}
+                    onChange={setChildrenCount}
+                    min={0}
+                    max={7}
+                  />
+                  <p className="text-xs text-(--app-faint) pt-1">
+                    Состав группы: до 2 взрослых и до 7 детей.
+                  </p>
                 </div>
               )}
 
-              {/* Step 5: Contact method */}
-              {step === 5 && (
+              {/* Step 6: Contact method */}
+              {step === 6 && (
                 <div className="grid grid-cols-2 gap-3">
                   {contacts.map((c) => (
                     <OptionCard
@@ -334,7 +410,7 @@ export function TourSelectionDialog() {
                       selected={selectedContact === c.id}
                       onClick={() => {
                         setSelectedContact(c.id);
-                        autoNext(6);
+                        autoNext(7);
                       }}
                     >
                       <span className="flex flex-col items-center gap-3 py-4">
@@ -346,8 +422,8 @@ export function TourSelectionDialog() {
                 </div>
               )}
 
-              {/* Step 6: Contacts */}
-              {step === 6 && (
+              {/* Step 7: Contacts */}
+              {step === 7 && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-(--app-subtle) uppercase tracking-wider">

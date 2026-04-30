@@ -20,8 +20,8 @@ export default function HomePage() {
       <MarqueeTicker />
       <NewsBlock />
       <TourCards />
-      <WhyUs />
       <TourTabs />
+      <WhyUs />
 
       {/* Carousels section */}
       <section className="py-20 px-6">
