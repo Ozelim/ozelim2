@@ -11,12 +11,14 @@ import Footer, { MarqueeTicker } from "@/components/sections/Footer";
 import { getLatestNews } from "@/lib/news";
 import { getPopularResorts } from "@/lib/resorts";
 import { getLatestTours } from "@/lib/tours";
+import { getMainPageStats } from "@/lib/stats";
 
 export default async function HomePage() {
-  const [news, resorts, tours] = await Promise.all([
+  const [news, resorts, tours, pageStats] = await Promise.all([
     getLatestNews(5),
     getPopularResorts(6),
     getLatestTours(6),
+    getMainPageStats(),
   ]);
 
   return (
@@ -50,11 +52,11 @@ export default async function HomePage() {
             <Carousel1 />
             <Carousel2 />
           </div>
-          <Carousel3 />
+          {/* <Carousel3 /> */}
         </div>
       </section>
 
-      <WhyUs />
+      <WhyUs stats={pageStats} />
 
       <Accordion />
       <MarqueeTicker />

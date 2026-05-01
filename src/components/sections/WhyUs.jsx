@@ -5,12 +5,22 @@ import {
   Trophy, Users, Globe, Star, Shield, Headphones, Leaf, Award
 } from 'lucide-react'
 
-const stats = [
+const DEFAULT_STATS = [
   { value: 15000, suffix: '+', label: 'Довольных клиентов', icon: Users },
-  { value: 48, suffix: '', label: 'Стран мира', icon: Globe },
-  { value: 12, suffix: '', label: 'Лет опыта', icon: Trophy },
-  { value: 4.9, suffix: '/5', label: 'Средний рейтинг', icon: Star, decimal: true },
+  { value: 48,    suffix: '',  label: 'Стран мира',         icon: Globe },
+  { value: 12,    suffix: '',  label: 'Лет опыта',          icon: Trophy },
+  { value: 4.9,   suffix: '/5',label: 'Средний рейтинг',    icon: Star, decimal: true },
 ]
+
+function buildStats(data) {
+  if (!data) return DEFAULT_STATS
+  return [
+    { value: data.happyClients, suffix: '+',  label: 'Довольных клиентов', icon: Users },
+    { value: data.countries,    suffix: '',   label: 'Стран мира',         icon: Globe },
+    { value: data.yearsExp,     suffix: '',   label: 'Лет опыта',          icon: Trophy },
+    { value: data.avgRating,    suffix: '/5', label: 'Средний рейтинг',    icon: Star, decimal: true },
+  ]
+}
 
 const reasons = [
   {
@@ -57,7 +67,15 @@ function Counter({ value, suffix, decimal }) {
   return <span ref={ref}>{count}</span>
 }
 
-export default function WhyUs() {
+export default function WhyUs({ stats: initialData } = {}) {
+  const [statsData, setStatsData] = useState(initialData ?? null)
+
+  useEffect(() => {
+    if (initialData) return
+    fetch('/api/stats').then(r => r.json()).then(setStatsData).catch(() => {})
+  }, [initialData])
+
+  const stats = buildStats(statsData)
   return (
     <section className="py-28 px-6">
       <div className="max-w-7xl mx-auto">

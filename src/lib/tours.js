@@ -23,9 +23,19 @@ function firstGalleryImage(gallery) {
   return first?.src || first?.url || null;
 }
 
+function formatGroup(min, max) {
+  const lo = Number(min) || 0;
+  const hi = Number(max) || 0;
+  if (lo && hi) return `${lo}–${hi}`;
+  if (hi) return `${hi}`;
+  if (lo) return `${lo}+`;
+  return "—";
+}
+
 export async function getLatestTours(limit = 6) {
   const rows = await sql`
-    SELECT id, title, days, price, currency, gallery, hot, created_at
+    SELECT id, title, country, city, days, group_min, group_max,
+           price, currency, gallery, hot, created_at
       FROM tours
      ORDER BY hot DESC, created_at DESC
      LIMIT ${limit}
@@ -34,9 +44,14 @@ export async function getLatestTours(limit = 6) {
   return rows.map((r) => ({
     id: r.id,
     title: r.title,
+    country: r.country || "",
+    city: r.city || "",
+    days: Number(r.days) || 0,
     duration: `${Number(r.days) || 0} дней`,
+    group: formatGroup(r.group_min, r.group_max),
     price: formatPrice(r.price, r.currency),
     diff: diffFromDays(r.days),
+    hot: r.hot ?? false,
     img: firstGalleryImage(r.gallery) || PLACEHOLDER_IMG,
   }));
 }

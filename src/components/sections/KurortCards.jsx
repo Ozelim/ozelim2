@@ -1,6 +1,6 @@
 'use client'
 import { motion } from 'framer-motion'
-import { MapPin, Clock, Users, Star, ArrowRight, Heart } from 'lucide-react'
+import { MapPin, Users, Star, ArrowRight, Heart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -66,30 +66,30 @@ export default function KurortCards({ items = [] }) {
                   <Heart className="w-4 h-4" />
                 </button>
 
-                <div className="absolute bottom-3 left-3 flex items-center gap-1 text-(--site-accent)">
-                  <Star className="w-3.5 h-3.5 fill-current" />
-                  <span className="text-sm font-bold">{kurort.rating}</span>
-                  <span className="text-white/50 text-xs">({kurort.reviews})</span>
+                <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+                  <h3
+                    className="text-white font-bold text-xl drop-shadow-lg"
+                    style={{ fontFamily: 'Cormorant Garamond, serif' }}
+                  >
+                    {kurort.title}
+                  </h3>
                 </div>
               </div>
 
               {/* Content */}
               <div className="p-5">
-                <div className="flex items-center gap-1.5 text-white/50 text-xs mb-2">
-                  <MapPin className="w-3 h-3" />
-                  {kurort.city}, {kurort.country}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1.5 text-white/50 text-xs">
+                    <MapPin className="w-3 h-3" />
+                    {kurort.city}, {kurort.country}
+                  </div>
+                  <div className="flex items-center gap-1 text-(--site-accent)">
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span className="text-sm font-bold">{kurort.rating}</span>
+                    <span className="text-white/50 text-xs">({kurort.reviews})</span>
+                  </div>
                 </div>
-                <h3
-                  className="text-white font-bold text-xl mb-4"
-                  style={{ fontFamily: 'Cormorant Garamond, serif' }}
-                >
-                  {kurort.title}
-                </h3>
                 <div className="flex items-center gap-4 text-sm text-white/50 mb-5">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
-                    {kurort.days} дней
-                  </span>
                   <span className="flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5" />
                     {kurort.group} чел.
@@ -97,7 +97,7 @@ export default function KurortCards({ items = [] }) {
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-white/40 text-xs">от</div>
+                    <div className="text-white/40 text-xs">цена за ночь от</div>
                     <div className="text-(--site-accent) font-bold text-xl">€ {kurort.price.toLocaleString()}</div>
                   </div>
                   <motion.button
