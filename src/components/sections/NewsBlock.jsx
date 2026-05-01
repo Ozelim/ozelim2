@@ -3,49 +3,6 @@ import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight, Tag } from "lucide-react";
 import Image from "next/image";
 
-const news = [
-  {
-    tag: "Акции",
-    date: "15 марта 2026",
-    readTime: "3 мин",
-    title: "Раннее бронирование лета 2026: скидки до 30% на все туры",
-    excerpt:
-      "Успейте забронировать летний отдых по специальным ценам. Предложение действует до 1 апреля 2026 года для туров во все направления.",
-    img: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&q=70",
-    big: true,
-  },
-  {
-    tag: "Новости",
-    date: "12 марта 2026",
-    readTime: "2 мин",
-    title: "Открыто новое направление: Патагония 2026",
-    excerpt:
-      "Добавлены туры в один из самых живописных регионов Южной Америки.",
-    img: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&q=70",
-    big: false,
-  },
-  {
-    tag: "Советы",
-    date: "8 марта 2026",
-    readTime: "5 мин",
-    title: "Как правильно подготовиться к горному походу",
-    excerpt:
-      "Наши опытные гиды делятся советами по экипировке, физической подготовке и акклиматизации.",
-    img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=70",
-    big: false,
-  },
-  {
-    tag: "Направления",
-    date: "5 марта 2026",
-    readTime: "4 мин",
-    title: "ТОП-5 весенних направлений 2026 года",
-    excerpt:
-      "Рейтинг самых популярных маршрутов весеннего сезона по отзывам наших туристов.",
-    img: "https://images.unsplash.com/photo-1527549993586-dff825b37782?w=600&q=70",
-    big: false,
-  },
-];
-
 const tagColor = {
   Акции: "text-(--site-accent) bg-(--site-accent)/10 border-(--site-accent)/20",
   Новости: "text-(--site-accent-bright) bg-(--site-accent-bright)/10 border-(--site-accent-bright)/20",
@@ -53,7 +10,12 @@ const tagColor = {
   Направления: "text-purple-400 bg-purple-400/10 border-purple-400/20",
 };
 
-export default function NewsBlock() {
+const defaultTagColor = "text-white/70 bg-white/5 border-white/10";
+
+export default function NewsBlock({ items = [] }) {
+  const news = items;
+  if (!news.length) return null;
+
   return (
     <section className="py-20 px-6">
       <div className="max-w-7xl mx-auto">
@@ -103,7 +65,7 @@ export default function NewsBlock() {
             <div className="p-6 flex flex-col flex-1">
               <div className="flex items-center gap-2 mb-4">
                 <span
-                  className={`text-xs px-2.5 py-1 rounded-full border ${tagColor[news[0].tag]}`}
+                  className={`text-xs px-2.5 py-1 rounded-full border ${tagColor[news[0].tag] || defaultTagColor}`}
                 >
                   {news[0].tag}
                 </span>
@@ -133,7 +95,8 @@ export default function NewsBlock() {
           {/* Small cards */}
           {news.slice(1).map((article, i) => (
             <motion.div
-              key={article.title}
+              id={`news-${article.id}-${i}`}
+              key={`news-${article.id}-${i}`}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -153,18 +116,21 @@ export default function NewsBlock() {
               <div className="flex flex-col justify-between min-w-0">
                 <div>
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full border ${tagColor[article.tag]} mb-2 inline-block`}
+                    className={`text-xs px-2 py-0.5 rounded-full border ${tagColor[article.tag] || defaultTagColor} mb-2 inline-block`}
                   >
                     {article.tag}
                   </span>
                   <h4
-                    className="text-white font-semibold text-sm leading-snug line-clamp-2"
+                    className="text-white font-semibold text-sm leading-snug mb-2"
                     style={{ fontFamily: "Cormorant Garamond, serif" }}
                   >
                     {article.title}
                   </h4>
+                  <p className="text-white/50 text-xs leading-relaxed line-clamp-2 mb-3">
+                    {article.excerpt}
+                  </p>
                 </div>
-                <div className="flex items-center gap-3 text-white/40 text-xs">
+                <div className="flex items-center gap-3 text-white/40 text-xs whitespace-nowrap">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-2.5 h-2.5" />
                     {article.date}

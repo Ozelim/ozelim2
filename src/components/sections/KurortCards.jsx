@@ -4,82 +4,10 @@ import { MapPin, Clock, Users, Star, ArrowRight, Heart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-const kurorts = [
-  {
-    img: 'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600&q=75',
-    country: 'Испания',
-    city: 'Барселона',
-    title: 'Сокровища Каталонии',
-    days: 8,
-    group: '6–12',
-    rating: 4.9,
-    reviews: 128,
-    price: 2100,
-    hot: true,
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=600&q=75',
-    country: 'Франция',
-    city: 'Прованс',
-    title: 'Лавандовые поля Прованса',
-    days: 6,
-    group: '8–16',
-    rating: 4.8,
-    reviews: 94,
-    price: 1850,
-    hot: false,
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1527549993586-dff825b37782?w=600&q=75',
-    country: 'Исландия',
-    city: 'Рейкьявик',
-    title: 'Северное сияние',
-    days: 7,
-    group: '4–10',
-    rating: 5.0,
-    reviews: 67,
-    price: 3400,
-    hot: true,
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=600&q=75',
-    country: 'Хорватия',
-    city: 'Дубровник',
-    title: 'Жемчужина Адриатики',
-    days: 10,
-    group: '10–18',
-    rating: 4.7,
-    reviews: 151,
-    price: 2600,
-    hot: false,
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=75',
-    country: 'Норвегия',
-    city: 'Фьорды',
-    title: 'Мистические фьорды',
-    days: 12,
-    group: '6–14',
-    rating: 4.9,
-    reviews: 83,
-    price: 3100,
-    hot: false,
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&q=75',
-    country: 'Кения',
-    city: 'Масаи Мара',
-    title: 'Великое переселение',
-    days: 11,
-    group: '4–8',
-    rating: 5.0,
-    reviews: 45,
-    price: 5200,
-    hot: true,
-  },
-]
+export default function KurortCards({ items = [] }) {
+  const kurorts = items;
+  if (!kurorts.length) return null;
 
-export default function KurortCards() {
   return (
     <section className="py-20 px-6">
       <div className="max-w-7xl mx-auto">
@@ -108,13 +36,14 @@ export default function KurortCards() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {kurorts.map((kurort, i) => (
             <motion.div
-              key={kurort.title}
+              key={kurort.id ?? kurort.title}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
               className="group rounded-3xl overflow-hidden border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 hover:border-(--site-accent)/20 transition-all duration-500 card-hover cursor-pointer"
             >
+              <Link href={kurort.id ? `/resort/${kurort.id}` : '#'} className="block">
               {/* Image */}
               <div className="relative h-52 overflow-hidden media-contrast">
                 <Image
@@ -180,6 +109,7 @@ export default function KurortCards() {
                   </motion.button>
                 </div>
               </div>
+              </Link>
             </motion.div>
           ))}
         </div>

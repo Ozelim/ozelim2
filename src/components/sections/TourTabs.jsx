@@ -3,48 +3,13 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mountain, Waves, Building2, Trees } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 const tabs = [
-  {
-    id: 'mountains',
-    label: 'Горные туры',
-    icon: Mountain,
-    items: [
-      { title: 'Восхождение на Белуху', duration: '14 дней', price: '€ 2 400', diff: 'Сложный', img: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=70' },
-      { title: 'Маршрут Алтай-360', duration: '10 дней', price: '€ 1 850', diff: 'Средний', img: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=400&q=70' },
-      { title: 'Тянь-Шань Базовый', duration: '7 дней', price: '€ 1 200', diff: 'Лёгкий', img: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&q=70' },
-    ],
-  },
-  {
-    id: 'sea',
-    label: 'Морские туры',
-    icon: Waves,
-    items: [
-      { title: 'Лазурный берег', duration: '12 дней', price: '€ 3 100', diff: 'Лёгкий', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=70' },
-      { title: 'Греческие острова', duration: '9 дней', price: '€ 2 700', diff: 'Лёгкий', img: 'https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=400&q=70' },
-      { title: 'Адриатика', duration: '8 дней', price: '€ 2 200', diff: 'Средний', img: 'https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=400&q=70' },
-    ],
-  },
-  {
-    id: 'city',
-    label: 'Городские',
-    icon: Building2,
-    items: [
-      { title: 'Европейские столицы', duration: '15 дней', price: '€ 3 500', diff: 'Лёгкий', img: 'https://images.unsplash.com/photo-1499856374050-9a1dd2d1b1ee?w=400&q=70' },
-      { title: 'Токио — Сеул', duration: '11 дней', price: '€ 4 200', diff: 'Средний', img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=70' },
-      { title: 'Золотое кольцо России', duration: '6 дней', price: '€ 900', diff: 'Лёгкий', img: 'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=400&q=70' },
-    ],
-  },
-  {
-    id: 'eco',
-    label: 'Экотуры',
-    icon: Trees,
-    items: [
-      { title: 'Сафари в Серенгети', duration: '10 дней', price: '€ 5 800', diff: 'Средний', img: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=400&q=70' },
-      { title: 'Амазонские джунгли', duration: '12 дней', price: '€ 4 900', diff: 'Сложный', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=70' },
-      { title: 'Патагония', duration: '14 дней', price: '€ 5 200', diff: 'Сложный', img: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=70' },
-    ],
-  },
+  { id: 'mountains', label: 'Горные туры', icon: Mountain },
+  { id: 'sea', label: 'Морские туры', icon: Waves },
+  { id: 'city', label: 'Городские', icon: Building2 },
+  { id: 'eco', label: 'Экотуры', icon: Trees },
 ]
 
 const diffColor = {
@@ -53,9 +18,10 @@ const diffColor = {
   'Сложный': 'text-red-400 border-red-400/30 bg-red-400/10',
 }
 
-export default function TourTabs() {
+export default function TourTabs({ items = [] }) {
   const [active, setActive] = useState('mountains')
-  const current = tabs.find((t) => t.id === active)
+  if (!items.length) return null
+  const current = { items }
 
   return (
     <section className="py-20 px-6">
@@ -109,12 +75,13 @@ export default function TourTabs() {
           >
             {current.items.map((item, i) => (
               <motion.div
-                key={item.title}
+                key={item.id ?? item.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
                 className="group rounded-2xl overflow-hidden border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 hover:border-(--site-accent)/20 transition-all duration-300 card-hover cursor-pointer"
               >
+                <Link href={item.id ? `/tours/${item.id}` : '#'} className="block">
                 <div className="relative h-48 overflow-hidden media-contrast">
                   <Image
                     src={item.img}
@@ -141,6 +108,7 @@ export default function TourTabs() {
                     <span className="text-(--site-accent) font-bold">{item.price}</span>
                   </div>
                 </div>
+                </Link>
               </motion.div>
             ))}
           </motion.div>

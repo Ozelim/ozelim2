@@ -8,8 +8,17 @@ import Carousel3 from "@/components/sections/Carousel3";
 import NewsBlock from "@/components/sections/NewsBlock";
 import Accordion from "@/components/sections/Accordion";
 import Footer, { MarqueeTicker } from "@/components/sections/Footer";
+import { getLatestNews } from "@/lib/news";
+import { getPopularResorts } from "@/lib/resorts";
+import { getLatestTours } from "@/lib/tours";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [news, resorts, tours] = await Promise.all([
+    getLatestNews(5),
+    getPopularResorts(6),
+    getLatestTours(6),
+  ]);
+
   return (
     <main>
       <Hero
@@ -18,9 +27,9 @@ export default function HomePage() {
       />
 
       <MarqueeTicker />
-      <NewsBlock />
-      <KurortCards />
-      <TourTabs />
+      <NewsBlock items={news} />
+      <KurortCards items={resorts} />
+      <TourTabs items={tours} />
 
       {/* Carousels section */}
       <section className="py-20 px-6">
