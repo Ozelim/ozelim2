@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import Hero from "@/components/sections/Hero";
 import KurortCards from "@/components/sections/KurortCards";
 import TourTabs from "@/components/sections/TourTabs";
