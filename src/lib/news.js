@@ -14,7 +14,7 @@ function formatDateRu(value) {
 
 export async function getLatestNews(limit = 5) {
   const rows = await sql`
-    SELECT id, title, description, image, tag, read_time, date
+    SELECT id, title, description, content, body, image, tag, read_time, date
       FROM news
      WHERE published = TRUE
      ORDER BY date DESC, id DESC
@@ -28,6 +28,7 @@ export async function getLatestNews(limit = 5) {
     readTime: `${r.read_time} мин`,
     title: r.title,
     excerpt: r.description,
+    content: r.content || r.body || "",
     img: r.image,
   }));
 }

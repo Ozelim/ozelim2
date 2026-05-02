@@ -101,8 +101,6 @@ export const MEAL_PLANS = [
 // ─── Currencies ───────────────────────────────────────────────────────────────
 export const CURRENCIES = [
   { value: 'KZT', label: '₸ KZT' },
-  { value: 'USD', label: '$ USD' },
-  { value: 'EUR', label: '€ EUR' },
 ]
 
 // ─── Hotel services ───────────────────────────────────────────────────────────

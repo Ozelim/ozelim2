@@ -1,6 +1,7 @@
 "use client";
-import { motion } from "framer-motion";
-import { Calendar, Clock, ArrowRight, Tag } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Calendar, Clock, ArrowRight, X } from "lucide-react";
 import Image from "next/image";
 
 const tagColor = {
@@ -12,7 +13,98 @@ const tagColor = {
 
 const defaultTagColor = "text-white/70 bg-white/5 border-white/10";
 
+function NewsModal({ article, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-100 flex items-center justify-center p-4 md:p-8 bg-black/70 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 30, scale: 0.98 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-(--site-accent)/20 bg-[#0a2a0a] shadow-2xl"
+      >
+        <div className="relative h-64 md:h-80 overflow-hidden">
+          {article.img && (
+            <Image
+              src={article.img}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority
+            />
+          )}
+          <div className="absolute inset-0 bg-linear-to-t from-[#0a2a0a] via-[#0a2a0a]/40 to-transparent" />
+          <button
+            onClick={onClose}
+            aria-label="Закрыть"
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/15 text-white flex items-center justify-center transition-all"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 md:p-10">
+          <div className="flex items-center gap-2 mb-4">
+            <span
+              className={`text-xs px-2.5 py-1 rounded-full border ${tagColor[article.tag] || defaultTagColor}`}
+            >
+              {article.tag}
+            </span>
+            <span className="flex items-center gap-1 text-white/40 text-xs">
+              <Calendar className="w-3 h-3" /> {article.date}
+            </span>
+            <span className="flex items-center gap-1 text-white/40 text-xs">
+              <Clock className="w-3 h-3" /> {article.readTime}
+            </span>
+          </div>
+          <h2
+            className="text-3xl md:text-4xl font-bold text-white mb-4"
+            style={{ fontFamily: "Cormorant Garamond, serif" }}
+          >
+            {article.title}
+          </h2>
+          {article.excerpt && (
+            <p className="text-white/60 text-base leading-relaxed mb-6">
+              {article.excerpt}
+            </p>
+          )}
+          {article.content ? (
+            <div
+              className="news-content text-white/80 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
+          ) : (
+            <p className="text-white/40 text-sm italic">Контент недоступен.</p>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function NewsBlock({ items = [] }) {
+  const [active, setActive] = useState(null);
   const news = items;
   if (!news.length) return null;
 
@@ -48,6 +140,7 @@ export default function NewsBlock({ items = [] }) {
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            onClick={() => setActive(news[0])}
             className="md:col-span-1 md:row-span-2 group rounded-3xl overflow-hidden border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 hover:border-(--site-accent)/20 transition-all duration-300 card-hover cursor-pointer flex flex-col"
           >
             <div className="relative h-56 overflow-hidden shrink-0 media-contrast">
@@ -59,7 +152,7 @@ export default function NewsBlock({ items = [] }) {
                 sizes="(max-width: 768px) 100vw, 33vw"
                 priority
               />
-              
+
               <div className="absolute inset-0 bg-linear-to-t from-[#030f03]/80 to-transparent" />
             </div>
             <div className="p-6 flex flex-col flex-1">
@@ -101,6 +194,7 @@ export default function NewsBlock({ items = [] }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: (i + 1) * 0.1 }}
+              onClick={() => setActive(article)}
               className="group flex gap-4 rounded-2xl border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 hover:border-(--site-accent)/20 transition-all duration-300 p-4 cursor-pointer overflow-hidden"
             >
               <div className="relative w-48 h-50 rounded-xl overflow-hidden shrink-0">
@@ -145,6 +239,10 @@ export default function NewsBlock({ items = [] }) {
           ))}
         </div>
       </div>
+
+      <AnimatePresence>
+        {active && <NewsModal article={active} onClose={() => setActive(null)} />}
+      </AnimatePresence>
     </section>
   );
 }

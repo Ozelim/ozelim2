@@ -3,13 +3,11 @@
 import { useCallback } from "react";
 import { CURRENCIES } from "../FilterState";
 
-const BUDGET_MAX = { KZT: 2_000_000, USD: 5_000, EUR: 5_000 };
-const BUDGET_STEP = { KZT: 10_000, USD: 50, EUR: 50 };
+const BUDGET_MAX = { KZT: 2_000_000 };
+const BUDGET_STEP = { KZT: 10_000 };
 
-function formatBudget(v, currency) {
-  if (currency === "KZT") return `${(v / 1000).toFixed(0)}K ₸`;
-  if (currency === "USD") return `$${v.toLocaleString()}`;
-  return `€${v.toLocaleString()}`;
+function formatBudget(v) {
+  return `${(v / 1000).toFixed(0)}K ₸`;
 }
 
 export function BudgetSlider({
@@ -57,7 +55,7 @@ export function BudgetSlider({
       <div className="flex items-center justify-between">
         <span className="text-xs text-app-faint">Бюджет на туриста</span>
         <span className="text-xs font-medium text-app-fg">
-          {formatBudget(min, currency)} — {formatBudget(max, currency)}
+          {formatBudget(min)} — {formatBudget(max)}
         </span>
       </div>
 
@@ -104,7 +102,7 @@ export function BudgetSlider({
       <div className="flex justify-between">
         <span className="text-[10px] text-app-faint">0</span>
         <span className="text-[10px] text-app-faint">
-          {formatBudget(absMax, currency)}
+          {formatBudget(absMax)}
         </span>
       </div>
     </div>

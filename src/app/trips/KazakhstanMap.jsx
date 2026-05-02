@@ -31,6 +31,9 @@ export const RESORTS = [
       "Жемчужина Казахстана — кристальные озёра среди вековых сосен. Идеальное место для летнего отдыха и зимних лыжных прогулок.",
     rating: 4.9,
     tags: ["Озёра", "Лес", "Лыжи"],
+    hot: true,
+    popular: true,
+    price: 95,
     images: [
       "https://picsum.photos/seed/borovoe11/420/290",
       "https://picsum.photos/seed/borovoe22/420/290",
@@ -46,6 +49,9 @@ export const RESORTS = [
       "Легендарный высокогорный каток на высоте 1691 м — дом множества мировых рекордов. Окружён снежными вершинами Заилийского Алатау.",
     rating: 4.7,
     tags: ["Горы", "Каток", "Спорт"],
+    hot: false,
+    popular: true,
+    price: 70,
     images: [
       "https://picsum.photos/seed/medeu11/420/290",
       "https://picsum.photos/seed/medeu22/420/290",
@@ -61,6 +67,9 @@ export const RESORTS = [
       "Лучший горнолыжный курорт Центральной Азии на склонах Алатау. Трассы для любого уровня, современный подъёмник и уютные шале.",
     rating: 4.8,
     tags: ["Горные лыжи", "Альпинизм", "SPA"],
+    hot: true,
+    popular: true,
+    price: 140,
     images: [
       "https://picsum.photos/seed/shymb11/420/290",
       "https://picsum.photos/seed/shymb22/420/290",
@@ -76,6 +85,9 @@ export const RESORTS = [
       "Три горных озера — Нижнее, Среднее и Верхнее — образуют жемчужное ожерелье в ущелье. Природное наследие ЮНЕСКО.",
     rating: 4.9,
     tags: ["Треккинг", "Озёра", "Природа"],
+    hot: false,
+    popular: true,
+    price: 60,
     images: [
       "https://picsum.photos/seed/kolsai11/420/290",
       "https://picsum.photos/seed/kolsai22/420/290",
@@ -91,6 +103,9 @@ export const RESORTS = [
       "Величественный каньон — «младший брат» Гранд-Каньона протяжённостью 154 км. Красно-оранжевый песчаник и неземные пейзажи.",
     rating: 4.8,
     tags: ["Каньон", "Хайкинг", "Фото"],
+    hot: true,
+    popular: false,
+    price: 55,
     images: [
       "https://picsum.photos/seed/charyn11/420/290",
       "https://picsum.photos/seed/charyn22/420/290",
@@ -106,6 +121,9 @@ export const RESORTS = [
       "Город на берегу Каспийского моря с прекрасными пляжами. Тёплое море, меловые горы и уникальные подводные котловины.",
     rating: 4.5,
     tags: ["Пляж", "Каспий", "Дайвинг"],
+    hot: false,
+    popular: false,
+    price: 80,
     images: [
       "https://picsum.photos/seed/aktau11/420/290",
       "https://picsum.photos/seed/aktau22/420/290",
@@ -121,6 +139,9 @@ export const RESORTS = [
       "Первый национальный парк Казахстана — живописные горы и озёра среди бескрайней степи Сарыарки. Уникальная флора и фауна.",
     rating: 4.6,
     tags: ["Нацпарк", "Степь", "Пешие походы"],
+    hot: false,
+    popular: false,
+    price: 50,
     images: [
       "https://picsum.photos/seed/bayan11/420/290",
       "https://picsum.photos/seed/bayan22/420/290",
@@ -136,6 +157,9 @@ export const RESORTS = [
       "Высокогорное реликтовое озеро на 2510 м в окружении заснеженных трёхтысячников. Вода меняет цвет с бирюзового до изумрудного.",
     rating: 4.9,
     tags: ["Озеро", "Горы", "Фотография"],
+    hot: true,
+    popular: true,
+    price: 75,
     images: [
       "https://picsum.photos/seed/bal11/420/290",
       "https://picsum.photos/seed/bal22/420/290",
@@ -151,6 +175,9 @@ export const RESORTS = [
       "Мистическое затопленное озеро с торчащими из воды стволами елей — живые свидетели землетрясения 1911 года. Идеально для дайвинга.",
     rating: 4.7,
     tags: ["Дайвинг", "Мистика", "Фото"],
+    hot: false,
+    popular: true,
+    price: 65,
     images: [
       "https://picsum.photos/seed/kaindy11/420/290",
       "https://picsum.photos/seed/kaindy22/420/290",
@@ -472,8 +499,21 @@ function ResortCard({ resort, isSelected, onClick, animIdx }) {
       style={{ animationDelay: `${animIdx * 70}ms` }}
     >
       {/* ── Left: image carousel ── */}
-      <div className="w-[42%] min-w-[170px] max-w-[270px] xl:max-w-[320px] h-[130px] sm:h-[150px] md:h-[160px] lg:h-[175px] xl:h-[190px] rounded-xl overflow-hidden shrink-0 grow-0">
+      <div className="relative w-[42%] min-w-[170px] max-w-[270px] xl:max-w-[320px] h-[130px] sm:h-[150px] md:h-[160px] lg:h-[175px] xl:h-[190px] rounded-xl overflow-hidden shrink-0 grow-0">
         <ResortCarousel images={resort.images} />
+        {/* Badges */}
+        <div className="absolute top-2 left-2 z-40 flex flex-col gap-1 pointer-events-none">
+          {resort.hot && (
+            <span className="px-2 py-0.5 rounded-full bg-(--site-accent) text-(--site-on-accent) text-[10px] font-bold shadow">
+              🔥 Горящий
+            </span>
+          )}
+          {resort.popular && (
+            <span className="px-2 py-0.5 rounded-full bg-black/65 text-white text-[10px] font-bold backdrop-blur-sm">
+              ⭐ Популярное
+            </span>
+          )}
+        </div>
       </div>
 
       {/* ── Right: text content ── */}
@@ -502,6 +542,15 @@ function ResortCard({ resort, isSelected, onClick, animIdx }) {
         </div>
 
         <div>
+          {resort.price != null && (
+            <div className="mb-2 flex items-baseline gap-1.5">
+              <span className="text-[10px] text-primary-foreground/55">цена за ночь от</span>
+              <span className="text-sm font-bold text-(--site-accent)">
+                {Number(resort.price).toLocaleString()} ₸
+              </span>
+            </div>
+          )}
+
           <div className="mb-2">
             <Stars rating={resort.rating} />
           </div>
@@ -666,12 +715,20 @@ function MapPanel({ selId, onSelect }) {
 
   const popupHtml = useCallback(
     (r) => `
-    <div style="background:#fff; border-radius:14px; overflow:hidden; color:#1c1917; min-width:210px; font-family:sans-serif;">
-      <div style="position:relative;height:110px;"><img src="${r.images[0]}" style="width:100%;height:100%;object-fit:cover;"></div>
+    <div style="background:#fff; border-radius:14px; overflow:hidden; color:#1c1917; min-width:230px; font-family:sans-serif;">
+      <div style="position:relative;height:110px;">
+        <img src="${r.images[0]}" style="width:100%;height:100%;object-fit:cover;">
+        <div style="position:absolute;top:8px;left:8px;display:flex;flex-direction:column;gap:4px;">
+          ${r.hot ? `<span style="background:var(--site-accent,#f59e0b);color:#000;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;line-height:1;">🔥 Горящий</span>` : ""}
+          ${r.popular ? `<span style="background:rgba(0,0,0,0.65);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;line-height:1;">⭐ Популярное</span>` : ""}
+        </div>
+        <button class="popup-close-btn" type="button" aria-label="Закрыть" style="position:absolute;top:8px;right:8px;width:24px;height:24px;border:0;border-radius:999px;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;padding:0;">✕</button>
+      </div>
       <div style="padding:10px 12px 13px;">
         <div style="font-size:9px;color:#a8a29e;text-transform:uppercase;">${r.region}</div>
         <h3 style="font-size:17px;margin:5px 0;">${r.name}</h3>
         <p style="font-size:11px;color:#78716c;">${r.description}</p>
+        ${r.price != null ? `<div style="margin-top:8px;display:flex;align-items:baseline;gap:4px;"><span style="font-size:9px;color:#a8a29e;">цена за ночь от</span><span style="font-size:14px;font-weight:700;color:#b45309;">${Number(r.price).toLocaleString()} ₸</span></div>` : ""}
       </div>
     </div>
   `,
@@ -758,7 +815,17 @@ function MapPanel({ selId, onSelect }) {
         const marker = L.marker(r.coords, { icon })
           .bindPopup(L.popup({ closeButton: false }).setContent(popupHtml(r)))
           .addTo(map)
-          .on("click", () => onSelect(r));
+          .on("click", () => onSelect(r))
+          .on("popupopen", (e) => {
+            const root = e.popup.getElement();
+            const btn = root?.querySelector(".popup-close-btn");
+            if (btn) {
+              btn.onclick = (ev) => {
+                ev.stopPropagation();
+                marker.closePopup();
+              };
+            }
+          });
         markersRef.current[r.id] = marker;
       });
 

@@ -131,7 +131,7 @@ function TourCard({ tour, i }) {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-white/40 text-xs">от</div>
-            <div className="text-(--site-accent) font-bold text-xl">€ {tour.price.toLocaleString()}</div>
+            <div className="text-(--site-accent) font-bold text-xl">{tour.price.toLocaleString()} ₸</div>
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}

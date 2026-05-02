@@ -98,7 +98,7 @@ export default function KurortCards({ items = [] }) {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-white/40 text-xs">цена за ночь от</div>
-                    <div className="text-(--site-accent) font-bold text-xl">€ {kurort.price.toLocaleString()}</div>
+                    <div className="text-(--site-accent) font-bold text-xl">{kurort.price.toLocaleString()} ₸</div>
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
