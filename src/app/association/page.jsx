@@ -229,7 +229,7 @@ export default function LegalPage() {
                       PDF
                     </span>
                   </div>
-                  <div className="aspect-[3/4] rounded-xl border border-dashed border-[#1a6b1a]/40 bg-[#030f03]/60 flex items-center justify-center text-white/25 text-xs">
+                  <div className="aspect-3/4 rounded-xl border border-dashed border-[#1a6b1a]/40 bg-[#030f03]/60 flex items-center justify-center text-white/25 text-xs">
                     Документ
                   </div>
                   <div>

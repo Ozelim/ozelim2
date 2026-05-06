@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import Hero from "@/components/sections/Hero";
 import KurortCards from "@/components/sections/KurortCards";
+import PopularResorts from "@/components/sections/PopularResorts";
 import TourTabs from "@/components/sections/TourTabs";
 import WhyUs from "@/components/sections/WhyUs";
 import Carousel1 from "@/components/sections/Carousel1";
@@ -14,6 +15,7 @@ import { getLatestNews } from "@/lib/news";
 import { getPopularResorts } from "@/lib/resorts";
 import { getLatestTours } from "@/lib/tours";
 import { getMainPageStats } from "@/lib/stats";
+import Image from "next/image";
 
 export default async function HomePage() {
   const [news, resorts, tours, pageStats] = await Promise.all([
@@ -33,6 +35,7 @@ export default async function HomePage() {
       <MarqueeTicker />
       <NewsBlock items={news} />
       <KurortCards items={resorts} />
+      {/* <PopularResorts /> */}
       <TourTabs items={tours} />
 
       {/* Carousels section */}

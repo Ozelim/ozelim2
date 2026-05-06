@@ -83,13 +83,13 @@ function CounterRow({ icon: Icon, label, hint, value, onChange, min, max }) {
   const dec = () => onChange(Math.max(min, value - 1));
   const inc = () => onChange(Math.min(max, value + 1));
   return (
-    <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-(--app-border) bg-(--app-panel)">
+    <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-app-border bg-app-panel">
       <div className="flex items-center gap-3">
         <Icon className="w-5 h-5 text-(--site-accent-bright) shrink-0" />
         <div>
-          <div className="text-sm font-semibold text-(--app-fg)">{label}</div>
+          <div className="text-sm font-semibold text-app-fg">{label}</div>
           {hint && (
-            <div className="text-[11px] text-(--app-faint)">{hint}</div>
+            <div className="text-[11px] text-app-faint">{hint}</div>
           )}
         </div>
       </div>
@@ -98,7 +98,7 @@ function CounterRow({ icon: Icon, label, hint, value, onChange, min, max }) {
           type="button"
           onClick={dec}
           disabled={value <= min}
-          className="w-8 h-8 rounded-full border border-(--app-border) text-(--app-fg) flex items-center justify-center disabled:opacity-30 hover:border-(--site-accent)/60 transition-colors"
+          className="w-8 h-8 rounded-full border border-app-border text-app-fg flex items-center justify-center disabled:opacity-30 hover:border-(--site-accent)/60 transition-colors"
         >
           <Minus className="w-3.5 h-3.5" />
         </button>

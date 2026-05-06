@@ -23,7 +23,7 @@ export default function KurortCards({ items = [] }) {
               className="text-5xl font-bold text-white"
               style={{ fontFamily: 'Cormorant Garamond, serif' }}
             >
-              Популярные курортные зоны
+              Курортные направления Казахстана
             </h2>
           </div>
           <button className="flex items-center gap-2 text-(--site-accent) text-sm hover:gap-3 transition-all group">

@@ -20,8 +20,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import Link from "next/link";
 import { TourSelectionDialog } from "../tour-selection/tour-selection";
+import { RequestFormDialog } from "../request-form/request-form";
 
 // ─── Service tiles ────────────────────────────────────────────────────────────
 const TILES = [
@@ -351,15 +351,7 @@ export default function Hero({ title, subtitle, highlight }) {
           >
             <TourSelectionDialog />
 
-            {isHome && (
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                className="px-8 py-4 rounded-full border border-white/30 text-white hover:border-[#FFD700]/50 hover:bg-white/5 font-medium text-sm tracking-wider uppercase transition-colors"
-              >
-                <Link href="/trips">Посмотреть поездки</Link>
-              </motion.button>
-            )}
+            {isHome && <RequestFormDialog />}
             {!isHome && !isTrips && (
               <motion.button
                 whileHover={{ scale: 1.04 }}
