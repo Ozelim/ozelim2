@@ -27,31 +27,9 @@ import {
   ChevronRight,
   Phone,
   MessageCircle,
+  Clock,
 } from "lucide-react";
 import { Input } from "../ui/input";
-
-const RESORTS = [
-  { id: "bayanaul", label: "Баянаул" },
-  { id: "katon-karagay", label: "Катон-Карагай" },
-  { id: "kolsai", label: "Кольсай" },
-  { id: "kaindy", label: "Каинды" },
-  { id: "turkestan", label: "Туркестан" },
-  { id: "balkhash", label: "Балхаш" },
-  { id: "aktau", label: "Актау" },
-  { id: "bukhtarma", label: "Бухтарма" },
-  { id: "kapchagai", label: "Капчагай" },
-  { id: "astana", label: "Астана" },
-  { id: "zaisan", label: "Зайсан" },
-  { id: "almaty", label: "Алматы" },
-  { id: "saryagash", label: "Сарыагаш" },
-  { id: "borovoe", label: "Боровое" },
-  { id: "bozzhyra", label: "Бозжыра" },
-  { id: "charyn", label: "Чарынский каньон" },
-  { id: "alakol-akshi", label: "Алаколь / Акши" },
-  { id: "alakol-kabanbay", label: "Алаколь / Кабанбай" },
-  { id: "belukha", label: "Белуха" },
-  { id: "markakol", label: "Маркаколь" },
-];
 
 const GROUP_PRESETS = [
   { id: "solo", label: "Один", hint: "1 человек", icon: UserRound, adults: 1, children: 0 },
@@ -67,7 +45,7 @@ const CONTACT_METHODS = [
   { id: "phone", label: "Звонок", icon: Phone },
 ];
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 const MONTHS = [
   "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
   "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь",
@@ -82,7 +60,7 @@ function startOfDay(date) {
 
 function buildMonthGrid(year, month) {
   const first = new Date(year, month, 1);
-  const offset = (first.getDay() + 6) % 7; // Monday = 0
+  const offset = (first.getDay() + 6) % 7;
   const start = new Date(year, month, 1 - offset);
   const cells = [];
   for (let i = 0; i < 42; i++) {
@@ -114,7 +92,7 @@ function CounterRow({ icon: Icon, label, hint, value, onChange, min, max }) {
         >
           <Minus className="w-3.5 h-3.5" />
         </button>
-        <span className="w-6 text-center text-(--app-fg) font-semibold">{value}</span>
+        <span className="w-10 text-center text-(--app-fg) font-semibold">{value}</span>
         <button
           type="button"
           onClick={inc}
@@ -232,19 +210,49 @@ function Calendar({ selectedDate, onSelect }) {
   );
 }
 
+function dayWord(n) {
+  if (n === 1) return "день";
+  if (n >= 2 && n <= 4) return "дня";
+  return "дней";
+}
+
 export function RequestFormDialog({ trigger, triggerClassName }) {
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState(1);
   const [direction, setDirection] = React.useState(1);
+
+  const [directions, setDirections] = React.useState([]);
+  const [directionsLoading, setDirectionsLoading] = React.useState(false);
 
   const [resort, setResort] = React.useState("");
   const [groupPreset, setGroupPreset] = React.useState("");
   const [adults, setAdults] = React.useState(2);
   const [children, setChildren] = React.useState(0);
   const [date, setDate] = React.useState(null);
+  const [duration, setDuration] = React.useState(5);
   const [contactMethod, setContactMethod] = React.useState("whatsapp");
   const [name, setName] = React.useState("");
   const [phone, setPhone] = React.useState("");
+
+  React.useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setDirectionsLoading(true);
+    fetch("/api/resort-directions")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) setDirections(data.directions ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setDirections([]);
+      })
+      .finally(() => {
+        if (!cancelled) setDirectionsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   const goTo = React.useCallback(
     (next) => {
@@ -267,7 +275,8 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
     (step === 1 && resort) ||
     (step === 2 && (adults > 0 || children > 0)) ||
     (step === 3 && date) ||
-    (step === 4 && name.trim() && phone.trim() && contactMethod);
+    (step === 4 && duration >= 1 && duration <= 10) ||
+    (step === 5 && name.trim() && phone.trim() && contactMethod);
 
   const reset = () => {
     setStep(1);
@@ -277,6 +286,7 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
     setAdults(2);
     setChildren(0);
     setDate(null);
+    setDuration(5);
     setContactMethod("whatsapp");
     setName("");
     setPhone("");
@@ -288,6 +298,7 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
       adults,
       children,
       date: date ? date.toISOString() : null,
+      duration,
       contactMethod,
       name,
       phone,
@@ -306,6 +317,7 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
     "Куда хотите поехать?",
     "Состав группы",
     "Когда планируете поездку?",
+    "Продолжительность тура",
     "Ваши контакты",
   ];
 
@@ -375,21 +387,31 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
             >
               {step === 1 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[360px] overflow-y-auto pr-1">
-                  {RESORTS.map((r) => (
-                    <OptionCard
-                      key={r.id}
-                      selected={resort === r.id}
-                      onClick={() => {
-                        setResort(r.id);
-                        autoNext(2);
-                      }}
-                    >
-                      <span className="flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5 text-(--site-accent-bright) shrink-0" />
-                        <span className="text-sm font-medium text-(--app-fg)">{r.label}</span>
-                      </span>
-                    </OptionCard>
-                  ))}
+                  {directionsLoading && directions.length === 0 ? (
+                    <div className="col-span-full text-center text-sm text-(--app-faint) py-6">
+                      Загрузка направлений...
+                    </div>
+                  ) : directions.length === 0 ? (
+                    <div className="col-span-full text-center text-sm text-(--app-faint) py-6">
+                      Направления пока не добавлены
+                    </div>
+                  ) : (
+                    directions.map((r) => (
+                      <OptionCard
+                        key={r.id}
+                        selected={resort === r.id}
+                        onClick={() => {
+                          setResort(r.id);
+                          autoNext(2);
+                        }}
+                      >
+                        <span className="flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-(--site-accent-bright) shrink-0" />
+                          <span className="text-sm font-medium text-(--app-fg)">{r.name}</span>
+                        </span>
+                      </OptionCard>
+                    ))
+                  )}
                 </div>
               )}
 
@@ -466,6 +488,44 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
               )}
 
               {step === 4 && (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <span className="text-6xl font-bold bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) bg-clip-text text-transparent">
+                      {duration}
+                    </span>
+                    <span className="text-(--app-subtle) text-lg ml-2">
+                      {dayWord(duration)}
+                    </span>
+                  </div>
+                  <CounterRow
+                    icon={Clock}
+                    label="Количество дней"
+                    hint="от 1 до 10 дней"
+                    value={duration}
+                    onChange={setDuration}
+                    min={1}
+                    max={10}
+                  />
+                  <div className="grid grid-cols-5 gap-2">
+                    {[1, 3, 5, 7, 10].map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setDuration(d)}
+                        className={`py-2 rounded-xl text-sm font-medium border transition-all ${
+                          duration === d
+                            ? "border-(--site-accent) bg-linear-to-br from-(--site-gradient-from)/15 to-(--site-gradient-to)/10 text-(--app-fg)"
+                            : "border-(--app-border) bg-(--app-panel) text-(--app-subtle) hover:border-(--site-accent)/50"
+                        }`}
+                      >
+                        {d} дн.
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {step === 5 && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-(--app-subtle) uppercase tracking-wider">

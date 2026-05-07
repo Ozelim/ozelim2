@@ -16,7 +16,9 @@ import {
   Users,
   ArrowRight,
   Heart,
-  MessageCircleQuestion
+  MessageCircleQuestion,
+  Baby,
+  Sparkles,
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -263,6 +265,53 @@ function TourCarousel() {
   );
 }
 
+// ─── Kids Go Free animated banner ─────────────────────────────────────────────
+function KidsGoFreeBanner() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      className="relative overflow-hidden rounded-full border border-(--site-accent)/40 bg-linear-to-r from-(--site-gradient-from)/30 via-(--site-accent-bright)/35 to-(--site-gradient-to)/30 backdrop-blur-sm py-2.5 shadow-[0_0_30px_var(--site-shadow-soft)]"
+    >
+      <motion.div
+        aria-hidden
+        className="absolute inset-y-0 w-1/3 bg-linear-to-r from-transparent via-white/40 to-transparent pointer-events-none"
+        animate={{ x: ["-120%", "420%"] }}
+        transition={{ duration: 3.2, repeat: Infinity, ease: "linear" }}
+      />
+      <div className="relative z-10 flex justify-center items-center gap-2.5 font-bold text-sm tracking-[0.2em] uppercase">
+        <motion.span
+          animate={{ rotate: [0, 12, -12, 0], y: [0, -2, 0] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+          className="inline-flex"
+        >
+          <Baby className="w-4 h-4 text-(--site-accent-bright)" />
+        </motion.span>
+        <motion.span
+          animate={{ backgroundPosition: ["0% 50%", "200% 50%"] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+          className="bg-clip-text text-transparent"
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg, var(--site-accent-bright), #ffffff, var(--site-accent-bright), #ffffff, var(--site-accent-bright))",
+            backgroundSize: "200% 100%",
+          }}
+        >
+          Kids Go Free
+        </motion.span>
+        <motion.span
+          animate={{ rotate: [0, -360], scale: [1, 1.15, 1] }}
+          transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
+          className="inline-flex"
+        >
+          <Sparkles className="w-4 h-4 text-(--site-accent-bright)" />
+        </motion.span>
+      </div>
+    </motion.div>
+  );
+}
+
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 export default function Hero({ title, subtitle, highlight }) {
   const pathname = usePathname();
@@ -347,20 +396,24 @@ export default function Hero({ title, subtitle, highlight }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="inline-flex flex-col items-stretch gap-3 mx-auto"
           >
-            <TourSelectionDialog />
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <TourSelectionDialog />
 
-            {isHome && <RequestFormDialog />}
-            {!isHome && !isTrips && (
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                className="px-8 py-4 rounded-full border border-white/30 text-white hover:border-[#FFD700]/50 hover:bg-white/5 font-medium text-sm tracking-wider uppercase transition-colors"
-              >
-                Узнать больше
-              </motion.button>
-            )}
+              {isHome && <RequestFormDialog />}
+              {!isHome && !isTrips && (
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="px-8 py-4 rounded-full border border-white/30 text-white hover:border-[#FFD700]/50 hover:bg-white/5 font-medium text-sm tracking-wider uppercase transition-colors"
+                >
+                  Узнать больше
+                </motion.button>
+              )}
+            </div>
+
+            {isHome && <KidsGoFreeBanner />}
           </motion.div>
         </div>
 

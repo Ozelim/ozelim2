@@ -1,246 +1,595 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import Hero from "@/components/sections/Hero";
+import Image from "next/image";
 import Footer, { MarqueeTicker } from "@/components/sections/Footer";
+import { RequestFormDialog } from "@/components/request-form/request-form";
 import {
   Sparkles,
-  Building2,
   FileSignature,
   ChevronLeft,
   ChevronRight,
-  Handshake,
-  Globe,
+  Stethoscope,
+  GraduationCap,
   Plane,
   ShieldCheck,
-  HandCoins,
-  Stethoscope,
+  Scale,
+  Award,
+  CheckCircle2,
+  Megaphone,
+  MapPinned,
+  TrendingUp,
+  BadgeCheck,
+  LayoutGrid,
+  FileText,
+  HeartHandshake,
+  ArrowRight,
 } from "lucide-react";
 
-const offerings = [
+const mission = [
+  "Популяризация внутреннего туризма среди населения и продвижение услуг Санаторно-курортных комплексов Казахстана.",
+  "Повышение квалификации действующих работников в сфере туризма, подбор кадров, обучение, трудоустройство.",
+  "Защита прав потребителей в сфере туризма и оказание юридической помощи.",
+];
+
+const directions = [
   {
+    id: "health",
+    title: "Мир здоровья",
     icon: Stethoscope,
-    text: "Цифровой ассистент по подбору санаториев по заболеваниям и патологиям",
+    text:
+      "Оздоровительные услуги санаториев — пропаганда здорового образа жизни, рекомендации к оздоровительным турам в Санаторно-курортные комплексы Республики Казахстан с использованием автоматизированного профильного конструктора туров по заболеваниям и патологиям.",
   },
   {
+    id: "education",
+    title: "Дуальное обучение",
+    icon: GraduationCap,
+    text:
+      "Образовательные услуги Центра сертификации специалистов «САПА» — онлайн-курсы, подготовка и переподготовка кадров, повышение квалификации действующих работников, подбор персонала и трудоустройство.",
+  },
+  {
+    id: "tours",
+    title: "Туры с Öz Elim",
     icon: Plane,
-    text: "Авторские туры и культурно-познавательные маршруты",
+    text:
+      "Туристические услуги членов Ассоциации и авторские туры «Öz Elim» направлены на популяризацию внутреннего туризма среди населения по всему Казахстану.",
   },
   {
+    id: "insurance",
+    title: "Страхование",
     icon: ShieldCheck,
-    text: "Миграционно-визовая, правовая и страховая поддержка",
+    text:
+      "Страховые услуги HALYK Life — это финансовая защита от несчастных случаев в путешествиях. Страхование жизни помогает обезопасить себя и родных от возможных финансовых потерь в непредвиденных ситуациях.",
   },
   {
-    icon: Handshake,
-    text: "Административная поддержка Ассоциации туристов Казахстана",
-  },
-  {
-    icon: HandCoins,
-    text: "Эндаумент фонд на базе МФЦА для поддержки туристических проектов",
+    id: "legal",
+    title: "Правовая помощь",
+    icon: Scale,
+    text:
+      "Юридические услуги «GRT COMPANY» — оказание правовой помощи и юридической поддержки потребителям в сфере внутреннего туризма и партнёрам Ассоциации.",
   },
 ];
 
-const partners = [
-  "Юридическая компания ТОО «GRT COMPANY»",
-  "ТОО «Центр сертификации специалистов «САПА»",
-  "Web-студия ИП «TAS Prog»",
-  "ТОО «PROFIL-KZ»",
-  "Миграционно-визовый консалтинг ИП Мукатаева А.К.",
-  "АО «Страховая компания «НОМАД Иншуранс»",
-  "Объединение индивидуальных предпринимателей и юридических лиц «Ассоциация туристов Казахстана «OzElim»",
-  "Акционерное общество «Дочерняя компания Народного Банка Казахстана по страхованию жизни «Халык-Life»",
-  "Некоммерческая организация «Endowment fund of the Association of Tourists of Kazakhstan» — Эндаумент фонд «OzElim» на базе МФЦА",
-  "Отдел туризма при ГУ «Управление физической культуры и спорта Павлодарской области»",
-  "Совет Деловых Женщин Павлодарской области",
-  "ТОО «Y. Taxi Qazaqstan»",
-  "ИП «TURAN TOUR»",
-  "ТОО «PALMA TUR»",
-  "ТОО «Нуртау»",
-  "ИП «МЕЙРБАЕВ М.Ж.»",
-  "ТОО «Айдабол Курылыс»",
-  "ИП Нуржумбаева",
-  "ТОО «Компания «Пять звезд»",
-  "ТОО «Международная ассоциация клубов», г. Алматы",
+const advantages = [
+  { icon: HeartHandshake, text: "Поддержка Эндаумент фонда" },
+  { icon: BadgeCheck, text: "Лицензированный Туроператор" },
+  { icon: LayoutGrid, text: "Многофункциональная платформа и целевая аудитория" },
+];
+
+const partnerships = [
+  {
+    icon: TrendingUp,
+    text: "Предлагаем целевую аудиторию, клиентскую базу и привлечение новых туристов",
+  },
+  {
+    icon: Megaphone,
+    text: "Работаем над рекламой и популяризацией санаториев и курортных зон",
+  },
+  {
+    icon: MapPinned,
+    text: "Организуем любые виды экскурсий по Казахстану",
+  },
+];
+
+const benefits = [
+  "Уникальную возможность получить юридические услуги на выгодных условиях",
+  "Возможность для предприятий в сфере туризма провести обучение для сотрудников по промышленной безопасности, пожарно-техническому минимуму и безопасности охраны труда, провести в организации пожарный аудит на выгодных условиях",
+  "Возможность успешно пройти обучение и получить документ по краткосрочной подготовке, переподготовке и повышения квалификации на выгодных условиях",
+];
+
+const docLinks = [
+  { label: "Положение о членстве в Ассоциации", href: "#" },
+  { label: "Договор о членстве в Ассоциации", href: "#" },
+  { label: "Заявление на вступление в Ассоциацию", href: "#" },
 ];
 
 const memorandums = [
   {
-    title: "Меморандум №1",
-    desc: "О сотрудничестве с ГУ «Управление физической культуры и спорта Павлодарской области».",
+    title: "Меморандум со страховой компанией Халық-Life",
+    desc: "О сотрудничестве в сфере страховой защиты участников программ Ассоциации.",
   },
   {
-    title: "Меморандум №2",
-    desc: "Соглашение о совместной работе по развитию внутреннего туризма в регионе.",
+    title: "Меморандум с Советом деловых женщин Павлодарской области",
+    desc: "Соглашение о совместном развитии женского предпринимательства в туризме.",
   },
   {
-    title: "Меморандум №3",
-    desc: "Меморандум о сотрудничестве с Народным Банком Казахстана по гостевым программам.",
-  },
-  {
-    title: "Меморандум №4",
-    desc: "Соглашение по обмену опытом и сопровождению туристических услуг с партнёрами.",
+    title: "Меморандум с Отделом туризма при Управлении физкультуры и спорта Павлодарской области",
+    desc: "О совместной работе по развитию внутреннего туризма региона.",
   },
 ];
 
-export default function LegalPage() {
+// ─── Circular directions diagram ──────────────────────────────────────────────
+function DirectionsDiagram() {
+  // 5 segments around a centered logo
+  const radius = 120;
+  const cx = 160;
+  const cy = 160;
+  const items = directions.map((d, i) => {
+    const angle = (i / directions.length) * Math.PI * 2 - Math.PI / 2;
+    return {
+      ...d,
+      x: cx + radius * Math.cos(angle),
+      y: cy + radius * Math.sin(angle),
+    };
+  });
+
+  return (
+    <div className="relative mx-auto" style={{ width: 320, height: 320 }}>
+      <svg width="320" height="320" viewBox="0 0 320 320" className="absolute inset-0">
+        <defs>
+          <radialGradient id="ringGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="60%" stopColor="var(--site-accent)" stopOpacity="0" />
+            <stop offset="100%" stopColor="var(--site-accent)" stopOpacity="0.55" />
+          </radialGradient>
+        </defs>
+        <circle
+          cx={cx}
+          cy={cy}
+          r={radius}
+          fill="none"
+          stroke="url(#ringGrad)"
+          strokeWidth="2"
+          strokeDasharray="4 6"
+        />
+      </svg>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) flex flex-col items-center justify-center shadow-[0_0_40px_var(--site-shadow-glow)]"
+      >
+        <span
+          className="text-(--site-on-accent) text-2xl font-bold leading-none"
+          style={{ fontFamily: "Cormorant Garamond, serif" }}
+        >
+          Öz
+        </span>
+        <span
+          className="text-(--site-on-accent) text-2xl font-bold leading-none mt-1"
+          style={{ fontFamily: "Cormorant Garamond, serif" }}
+        >
+          Elim
+        </span>
+      </motion.div>
+
+      {items.map((d, i) => {
+        const Icon = d.icon;
+        return (
+          <motion.div
+            key={d.id}
+            initial={{ opacity: 0, scale: 0.6 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1"
+            style={{ left: d.x, top: d.y }}
+          >
+            <div className="w-14 h-14 rounded-full border-2 border-(--site-accent)/40 bg-(--app-card) flex items-center justify-center shadow-[0_0_18px_var(--site-shadow-soft)]">
+              <Icon className="w-6 h-6 text-(--site-accent-bright)" />
+            </div>
+            <div className="text-[10px] font-semibold text-(--app-fg) uppercase tracking-wider text-center leading-tight max-w-[90px]">
+              {d.title}
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function AssociationPage() {
   const [memIdx, setMemIdx] = useState(0);
-  const visible = 4;
+  const visible = 3;
   const next = () =>
     setMemIdx((i) => Math.min(i + 1, Math.max(0, memorandums.length - visible)));
   const prev = () => setMemIdx((i) => Math.max(0, i - 1));
 
   return (
-    <main>
-      <Hero
-        title="Ассоциация"
-        highlight="туристов Казахстана"
-        subtitle="Открой Казахстан вместе с OzElim — экосистема партнёров, услуг и сервисов для безопасных и полезных путешествий."
-        badge="OzElim"
-      />
+    <main className="pt-28 pb-16">
       <MarqueeTicker />
 
-      {/* Hero block */}
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
+      {/* ── Intro ── */}
+      <section className="px-6 py-14">
+        <div className="max-w-4xl mx-auto text-center">
           <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 text-(--site-accent-bright) text-xs uppercase tracking-widest mb-3"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Öz Elim
+          </motion.div>
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="rounded-3xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 p-8 md:p-12"
+            transition={{ delay: 0.05 }}
+            className="text-4xl md:text-5xl font-bold text-(--site-accent-bright) mb-6"
+            style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
-            <div className="text-center mb-8">
-              <Sparkles className="w-10 h-10 text-(--site-accent) mx-auto mb-4" />
-              <h2
-                className="text-4xl md:text-5xl font-bold text-white mb-4"
-                style={{ fontFamily: "Cormorant Garamond, serif" }}
-              >
-                Открой Казахстан вместе с{" "}
-                <span className="text-gradient">OzElim!</span>
-              </h2>
-              <p className="text-white/65 max-w-3xl mx-auto leading-relaxed">
-                Мы объединяем людей, сервисы, знания и технологии, чтобы сделать
-                путешествия по Казахстану доступными, комфортными и полезными.
-              </p>
-            </div>
-
-            <div className="text-(--site-accent) font-semibold mb-4">
-              OzElim — это:
-            </div>
-            <div className="grid md:grid-cols-2 gap-3">
-              {offerings.map((o, i) => (
-                <motion.div
-                  key={o.text}
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.05 }}
-                  className="flex items-start gap-3 p-4 rounded-2xl border border-[#1a6b1a]/20 bg-[#061506]/60"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center shrink-0">
-                    <o.icon className="w-4 h-4 text-(--site-accent)" />
-                  </div>
-                  <p className="text-white/75 text-sm leading-relaxed">
-                    {o.text}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+            Ассоциация некоммерческая организация
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-(--app-subtle) text-base md:text-lg leading-relaxed"
+          >
+            «OzElim» — это платформа по формированию целевой аудитории потребителей
+            услуг в сфере туризма и путешествий. Основным преимуществом Ассоциации
+            является поддержка Эндаумент фонда. Фонд создан на территории МФЦА,
+            которая даёт широкую возможность как членам Ассоциации, так и потребителям
+            услуг в сфере внутреннего туризма.
+          </motion.p>
         </div>
       </section>
 
-      {/* Partners */}
-      <section className="px-6 pb-20 bg-[#0a2a0a]/20">
-        <div className="max-w-7xl mx-auto py-14">
+      {/* ── Миссия ── */}
+      <section className="px-6 pb-14">
+        <div className="max-w-6xl mx-auto">
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-white text-center mb-10"
+            className="text-3xl md:text-4xl font-bold text-(--site-accent-bright) mb-8"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
-            Наши партнёры
+            Миссия
+          </motion.h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {mission.map((m, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.07 }}
+                className="rounded-2xl border border-(--app-border) bg-(--app-card) p-6"
+              >
+                <div className="w-9 h-9 rounded-xl bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center mb-4">
+                  <CheckCircle2 className="w-5 h-5 text-(--site-accent-bright)" />
+                </div>
+                <p className="text-(--app-subtle) text-sm leading-relaxed">{m}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Направления деятельности ── */}
+      <section className="px-6 py-14 bg-(--app-panel)/40">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-2xl md:text-3xl font-bold text-(--site-accent-bright) text-center mb-10"
+            style={{ fontFamily: "Cormorant Garamond, serif" }}
+          >
+            Направления деятельности Ассоциации туристов Казахстана «Öz Elim»
           </motion.h2>
 
-          <div className="rounded-3xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 p-6 md:p-8">
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3">
-              {partners.map((p, i) => (
+          <div className="flex justify-center mb-12">
+            <DirectionsDiagram />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {directions.map((d, i) => {
+              const Icon = d.icon;
+              return (
                 <motion.div
-                  key={p}
-                  initial={{ opacity: 0, y: 10 }}
+                  key={d.id}
+                  initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.02 }}
-                  className="flex items-start gap-3 py-2"
+                  transition={{ delay: i * 0.06 }}
+                  className="rounded-2xl border border-(--app-border) bg-(--app-card) p-5 flex flex-col"
                 >
-                  <div className="w-6 h-6 rounded-md bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center shrink-0 mt-0.5">
-                    <Building2 className="w-3 h-3 text-(--site-accent)" />
+                  <div className="flex items-center gap-2 mb-3">
+                    <Icon className="w-4 h-4 text-(--site-accent-bright)" />
+                    <h3 className="text-(--site-accent-bright) font-semibold text-sm">
+                      {d.title}
+                    </h3>
                   </div>
-                  <p className="text-white/70 text-sm leading-relaxed">{p}</p>
+                  <p className="text-(--app-subtle) text-xs leading-relaxed">{d.text}</p>
                 </motion.div>
-              ))}
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Преимущество Ассоциации ── */}
+      <section className="px-6 py-14">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-3xl md:text-4xl font-bold text-(--site-accent-bright) mb-8"
+            style={{ fontFamily: "Cormorant Garamond, serif" }}
+          >
+            Преимущество Ассоциации
+          </motion.h2>
+
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -24 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative aspect-video rounded-3xl overflow-hidden border border-(--app-border) bg-(--app-card)"
+            >
+              <Image
+                src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=900&q=80"
+                alt="Команда — рост вместе"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+              <div className="absolute inset-0 bg-linear-to-tr from-(--site-gradient-from)/30 via-transparent to-(--site-gradient-to)/30" />
+              <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 text-white text-sm font-semibold drop-shadow-lg">
+                <ArrowRight className="w-5 h-5 text-(--site-accent-bright)" />
+                Двигаемся вперёд вместе
+              </div>
+            </motion.div>
+
+            <div className="space-y-3">
+              {advantages.map((a, i) => {
+                const Icon = a.icon;
+                return (
+                  <motion.div
+                    key={a.text}
+                    initial={{ opacity: 0, x: 24 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.07 }}
+                    className="flex items-center gap-4 px-5 py-4 rounded-2xl border border-(--app-border) bg-(--app-card)"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5 text-(--site-accent-bright)" />
+                    </div>
+                    <span className="text-(--app-fg) text-sm font-medium">{a.text}</span>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Memorandums carousel */}
-      <section className="px-6 py-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-10">
+      {/* ── Director ── */}
+      <section className="px-6 py-14 bg-(--app-panel)/40">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-[280px_1fr] gap-8 items-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="relative aspect-square rounded-3xl overflow-hidden border border-(--app-border) bg-linear-to-br from-sky-400/30 to-amber-400/20 flex items-end justify-center"
+            >
+              <div className="absolute inset-0 bg-linear-to-br from-sky-400/40 to-amber-400/30" />
+              <div className="relative z-10 w-32 h-32 rounded-full bg-(--app-panel) border-4 border-(--site-accent-bright)/60 flex items-center justify-center mb-6 shadow-[0_0_30px_var(--site-shadow-glow)]">
+                <span
+                  className="text-3xl font-bold text-(--site-accent-bright)"
+                  style={{ fontFamily: "Cormorant Garamond, serif" }}
+                >
+                  ЕЖ
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h3
+                className="text-2xl md:text-3xl font-bold text-(--site-accent-bright) mb-3"
+                style={{ fontFamily: "Cormorant Garamond, serif" }}
+              >
+                Жанғазы Еркеғали Жұмабайұлы
+              </h3>
+              <p className="text-(--app-subtle) text-sm md:text-base leading-relaxed mb-5">
+                Директор Ассоциации туристов Казахстана «Öz Elim», член общественного
+                Совета Павлодарской области, бухгалтер-экономист, опыт работы в
+                правоохранительных органах, обладатель Государственной награды — ордена
+                «Құрмет» за высокий профессионализм и преданность общественному делу.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="#"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent) font-semibold text-sm hover:shadow-[0_0_24px_var(--site-shadow-glow)] transition-all"
+                >
+                  <FileText className="w-4 h-4" />
+                  Справка о Гос. Регистрации
+                </a>
+                <a
+                  href="#"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent) font-semibold text-sm hover:shadow-[0_0_24px_var(--site-shadow-glow)] transition-all"
+                >
+                  <Award className="w-4 h-4" />
+                  Устав Ассоциации туристов Казахстана «Öz Elim»
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Откройте свой отдел продаж ── */}
+      <section className="px-6 py-14">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-3xl md:text-4xl font-bold text-(--site-accent-bright) mb-3"
+            style={{ fontFamily: "Cormorant Garamond, serif" }}
+          >
+            Откройте свой отдел продаж вместе с Öz Elim!
+          </motion.h2>
+          <p className="text-(--app-subtle) text-sm mb-8">
+            Приглашаем к сотрудничеству профессиональных гидов-экскурсоводов,
+            национальные парки, санатории и владельцев объектов туризма
+          </p>
+          <div className="grid md:grid-cols-3 gap-5">
+            {partnerships.map((p, i) => {
+              const Icon = p.icon;
+              return (
+                <motion.div
+                  key={p.text}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.07 }}
+                  className="rounded-2xl border border-(--app-border) bg-(--app-card) p-5"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center mb-4">
+                    <Icon className="w-5 h-5 text-(--site-accent-bright)" />
+                  </div>
+                  <p className="text-(--app-subtle) text-sm leading-relaxed">{p.text}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Стань членом Ассоциации ── */}
+      <section className="px-6 py-14 bg-(--app-panel)/40">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-3xl md:text-4xl font-bold text-(--site-accent-bright) text-center mb-10"
+            style={{ fontFamily: "Cormorant Garamond, serif" }}
+          >
+            Став членом Ассоциации вы получите:
+          </motion.h2>
+          <div className="grid md:grid-cols-3 gap-5">
+            {benefits.map((b, i) => (
+              <motion.div
+                key={b}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.07 }}
+                className="rounded-2xl border border-(--app-border) bg-(--app-card) p-5"
+              >
+                <div className="w-9 h-9 rounded-xl bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center mb-4">
+                  <BadgeCheck className="w-5 h-5 text-(--site-accent-bright)" />
+                </div>
+                <p className="text-(--app-subtle) text-sm leading-relaxed">{b}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Document links + leave request ── */}
+      <section className="px-6 py-12">
+        <div className="max-w-6xl mx-auto flex flex-col items-center gap-8">
+          <div className="grid md:grid-cols-3 gap-6 w-full">
+            {docLinks.map((d) => (
+              <a
+                key={d.label}
+                href={d.href}
+                className="text-(--site-accent-bright) text-sm underline underline-offset-4 hover:text-(--site-accent) transition-colors text-center"
+              >
+                {d.label}
+              </a>
+            ))}
+          </div>
+
+          <RequestFormDialog
+            trigger={
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-10 py-3 rounded-full font-bold text-sm tracking-wider uppercase bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent) hover:shadow-[0_0_30px_var(--site-shadow-glow)] transition-all"
+              >
+                Оставить заявку
+              </motion.button>
+            }
+          />
+        </div>
+      </section>
+
+      {/* ── Memorandums ── */}
+      <section className="px-6 py-14 bg-(--app-panel)/40">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
             <h2
-              className="text-3xl md:text-4xl font-bold text-white"
+              className="text-3xl md:text-4xl font-bold text-(--site-accent-bright)"
               style={{ fontFamily: "Cormorant Garamond, serif" }}
             >
               Меморандумы
             </h2>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={prev}
-                disabled={memIdx === 0}
-                className="w-10 h-10 rounded-full border border-white/15 text-white flex items-center justify-center hover:border-(--site-accent) hover:text-(--site-accent) transition-colors disabled:opacity-30"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={next}
-                disabled={memIdx >= memorandums.length - visible}
-                className="w-10 h-10 rounded-full border border-white/15 text-white flex items-center justify-center hover:border-(--site-accent) hover:text-(--site-accent) transition-colors disabled:opacity-30"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            {memorandums.length > visible && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={prev}
+                  disabled={memIdx === 0}
+                  className="w-10 h-10 rounded-full border border-(--app-border) text-(--app-fg) flex items-center justify-center hover:border-(--site-accent) hover:text-(--site-accent) transition-colors disabled:opacity-30"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={next}
+                  disabled={memIdx >= memorandums.length - visible}
+                  className="w-10 h-10 rounded-full border border-(--app-border) text-(--app-fg) flex items-center justify-center hover:border-(--site-accent) hover:text-(--site-accent) transition-colors disabled:opacity-30"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid md:grid-cols-3 gap-5">
             {memorandums
               .slice(memIdx, memIdx + visible)
               .map((m, i) => (
-                <motion.div
+                <motion.button
                   key={`${m.title}-${memIdx + i}`}
                   initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="rounded-2xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 p-5 flex flex-col gap-3"
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.07 }}
+                  className="text-left rounded-2xl bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) p-5 hover:shadow-[0_0_24px_var(--site-shadow-glow)] transition-all"
                 >
-                  <div className="flex items-center justify-between">
-                    <FileSignature className="w-5 h-5 text-(--site-accent)" />
-                    <span className="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full border border-(--site-accent)/30 text-(--site-accent)">
-                      PDF
-                    </span>
+                  <FileSignature className="w-6 h-6 text-(--site-on-accent) mb-3" />
+                  <div className="text-(--site-on-accent) font-bold text-sm mb-2 leading-snug">
+                    {m.title}
                   </div>
-                  <div className="aspect-3/4 rounded-xl border border-dashed border-[#1a6b1a]/40 bg-[#030f03]/60 flex items-center justify-center text-white/25 text-xs">
-                    Документ
-                  </div>
-                  <div>
-                    <div className="text-white font-semibold text-sm mb-1">
-                      {m.title}
-                    </div>
-                    <p className="text-white/45 text-xs leading-relaxed">
-                      {m.desc}
-                    </p>
-                  </div>
-                </motion.div>
+                  <p className="text-(--site-on-accent)/80 text-xs leading-relaxed">
+                    {m.desc}
+                  </p>
+                </motion.button>
               ))}
           </div>
         </div>

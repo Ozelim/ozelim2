@@ -21,7 +21,7 @@ export default async function HomePage() {
   const [news, resorts, tours, pageStats] = await Promise.all([
     getLatestNews(5),
     getPopularResorts(6),
-    getLatestTours(6),
+    getLatestTours(9),
     getMainPageStats(),
   ]);
 

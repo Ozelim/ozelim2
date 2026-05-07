@@ -41,6 +41,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RequestFormDialog } from "@/components/request-form/request-form";
 
 // ─── Mock fallbacks ────────────────────────────────────────────────────────────
 
@@ -1252,12 +1253,13 @@ export default function ResortClient({ resort }) {
                 </div>
 
                 <div className="space-y-3 mb-5">
-                  <button className="w-full py-3.5 rounded-full bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-bold text-sm hover:shadow-[0_0_30px_var(--site-shadow-strong)] transition-all flex items-center justify-center gap-2">
-                    <Calendar className="w-4 h-4" /> Забронировать
-                  </button>
-                  <button className="w-full py-3.5 rounded-full border border-(--site-accent)/30 text-(--site-accent) text-sm hover:bg-(--site-accent)/10 transition-colors flex items-center justify-center gap-2">
-                    <Phone className="w-4 h-4" /> Позвонить
-                  </button>
+                  <RequestFormDialog
+                    trigger={
+                      <button className="w-full py-3.5 rounded-full bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-bold text-sm hover:shadow-[0_0_30px_var(--site-shadow-strong)] transition-all flex items-center justify-center gap-2">
+                        <Calendar className="w-4 h-4" /> Оставить заявку
+                      </button>
+                    }
+                  />
                 </div>
 
                 <div className="text-center text-white/50 text-xs">

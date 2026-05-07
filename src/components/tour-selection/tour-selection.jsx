@@ -17,19 +17,23 @@ import {
   MessageCircle,
   Hourglass,
   CalendarDays,
-  Utensils,
-  Users,
   ArrowLeft,
   ArrowRight,
   Check,
-  MapPin,
   Minus,
   Plus,
   User,
   Baby,
+  UserRound,
+  Users,
+  UsersRound,
+  Briefcase,
+  Building2,
+  Hotel,
+  Clock,
+  Wallet,
 } from "lucide-react";
 import { Input } from "../ui/input";
-import { Slider } from "../ui/slider";
 
 const datesToGo = [
   { id: "soon", label: "В самое ближайшее время", icon: AlarmClock },
@@ -39,36 +43,13 @@ const datesToGo = [
   { id: "idk", label: "Пока не планирую", icon: Hourglass },
 ];
 
-const ration = [
-  { id: "all", label: "Всё включено" },
-  { id: "breakfast-dinner", label: "Завтрак + ужин" },
-  { id: "breakfast", label: "Только завтрак" },
-  { id: "triple", label: "Трёхразовое" },
-  { id: "none", label: "Без питания" },
-  { id: "idk", label: "Пока не знаю" },
-];
-
-const KZ_REGIONS = [
-  { id: "abay", label: "Абайская область" },
-  { id: "akmola", label: "Акмолинская область" },
-  { id: "aktobe", label: "Актюбинская область" },
-  { id: "almaty-region", label: "Алматинская область" },
-  { id: "atyrau", label: "Атырауская область" },
-  { id: "vko", label: "Восточно-Казахстанская область" },
-  { id: "zhambyl", label: "Жамбылская область" },
-  { id: "zhetysu", label: "Жетысуская область" },
-  { id: "zko", label: "Западно-Казахстанская область" },
-  { id: "karaganda", label: "Карагандинская область" },
-  { id: "kostanay", label: "Костанайская область" },
-  { id: "kyzylorda", label: "Кызылординская область" },
-  { id: "mangystau", label: "Мангистауская область" },
-  { id: "pavlodar", label: "Павлодарская область" },
-  { id: "sko", label: "Северо-Казахстанская область" },
-  { id: "turkestan", label: "Туркестанская область" },
-  { id: "ulytau", label: "Улытауская область" },
-  { id: "astana-city", label: "Астана" },
-  { id: "almaty-city", label: "Алматы" },
-  { id: "shymkent-city", label: "Шымкент" },
+const GROUP_PRESETS = [
+  { id: "solo", label: "Один", hint: "1 человек", icon: UserRound, adults: 1, children: 0 },
+  { id: "couple", label: "Пара", hint: "2 взрослых", icon: Users, adults: 2, children: 0 },
+  { id: "family", label: "Семья с детьми", hint: "2 взрослых + дети", icon: Baby, adults: 2, children: 1 },
+  { id: "friends", label: "Группа друзей", hint: "3–6 человек", icon: UsersRound, adults: 4, children: 0 },
+  { id: "company", label: "Большая компания", hint: "7+ человек", icon: Building2, adults: 8, children: 0 },
+  { id: "corporate", label: "Корпоративная поездка", hint: "от 10 человек", icon: Briefcase, adults: 10, children: 0 },
 ];
 
 const contacts = [
@@ -76,20 +57,23 @@ const contacts = [
   { id: "phone", label: "Звонок", icon: Phone },
 ];
 
-const TOTAL_STEPS = 7;
+function dayWord(n) {
+  if (n === 1) return "день";
+  if (n >= 2 && n <= 4) return "дня";
+  return "дней";
+}
 
-// Counter row for adults/children selection
 function CounterRow({ icon: Icon, label, hint, value, onChange, min, max }) {
   const dec = () => onChange(Math.max(min, value - 1));
   const inc = () => onChange(Math.min(max, value + 1));
   return (
-    <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-app-border bg-app-panel">
+    <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-(--app-border) bg-(--app-panel)">
       <div className="flex items-center gap-3">
         <Icon className="w-5 h-5 text-(--site-accent-bright) shrink-0" />
         <div>
-          <div className="text-sm font-semibold text-app-fg">{label}</div>
+          <div className="text-sm font-semibold text-(--app-fg)">{label}</div>
           {hint && (
-            <div className="text-[11px] text-app-faint">{hint}</div>
+            <div className="text-[11px] text-(--app-faint)">{hint}</div>
           )}
         </div>
       </div>
@@ -98,11 +82,11 @@ function CounterRow({ icon: Icon, label, hint, value, onChange, min, max }) {
           type="button"
           onClick={dec}
           disabled={value <= min}
-          className="w-8 h-8 rounded-full border border-app-border text-app-fg flex items-center justify-center disabled:opacity-30 hover:border-(--site-accent)/60 transition-colors"
+          className="w-8 h-8 rounded-full border border-(--app-border) text-(--app-fg) flex items-center justify-center disabled:opacity-30 hover:border-(--site-accent)/60 transition-colors"
         >
           <Minus className="w-3.5 h-3.5" />
         </button>
-        <span className="w-6 text-center text-(--app-fg) font-semibold">{value}</span>
+        <span className="w-12 text-center text-(--app-fg) font-semibold tabular-nums">{value}</span>
         <button
           type="button"
           onClick={inc}
@@ -116,7 +100,6 @@ function CounterRow({ icon: Icon, label, hint, value, onChange, min, max }) {
   );
 }
 
-// Shared option card
 function OptionCard({ selected, onClick, children }) {
   return (
     <button
@@ -132,59 +115,190 @@ function OptionCard({ selected, onClick, children }) {
         <span className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) flex items-center justify-center">
           <Check className="w-3 h-3 text-(--site-on-accent)" />
         </span>
-    )}
+      )}
       {children}
     </button>
   );
 }
 
+function formatPrice(value) {
+  return Number(value || 0).toLocaleString("ru-RU");
+}
+
 export function TourSelectionDialog() {
   const [open, setOpen] = React.useState(false);
-  const [step, setStep] = React.useState(1);
+  const [stepIndex, setStepIndex] = React.useState(0);
   const [direction, setDirection] = React.useState(1);
 
-  const [selectedTimeframe, setSelectedTimeframe] = React.useState("");
-  const [selectedRegion, setSelectedRegion] = React.useState("");
-  const [tourDuration, setTourDuration] = React.useState(5);
-  const [selectedRation, setSelectedRation] = React.useState("");
+  const [groupPreset, setGroupPreset] = React.useState("");
   const [adultsCount, setAdultsCount] = React.useState(2);
   const [childrenCount, setChildrenCount] = React.useState(0);
+  const [selectedTimeframe, setSelectedTimeframe] = React.useState("");
+  const [tourDuration, setTourDuration] = React.useState(3);
   const [selectedContact, setSelectedContact] = React.useState("");
   const [name, setName] = React.useState("");
   const [phone, setPhone] = React.useState("");
 
-  const goTo = React.useCallback((next) => {
-    setDirection(next > step ? 1 : -1);
-    setStep(next);
-  }, [step]);
+  const [directions, setDirections] = React.useState([]);
+  const [directionsLoading, setDirectionsLoading] = React.useState(false);
+  const [selectedDirection, setSelectedDirection] = React.useState(null);
 
-  const autoNext = React.useCallback((next) => {
-    setTimeout(() => goTo(next), 280);
-  }, [goTo]);
+  const [bases, setBases] = React.useState([]);
+  const [basesLoading, setBasesLoading] = React.useState(false);
+  const [selectedBase, setSelectedBase] = React.useState(null);
 
-  const progress = (step / TOTAL_STEPS) * 100;
+  const [services, setServices] = React.useState([]);
+  const [servicesLoading, setServicesLoading] = React.useState(false);
+  const [selectedServiceIds, setSelectedServiceIds] = React.useState([]);
 
-  const canProceed =
-    (step === 1 && selectedTimeframe) ||
-    (step === 2 && selectedRegion) ||
-    (step === 3 && tourDuration) ||
-    (step === 4 && selectedRation) ||
-    (step === 5 && (adultsCount > 0 || childrenCount > 0)) ||
-    (step === 6 && selectedContact) ||
-    (step === 7 && name && phone);
+  // Load directions when dialog opens
+  React.useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setDirectionsLoading(true);
+    fetch("/api/resort-directions")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) setDirections(data.directions ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setDirections([]);
+      })
+      .finally(() => {
+        if (!cancelled) setDirectionsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  // Load bases when direction selected
+  React.useEffect(() => {
+    if (!selectedDirection) {
+      setBases([]);
+      return;
+    }
+    let cancelled = false;
+    setBasesLoading(true);
+    fetch(`/api/resort-bases?directionId=${selectedDirection.id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) setBases(data.bases ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setBases([]);
+      })
+      .finally(() => {
+        if (!cancelled) setBasesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDirection]);
+
+  // Load services when base selected
+  React.useEffect(() => {
+    if (!selectedBase) {
+      setServices([]);
+      return;
+    }
+    let cancelled = false;
+    setServicesLoading(true);
+    fetch(`/api/resort-services?baseId=${selectedBase.id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) setServices(data.services ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setServices([]);
+      })
+      .finally(() => {
+        if (!cancelled) setServicesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedBase]);
+
+  // Build dynamic step list (insert "base" / "services" only when relevant)
+  const stepKeys = React.useMemo(() => {
+    const keys = ["people", "when", "duration", "direction"];
+    if (selectedDirection && bases.length > 0) {
+      keys.push("base");
+      if (selectedBase && services.length > 0) {
+        keys.push("services");
+      }
+    }
+    keys.push("contactMethod", "contacts");
+    return keys;
+  }, [selectedDirection, selectedBase, bases.length, services.length]);
+
+  const totalSteps = stepKeys.length;
+  const currentKey = stepKeys[stepIndex] ?? "people";
+  const progress = ((stepIndex + 1) / totalSteps) * 100;
+
+  const goToIndex = React.useCallback((nextIndex) => {
+    setDirection(nextIndex > stepIndex ? 1 : -1);
+    setStepIndex(nextIndex);
+  }, [stepIndex]);
+
+  const autoNext = React.useCallback(() => {
+    setTimeout(() => {
+      setDirection(1);
+      setStepIndex((i) => Math.min(i + 1, stepKeys.length - 1));
+    }, 280);
+  }, [stepKeys.length]);
+
+  const totalPrice = React.useMemo(() => {
+    let sum = 0;
+    for (const id of selectedServiceIds) {
+      const s = services.find((x) => x.id === id);
+      if (!s) continue;
+      sum += (s.price_adult ?? 0) * adultsCount + (s.price_child ?? 0) * childrenCount;
+    }
+    return sum;
+  }, [selectedServiceIds, services, adultsCount, childrenCount]);
+
+  const canProceed = (() => {
+    switch (currentKey) {
+      case "people": return adultsCount > 0 || childrenCount > 0;
+      case "when": return Boolean(selectedTimeframe);
+      case "duration": return tourDuration >= 2 && tourDuration <= 7;
+      case "direction": return Boolean(selectedDirection);
+      case "base": return Boolean(selectedBase);
+      case "services": return true;
+      case "contactMethod": return Boolean(selectedContact);
+      case "contacts": return Boolean(name && phone);
+      default: return false;
+    }
+  })();
 
   const handleSubmit = () => {
-    console.log({ selectedTimeframe, selectedRegion, tourDuration, selectedRation, adultsCount, childrenCount, selectedContact, name, phone });
+    console.log({
+      adultsCount,
+      childrenCount,
+      selectedTimeframe,
+      tourDuration,
+      selectedDirection,
+      selectedBase,
+      selectedServiceIds,
+      totalPrice,
+      selectedContact,
+      name,
+      phone,
+    });
     setOpen(false);
     setTimeout(() => {
-      setStep(1);
+      setStepIndex(0);
       setDirection(1);
-      setSelectedTimeframe("");
-      setSelectedRegion("");
-      setTourDuration(5);
-      setSelectedRation("");
+      setGroupPreset("");
       setAdultsCount(2);
       setChildrenCount(0);
+      setSelectedTimeframe("");
+      setTourDuration(3);
+      setSelectedDirection(null);
+      setSelectedBase(null);
+      setSelectedServiceIds([]);
       setSelectedContact("");
       setName("");
       setPhone("");
@@ -197,15 +311,24 @@ export function TourSelectionDialog() {
     exit: (dir) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
   };
 
-  const stepTitles = [
-    "Когда планируете отдых?",
-    "В какую область вы хотите поехать?",
-    "Продолжительность тура",
-    "Тип питания",
-    "Состав группы",
-    "Способ связи",
-    "Ваши контакты",
-  ];
+  const stepTitles = {
+    people: "Состав группы",
+    when: "Когда планируете отдых?",
+    duration: "Продолжительность тура",
+    direction: "Курортное направление",
+    base: "Курортная база",
+    services: "Выбор услуг",
+    contactMethod: "Способ связи",
+    contacts: "Ваши контакты",
+  };
+
+  const toggleService = (id) => {
+    setSelectedServiceIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const isLastStep = stepIndex === totalSteps - 1;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -223,16 +346,16 @@ export function TourSelectionDialog() {
         <VisuallyHidden>
           <DialogTitle>Калькулятор туров</DialogTitle>
         </VisuallyHidden>
-        {/* Header */}
+
         <div className="px-7 pt-7 pb-5 border-b border-(--app-border)">
           <div className="flex items-center gap-3 mb-1">
             <span className="text-xs font-medium text-(--app-subtle) uppercase tracking-widest">
-              Шаг {step} из {TOTAL_STEPS}
+              Шаг {stepIndex + 1} из {totalSteps}
             </span>
           </div>
           <AnimatePresence mode="wait" custom={direction}>
             <motion.h2
-              key={`title-${step}`}
+              key={`title-${currentKey}`}
               custom={direction}
               variants={slideVariants}
               initial="enter"
@@ -241,11 +364,10 @@ export function TourSelectionDialog() {
               transition={{ duration: 0.22, ease: "easeOut" }}
               className="text-2xl font-bold text-(--app-fg)"
             >
-              {stepTitles[step - 1]}
+              {stepTitles[currentKey]}
             </motion.h2>
           </AnimatePresence>
 
-          {/* Progress bar */}
           <div className="mt-4 h-1 w-full rounded-full bg-(--app-border) overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to)"
@@ -255,11 +377,10 @@ export function TourSelectionDialog() {
           </div>
         </div>
 
-        {/* Step content */}
         <div className="relative overflow-hidden min-h-[300px]">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
-              key={`step-${step}`}
+              key={`step-${currentKey}`}
               custom={direction}
               variants={slideVariants}
               initial="enter"
@@ -268,8 +389,63 @@ export function TourSelectionDialog() {
               transition={{ duration: 0.25, ease: "easeOut" }}
               className="px-7 py-6"
             >
-              {/* Step 1: When */}
-              {step === 1 && (
+              {currentKey === "people" && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {GROUP_PRESETS.map((g) => (
+                      <OptionCard
+                        key={g.id}
+                        selected={groupPreset === g.id}
+                        onClick={() => {
+                          setGroupPreset(g.id);
+                          setAdultsCount(g.adults);
+                          setChildrenCount(g.children);
+                        }}
+                      >
+                        <span className="flex items-start gap-2.5">
+                          <g.icon className="w-5 h-5 text-(--site-accent-bright) shrink-0 mt-0.5" />
+                          <span className="flex flex-col">
+                            <span className="text-sm font-semibold text-(--app-fg)">{g.label}</span>
+                            <span className="text-[11px] text-(--app-faint)">{g.hint}</span>
+                          </span>
+                        </span>
+                      </OptionCard>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <div className="text-[11px] text-(--app-faint) uppercase tracking-wider px-1">
+                      Уточните
+                    </div>
+                    <CounterRow
+                      icon={User}
+                      label="Взрослые"
+                      hint="максимум 99"
+                      value={adultsCount}
+                      onChange={(v) => {
+                        setAdultsCount(v);
+                        setGroupPreset("");
+                      }}
+                      min={1}
+                      max={99}
+                    />
+                    <CounterRow
+                      icon={Baby}
+                      label="Дети"
+                      hint="максимум 99"
+                      value={childrenCount}
+                      onChange={(v) => {
+                        setChildrenCount(v);
+                        setGroupPreset("");
+                      }}
+                      min={0}
+                      max={99}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {currentKey === "when" && (
                 <div className="grid grid-cols-1 gap-2.5">
                   {datesToGo.map((d) => (
                     <OptionCard
@@ -277,7 +453,7 @@ export function TourSelectionDialog() {
                       selected={selectedTimeframe === d.id}
                       onClick={() => {
                         setSelectedTimeframe(d.id);
-                        autoNext(2);
+                        autoNext();
                       }}
                     >
                       <span className="flex items-center gap-3">
@@ -289,53 +465,27 @@ export function TourSelectionDialog() {
                 </div>
               )}
 
-              {/* Step 2: Region */}
-              {step === 2 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[340px] overflow-y-auto pr-1">
-                  {KZ_REGIONS.map((r) => (
-                    <OptionCard
-                      key={r.id}
-                      selected={selectedRegion === r.id}
-                      onClick={() => {
-                        setSelectedRegion(r.id);
-                        autoNext(3);
-                      }}
-                    >
-                      <span className="flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5 text-(--site-accent-bright) shrink-0" />
-                        <span className="text-sm font-medium text-(--app-fg)">{r.label}</span>
-                      </span>
-                    </OptionCard>
-                  ))}
-                </div>
-              )}
-
-              {/* Step 3: Duration */}
-              {step === 3 && (
-                <div className="space-y-8">
+              {currentKey === "duration" && (
+                <div className="space-y-6">
                   <div className="text-center">
                     <span className="text-6xl font-bold bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) bg-clip-text text-transparent">
                       {tourDuration}
                     </span>
                     <span className="text-(--app-subtle) text-lg ml-2">
-                      {tourDuration === 1 ? "день" : tourDuration < 5 ? "дня" : "дней"}
+                      {dayWord(tourDuration)}
                     </span>
                   </div>
-                  <div className="px-2">
-                    <Slider
-                      min={1}
-                      max={10}
-                      value={[tourDuration]}
-                      onValueChange={([v]) => setTourDuration(v)}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between mt-2 text-xs text-(--app-faint)">
-                      <span>1 день</span>
-                      <span>10 дней</span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[3, 5, 7, 10].map((d) => (
+                  <CounterRow
+                    icon={Clock}
+                    label="Количество дней"
+                    hint="от 2 до 7 дней"
+                    value={tourDuration}
+                    onChange={setTourDuration}
+                    min={2}
+                    max={7}
+                  />
+                  <div className="grid grid-cols-6 gap-2">
+                    {[2, 3, 4, 5, 6, 7].map((d) => (
                       <button
                         key={d}
                         type="button"
@@ -346,63 +496,175 @@ export function TourSelectionDialog() {
                             : "border-(--app-border) bg-(--app-panel) text-(--app-subtle) hover:border-(--site-accent)/50"
                         }`}
                       >
-                        {d} дн.
+                        {d}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Step 4: Ration */}
-              {step === 4 && (
-                <div className="grid grid-cols-2 gap-2.5">
-                  {ration.map((r) => (
-                    <OptionCard
-                      key={r.id}
-                      selected={selectedRation === r.id}
-                      onClick={() => {
-                        setSelectedRation(r.id);
-                        autoNext(5);
-                      }}
-                    >
-                      <span className="flex items-center gap-2">
-                        <Utensils className="w-3.5 h-3.5 text-(--site-accent-bright) shrink-0" />
-                        <span className="text-sm font-medium text-(--app-fg)">{r.label}</span>
-                      </span>
-                    </OptionCard>
-                  ))}
+              {currentKey === "direction" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[340px] overflow-y-auto pr-1">
+                  {directionsLoading && directions.length === 0 ? (
+                    <div className="col-span-full text-center text-sm text-(--app-faint) py-6">
+                      Загрузка направлений...
+                    </div>
+                  ) : directions.length === 0 ? (
+                    <div className="col-span-full text-center text-sm text-(--app-faint) py-6">
+                      Направления пока не добавлены
+                    </div>
+                  ) : (
+                    directions.map((d) => (
+                      <OptionCard
+                        key={d.id}
+                        selected={selectedDirection?.id === d.id}
+                        onClick={() => {
+                          setSelectedDirection(d);
+                          setSelectedBase(null);
+                          setSelectedServiceIds([]);
+                          autoNext();
+                        }}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Building2 className="w-3.5 h-3.5 text-(--site-accent-bright) shrink-0" />
+                          <span className="text-sm font-medium text-(--app-fg)">{d.name}</span>
+                        </span>
+                      </OptionCard>
+                    ))
+                  )}
                 </div>
               )}
 
-              {/* Step 5: People — adults & children counters */}
-              {step === 5 && (
-                <div className="space-y-4">
-                  <CounterRow
-                    icon={User}
-                    label="Взрослые"
-                    hint="максимум 2"
-                    value={adultsCount}
-                    onChange={setAdultsCount}
-                    min={1}
-                    max={2}
-                  />
-                  <CounterRow
-                    icon={Baby}
-                    label="Дети"
-                    hint="до 7"
-                    value={childrenCount}
-                    onChange={setChildrenCount}
-                    min={0}
-                    max={7}
-                  />
-                  <p className="text-xs text-(--app-faint) pt-1">
-                    Состав группы: до 2 взрослых и до 7 детей.
+              {currentKey === "base" && (
+                <div className="grid grid-cols-1 gap-2 max-h-[340px] overflow-y-auto pr-1">
+                  {basesLoading && bases.length === 0 ? (
+                    <div className="text-center text-sm text-(--app-faint) py-6">
+                      Загрузка...
+                    </div>
+                  ) : bases.length === 0 ? (
+                    <div className="text-center text-sm text-(--app-faint) py-6">
+                      Курортные базы не найдены
+                    </div>
+                  ) : (
+                    bases.map((b) => (
+                      <OptionCard
+                        key={b.id}
+                        selected={selectedBase?.id === b.id}
+                        onClick={() => {
+                          setSelectedBase(b);
+                          setSelectedServiceIds([]);
+                          autoNext();
+                        }}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Hotel className="w-3.5 h-3.5 text-(--site-accent-bright) shrink-0" />
+                          <span className="text-sm font-medium text-(--app-fg)">{b.name}</span>
+                        </span>
+                      </OptionCard>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {currentKey === "services" && (
+                <div className="space-y-3">
+                  <p className="text-base font-semibold text-(--site-accent-bright) px-1 leading-snug">
+                    Данные услуги будут посчитаны в соответствий с вашим составом группы
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <CounterRow
+                      icon={User}
+                      label="Взрослые"
+                      value={adultsCount}
+                      onChange={setAdultsCount}
+                      min={1}
+                      max={99}
+                    />
+                    <CounterRow
+                      icon={Baby}
+                      label="Дети"
+                      value={childrenCount}
+                      onChange={setChildrenCount}
+                      min={0}
+                      max={99}
+                    />
+                  </div>
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                    {servicesLoading && services.length === 0 ? (
+                      <div className="text-center text-sm text-(--app-faint) py-6">
+                        Загрузка...
+                      </div>
+                    ) : services.length === 0 ? (
+                      <div className="text-center text-sm text-(--app-faint) py-6">
+                        Нет доступных услуг
+                      </div>
+                    ) : (
+                      services.map((s) => {
+                        const isSelected = selectedServiceIds.includes(s.id);
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => toggleService(s.id)}
+                            className={`relative w-full text-left px-4 py-3 rounded-2xl border transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-(--site-accent) ${
+                              isSelected
+                                ? "border-(--site-accent) bg-linear-to-br from-(--site-gradient-from)/15 to-(--site-gradient-to)/10 shadow-[0_0_16px_var(--site-shadow-soft)]"
+                                : "border-(--app-border) bg-(--app-panel) hover:border-(--site-accent)/50 hover:bg-(--app-panel-strong)"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-semibold text-(--app-fg) mb-1">
+                                  {s.name}
+                                </div>
+                                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-(--app-faint)">
+                                  <span>
+                                    Взрослый:{" "}
+                                    <span className="text-(--app-subtle) font-medium">
+                                      {formatPrice(s.price_adult)} ₸
+                                    </span>
+                                  </span>
+                                  <span>
+                                    Ребёнок:{" "}
+                                    <span className="text-(--app-subtle) font-medium">
+                                      {formatPrice(s.price_child)} ₸
+                                    </span>
+                                  </span>
+                                </div>
+                              </div>
+                              <span
+                                className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                                  isSelected
+                                    ? "bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to)"
+                                    : "border border-(--app-border)"
+                                }`}
+                              >
+                                {isSelected && (
+                                  <Check className="w-3 h-3 text-(--site-on-accent)" />
+                                )}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl border border-(--site-accent)/40 bg-linear-to-br from-(--site-gradient-from)/10 to-(--site-gradient-to)/5 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="w-4 h-4 text-(--site-accent-bright)" />
+                      <span className="text-sm font-semibold text-(--app-fg)">Итого</span>
+                    </div>
+                    <span className="text-lg font-bold text-(--app-fg)">
+                      {formatPrice(totalPrice)} ₸
+                    </span>
+                  </div>
+                  <p className="text-xl font-semibold text-(--site-accent-bright) text-center leading-snug">
+                    Расчёт: {adultsCount} взр. × цена + {childrenCount} реб. × цена
                   </p>
                 </div>
               )}
 
-              {/* Step 6: Contact method */}
-              {step === 6 && (
+              {currentKey === "contactMethod" && (
                 <div className="grid grid-cols-2 gap-3">
                   {contacts.map((c) => (
                     <OptionCard
@@ -410,7 +672,7 @@ export function TourSelectionDialog() {
                       selected={selectedContact === c.id}
                       onClick={() => {
                         setSelectedContact(c.id);
-                        autoNext(7);
+                        autoNext();
                       }}
                     >
                       <span className="flex flex-col items-center gap-3 py-4">
@@ -422,8 +684,7 @@ export function TourSelectionDialog() {
                 </div>
               )}
 
-              {/* Step 7: Contacts */}
-              {step === 7 && (
+              {currentKey === "contacts" && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-(--app-subtle) uppercase tracking-wider">
@@ -457,12 +718,11 @@ export function TourSelectionDialog() {
           </AnimatePresence>
         </div>
 
-        {/* Footer navigation */}
         <div className="px-7 pb-7 pt-2 border-t border-(--app-border) flex items-center justify-between gap-3">
-          {step > 1 ? (
+          {stepIndex > 0 ? (
             <button
               type="button"
-              onClick={() => goTo(step - 1)}
+              onClick={() => goToIndex(stepIndex - 1)}
               className="flex items-center gap-1.5 text-sm text-(--app-subtle) hover:text-(--app-fg) transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -472,12 +732,12 @@ export function TourSelectionDialog() {
             <span />
           )}
 
-          {step < TOTAL_STEPS ? (
+          {!isLastStep ? (
             <motion.button
               type="button"
               whileHover={canProceed ? { scale: 1.03 } : {}}
               whileTap={canProceed ? { scale: 0.97 } : {}}
-              onClick={() => canProceed && goTo(step + 1)}
+              onClick={() => canProceed && goToIndex(stepIndex + 1)}
               disabled={!canProceed}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all ${
                 canProceed

@@ -229,7 +229,7 @@ const KZ_CITIES = [
   { name: "Жезказган", coords: [47.7833, 67.7167] },
 ];
 
-const PER_PAGE = 8;
+const PER_PAGE = 6;
 
 // Kazakhstan strict bounds — prevents zooming out beyond the country
 // SW corner: ~[40.5, 49.5]  NE corner: ~[55.6, 87.5]
@@ -458,7 +458,7 @@ function ResortCarousel({ images }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function CardSkeleton() {
   return (
-    <div className="flex gap-3.5 p-4 rounded-2xl border border-primary-foreground/15 bg-primary mb-3">
+    <div className="flex gap-3.5 p-4 rounded-2xl border border-primary-foreground/15 bg-primary h-full">
       <div className="flex-1 flex flex-col gap-2">
         <div className="h-2.5 w-1/3 rounded bg-primary-foreground/20 animate-pulse" />
         <div className="h-5 w-3/5 rounded bg-primary-foreground/20 animate-pulse" />
@@ -476,7 +476,7 @@ function CardSkeleton() {
         </div>
       </div>
       {/* image placeholder on RIGHT */}
-      <div className="w-32 h-[104px] rounded-xl bg-primary-foreground/15 animate-pulse shrink-0" />
+      <div className="w-32 h-full rounded-xl bg-primary-foreground/15 animate-pulse shrink-0" />
     </div>
   );
 }
@@ -489,9 +489,9 @@ function ResortCard({ resort, isSelected, onClick, animIdx }) {
     <div
       onClick={() => onClick(resort)}
       className={cn(
-        "w-full flex gap-3.5 p-4 rounded-2xl border border-[#1a6b1a]/20 bg-[#0a2a0a]/80 text-left transition-all duration-300 mb-3",
+        "w-full h-full flex gap-3 p-3 rounded-2xl border border-[#1a6b1a]/20 bg-[#0a2a0a]/80 text-left transition-all duration-300",
         "bg-primary backdrop-blur-sm hover:bg-primary/95",
-        "hover:-translate-y-1 hover:shadow-lg",
+        "hover:-translate-y-0.5 hover:shadow-lg",
         isSelected
           ? "border-amber-400 shadow-[0_0_0_2px_rgba(251,191,36,0.35),0_8px_24px_rgba(0,0,0,0.2)]"
           : "border-primary-foreground/15 shadow-sm hover:border-primary-foreground/25",
@@ -499,7 +499,7 @@ function ResortCard({ resort, isSelected, onClick, animIdx }) {
       style={{ animationDelay: `${animIdx * 70}ms` }}
     >
       {/* ── Left: image carousel ── */}
-      <div className="relative w-[42%] min-w-[170px] max-w-[270px] xl:max-w-[320px] h-[130px] sm:h-[150px] md:h-[160px] lg:h-[175px] xl:h-[190px] rounded-xl overflow-hidden shrink-0 grow-0">
+      <div className="relative w-[42%] min-w-[150px] max-w-[270px] xl:max-w-[320px] h-full rounded-xl overflow-hidden shrink-0 grow-0">
         <ResortCarousel images={resort.images} />
         {/* Badges */}
         <div className="absolute top-2 left-2 z-40 flex flex-col gap-1 pointer-events-none">
@@ -517,33 +517,33 @@ function ResortCard({ resort, isSelected, onClick, animIdx }) {
       </div>
 
       {/* ── Right: text content ── */}
-      <div className="flex-1 min-w-0 flex flex-col justify-between">
-        <div>
-          <div className="flex items-center gap-1 mb-1">
+      <div className="flex-1 min-w-0 flex flex-col justify-between gap-1 overflow-hidden">
+        <div className="min-h-0">
+          <div className="flex items-center gap-1 mb-0.5">
             <MapPin className="w-2.5 h-2.5 text-primary-foreground/50 shrink-0" />
-            <span className="text-[10px] text-primary-foreground/55 tracking-wide">
+            <span className="text-[10px] text-primary-foreground/55 tracking-wide truncate">
               {resort.region}
             </span>
           </div>
 
           <h3
-            className="font-semibold text-primary-foreground leading-tight mb-1.5"
+            className="font-semibold text-primary-foreground leading-tight mb-1 truncate"
             style={{
               fontFamily: "Cormorant Garamond, Georgia, serif",
-              fontSize: 20,
+              fontSize: 18,
             }}
           >
             {resort.name}
           </h3>
 
-          <p className="text-xs text-primary-foreground/75 leading-relaxed mb-2 line-clamp-2">
+          <p className="text-xs text-primary-foreground/75 leading-snug line-clamp-2">
             {resort.description}
           </p>
         </div>
 
-        <div>
+        <div className="shrink-0">
           {resort.price != null && (
-            <div className="mb-2 flex items-baseline gap-1.5">
+            <div className="mb-1 flex items-baseline gap-1.5">
               <span className="text-[10px] text-primary-foreground/55">цена за ночь от</span>
               <span className="text-sm font-bold text-(--site-accent)">
                 {Number(resort.price).toLocaleString()} ₸
@@ -551,7 +551,7 @@ function ResortCard({ resort, isSelected, onClick, animIdx }) {
             </div>
           )}
 
-          <div className="mb-2">
+          <div className="mb-1">
             <Stars rating={resort.rating} />
           </div>
 
@@ -637,47 +637,39 @@ function ListPanel({ selId, onSelect, twoCols = false }) {
   };
   const paged = RESORTS.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
+  // Both modes give each card the same height: container_height / 3.
+  // In two-column mode all 6 fit in 3 rows; in single-column mode the
+  // grid scrolls vertically so each card keeps the same tall height.
+  const gridClass = twoCols
+    ? "grid grid-cols-2 grid-rows-3 gap-3 h-full"
+    : "grid grid-cols-1 gap-3 [grid-auto-rows:calc((100%-1.5rem)/3)]";
+
+  const containerClass = twoCols
+    ? "flex-1 min-h-0 px-4 pt-3 pr-3"
+    : "flex-1 min-h-0 px-4 pt-3 pr-3 overflow-y-auto scrollbar-thin scrollbar-thumb-stone-300 scrollbar-track-transparent";
+
   return (
     <div className="w-full h-full flex flex-col overflow-hidden">
-      {/* Cards */}
-      <div
-        key={`l${listKey}`}
-        className="flex-1 overflow-y-auto px-4 pt-3 pr-3 scrollbar-thin scrollbar-thumb-stone-300 scrollbar-track-transparent"
-      >
-        {twoCols ? (
-          <div className="grid grid-cols-2 gap-3">
-            {loading
-              ? paged.map((_, i) => <CardSkeleton key={i} />)
-              : paged.map((r, i) => (
-                  <ResortCard
-                    key={r.id}
-                    resort={r}
-                    isSelected={selId === r.id}
-                    onClick={onSelect}
-                    animIdx={i}
-                  />
-                ))}
-          </div>
-        ) : (
-          <>
-            {loading
-              ? paged.map((_, i) => <CardSkeleton key={i} />)
-              : paged.map((r, i) => (
-                  <ResortCard
-                    key={r.id}
-                    resort={r}
-                    isSelected={selId === r.id}
-                    onClick={onSelect}
-                    animIdx={i}
-                  />
-                ))}
-          </>
-        )}
+      {/* Cards — each card height = container_height / 3 in both layouts */}
+      <div key={`l${listKey}`} className={containerClass}>
+        <div className={gridClass} style={twoCols ? undefined : { height: "100%" }}>
+          {loading
+            ? Array.from({ length: PER_PAGE }).map((_, i) => <CardSkeleton key={i} />)
+            : paged.map((r, i) => (
+                <ResortCard
+                  key={r.id}
+                  resort={r}
+                  isSelected={selId === r.id}
+                  onClick={onSelect}
+                  animIdx={i}
+                />
+              ))}
+        </div>
       </div>
 
       {/* Pagination */}
       {!loading && (
-        <div className="shrink-0 px-4 pb-3 border-t  backdrop-blur-sm">
+        <div className="shrink-0 px-4 pb-3 border-t backdrop-blur-sm">
           <Pagination total={RESORTS.length} page={page} setPage={handlePage} />
         </div>
       )}

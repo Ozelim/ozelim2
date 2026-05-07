@@ -30,16 +30,16 @@ const navLinks = [
 ]
 
 const serviceLinks = [
-  { label: 'Поездки',                        icon: Plane,                   href: '/trips' },
-  { label: 'Визы',                           icon: FileCheck,               href: '/visas' },
-  { label: 'Страхование',                    icon: ShieldCheck,             href: '/insurance' },
-  { label: 'Фонд',                           icon: HandCoins,               href: '/foundation' },
-  { label: 'Ассоциация туристов',            icon: UsersRound,              href: '/association' },
-  { label: 'Правовая защита',                icon: Scale,                   href: '/legal' },
-  { label: 'Санатории',                      icon: Waves,                   href: '/sanatoriums' },
-  { label: 'АВИА / ЖД билеты',              icon: Ticket,                  href: '/tickets' },
-  { label: 'О нас',                          icon: Users,                   href: '/about' },
-  { label: 'Вопрос-ответ',                   icon: MessageCircleQuestion,   href: '/faq' },
+  { label: 'Поездки',                            icon: Plane,                   href: '/trips' },
+  { label: 'Визы',                               icon: FileCheck,               href: 'https://vizapro.kz', external: true },
+  { label: 'Halyk Life',                         icon: ShieldCheck,             href: '/insurance' },
+  { label: 'Фонд',                               icon: HandCoins,               href: '/endowment' },
+  { label: 'Ассоциация туристов Казахстана',     icon: UsersRound,              href: '/association' },
+  { label: 'Правовая защита',                    icon: Scale,                   href: '/legal' },
+  { label: 'Nomad Insurance',                    icon: Waves,                   href: '/sanatoriums' },
+  { label: 'АВИА ЖД билеты',                     icon: Ticket,                  href: '/tickets' },
+  { label: 'О нас',                              icon: Users,                   href: '/about' },
+  { label: 'Вопрос-ответ',                       icon: MessageCircleQuestion,   href: '/faq' },
 ]
 
 export default function Header() {
@@ -204,11 +204,13 @@ export default function Header() {
                     <div className="p-3 grid grid-cols-2 gap-1">
                       {serviceLinks.map((s) => {
                         const Icon = s.icon
-                        const active = pathname === s.href
+                        const active = !s.external && pathname === s.href
                         return (
                           <Link
                             key={s.href}
                             href={s.href}
+                            target={s.external ? '_blank' : undefined}
+                            rel={s.external ? 'noopener noreferrer' : undefined}
                             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                               active
                                 ? 'bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent)'
@@ -321,7 +323,7 @@ export default function Header() {
               <div className="grid grid-cols-2 gap-1">
                 {serviceLinks.map((s, i) => {
                   const Icon = s.icon
-                  const active = pathname === s.href
+                  const active = !s.external && pathname === s.href
                   return (
                     <motion.div
                       key={s.href}
@@ -331,6 +333,8 @@ export default function Header() {
                     >
                       <Link
                         href={s.href}
+                        target={s.external ? '_blank' : undefined}
+                        rel={s.external ? 'noopener noreferrer' : undefined}
                         className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                           active
                             ? 'bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent)'
