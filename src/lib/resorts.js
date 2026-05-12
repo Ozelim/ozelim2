@@ -3,38 +3,57 @@ import sql from "@/lib/db";
 const PLACEHOLDER_IMG =
   "https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600&q=75";
 
-export async function getPopularResorts(limit = 6) {
+function firstGalleryImage(gallery) {
+  if (!Array.isArray(gallery) || gallery.length === 0) return null;
+  const first = gallery[0];
+  if (typeof first === "string") return first;
+  return first?.src || first?.url || null;
+}
+
+function formatGroup(min, max) {
+  const lo = Number(min) || 0;
+  const hi = Number(max) || 0;
+  if (lo && hi) return `${lo}–${hi}`;
+  if (hi) return `${hi}`;
+  if (lo) return `${lo}+`;
+  return "—";
+}
+
+function mapTourToCard(r) {
+  return {
+    id: r.id,
+    img: firstGalleryImage(r.gallery) || PLACEHOLDER_IMG,
+    country: r.country || "Казахстан",
+    city: r.city || "",
+    title: r.title,
+    group: formatGroup(r.group_min, r.group_max),
+    rating: 0,
+    reviews: 0,
+    price: Number(r.price) || 0,
+    hot: r.hot ?? false,
+  };
+}
+
+export async function getAllResorts(limit = 20) {
   const rows = await sql`
-    SELECT r.id,
-           r.name,
-           r.is_hot,
-           COALESCE(r.images->>0, NULL)                    AS hero_image,
-           COALESCE(r.region, r.resort_area, 'Казахстан')  AS city,
-           COALESCE(r.base_price, 0)                       AS price_from,
-           COALESCE((
-             SELECT ROUND(AVG(rating)::numeric, 1)
-             FROM reviews WHERE resort_id = r.id
-           ), 0)                                           AS rating,
-           COALESCE((
-             SELECT COUNT(*)::int
-             FROM reviews WHERE resort_id = r.id
-           ), 0)                                           AS review_count
-      FROM resorts r
-     WHERE r.is_popular = true
-     ORDER BY rating DESC, review_count DESC, r.created_at DESC
+    SELECT t.id, t.title, t.country, t.city,
+           t.group_min, t.group_max,
+           t.price, t.gallery, t.hot
+      FROM tours t
+     ORDER BY t.hot DESC, t.created_at DESC
      LIMIT ${limit}
   `;
+  return rows.map(mapTourToCard);
+}
 
-  return rows.map((r) => ({
-    id: r.id,
-    img: r.hero_image || PLACEHOLDER_IMG,
-    country: "Казахстан",
-    city: r.city || "",
-    title: r.name,
-    group: "2–4",
-    rating: Number(r.rating) || 0,
-    reviews: r.review_count || 0,
-    price: r.price_from || 0,
-    hot: r.is_hot ?? false,
-  }));
+export async function getPopularResorts(limit = 6) {
+  const rows = await sql`
+    SELECT t.id, t.title, t.country, t.city,
+           t.group_min, t.group_max,
+           t.price, t.gallery, t.hot
+      FROM tours t
+     ORDER BY t.hot DESC, t.created_at DESC
+     LIMIT ${limit}
+  `;
+  return rows.map(mapTourToCard);
 }

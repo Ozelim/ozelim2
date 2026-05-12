@@ -25,7 +25,7 @@ export default function TripsPage() {
           className="text-xl md:text-2xl font-medium text-white tracking-wide"
           style={{ fontFamily: "Cormorant Garamond, Georgia, serif" }}
         >
-          Курорты Казахстана
+          Выберите ваш тур
         </h2>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-linear-to-r from-(--site-accent)/20 to-(--site-accent-bright)/10 border border-(--site-accent)/40 shadow-[0_0_20px_rgba(251,191,36,0.18)]">
           <span className="text-2xl font-bold text-(--site-accent) leading-none">

@@ -28,7 +28,8 @@ export default async function HomePage() {
   return (
     <main>
       <Hero
-        title="Открой Казахстан"
+        title="Открой"
+        highlight="Казахстан"
         subtitle="Подберите тур в нашем калькуляторе туров"
       />
 

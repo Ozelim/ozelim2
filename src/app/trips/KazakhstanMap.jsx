@@ -503,11 +503,6 @@ function ResortCard({ resort, isSelected, onClick, animIdx }) {
         <ResortCarousel images={resort.images} />
         {/* Badges */}
         <div className="absolute top-2 left-2 z-40 flex flex-col gap-1 pointer-events-none">
-          {resort.hot && (
-            <span className="px-2 py-0.5 rounded-full bg-(--site-accent) text-(--site-on-accent) text-[10px] font-bold shadow">
-              🔥 Горящий
-            </span>
-          )}
           {resort.popular && (
             <span className="px-2 py-0.5 rounded-full bg-black/65 text-white text-[10px] font-bold backdrop-blur-sm">
               ⭐ Популярное
@@ -544,7 +539,7 @@ function ResortCard({ resort, isSelected, onClick, animIdx }) {
         <div className="shrink-0">
           {resort.price != null && (
             <div className="mb-1 flex items-baseline gap-1.5">
-              <span className="text-[10px] text-primary-foreground/55">цена за ночь от</span>
+              <span className="text-[10px] text-primary-foreground/55">цена от</span>
               <span className="text-sm font-bold text-(--site-accent)">
                 {Number(resort.price).toLocaleString()} ₸
               </span>
@@ -685,6 +680,7 @@ function MapPanel({ selId, onSelect }) {
   const prevSelRef = useRef(null);
   const leafletRef = useRef(null);
   const resizeObserverRef = useRef(null);
+  const pendingOpenRef = useRef(null);
 
   const markerHtml = useCallback(
     (isSel) => `
@@ -711,7 +707,6 @@ function MapPanel({ selId, onSelect }) {
       <div style="position:relative;height:110px;">
         <img src="${r.images[0]}" style="width:100%;height:100%;object-fit:cover;">
         <div style="position:absolute;top:8px;left:8px;display:flex;flex-direction:column;gap:4px;">
-          ${r.hot ? `<span style="background:var(--site-accent,#f59e0b);color:#000;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;line-height:1;">🔥 Горящий</span>` : ""}
           ${r.popular ? `<span style="background:rgba(0,0,0,0.65);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;line-height:1;">⭐ Популярное</span>` : ""}
         </div>
         <button class="popup-close-btn" type="button" aria-label="Закрыть" style="position:absolute;top:8px;right:8px;width:24px;height:24px;border:0;border-radius:999px;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;padding:0;">✕</button>
@@ -720,7 +715,7 @@ function MapPanel({ selId, onSelect }) {
         <div style="font-size:9px;color:#a8a29e;text-transform:uppercase;">${r.region}</div>
         <h3 style="font-size:17px;margin:5px 0;">${r.name}</h3>
         <p style="font-size:11px;color:#78716c;">${r.description}</p>
-        ${r.price != null ? `<div style="margin-top:8px;display:flex;align-items:baseline;gap:4px;"><span style="font-size:9px;color:#a8a29e;">цена за ночь от</span><span style="font-size:14px;font-weight:700;color:#b45309;">${Number(r.price).toLocaleString()} ₸</span></div>` : ""}
+        ${r.price != null ? `<div style="margin-top:8px;display:flex;align-items:baseline;gap:4px;"><span style="font-size:9px;color:#a8a29e;">цена от</span><span style="font-size:14px;font-weight:700;color:#b45309;">${Number(r.price).toLocaleString()} ₸</span></div>` : ""}
       </div>
     </div>
   `,
@@ -814,6 +809,7 @@ function MapPanel({ selId, onSelect }) {
             if (btn) {
               btn.onclick = (ev) => {
                 ev.stopPropagation();
+                clearTimeout(pendingOpenRef.current);
                 marker.closePopup();
               };
             }
@@ -859,9 +855,11 @@ function MapPanel({ selId, onSelect }) {
           popupAnchor: [0, -20],
         }),
       );
-      setTimeout(() => markersRef.current[selId]?.openPopup(), 750);
+      clearTimeout(pendingOpenRef.current);
+      pendingOpenRef.current = setTimeout(() => markersRef.current[selId]?.openPopup(), 750);
     }
     prevSelRef.current = selId;
+    return () => clearTimeout(pendingOpenRef.current);
   }, [selId, markerHtml]);
 
   return (

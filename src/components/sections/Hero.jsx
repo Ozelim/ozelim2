@@ -10,12 +10,10 @@ import {
   Scale,
   Waves,
   Ticket,
-  Star,
   MapPin,
   Clock,
   Users,
   ArrowRight,
-  Heart,
   MessageCircleQuestion,
   Baby,
   Sparkles,
@@ -105,19 +103,6 @@ function TourCard({ tour, i }) {
           draggable={false}
         />
         <div className="absolute inset-0 bg-linear-to-t from-[#030f03]/80 to-transparent" />
-        {tour.hot && (
-          <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-(--site-accent) text-(--site-on-accent) text-xs font-bold">
-            🔥 Горящий
-          </div>
-        )}
-        <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-red-400 hover:bg-white/10 transition-all">
-          <Heart className="w-4 h-4" />
-        </button>
-        <div className="absolute bottom-3 left-3 flex items-center gap-1 text-(--site-accent)">
-          <Star className="w-3.5 h-3.5 fill-current" />
-          <span className="text-sm font-bold">{tour.rating}</span>
-          <span className="text-white/50 text-xs">({tour.reviews})</span>
-        </div>
       </div>
       <div className="p-5 tour-card-body">
         <div className="flex items-center gap-1.5 text-white/50 text-xs mb-2">

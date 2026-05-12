@@ -32,16 +32,7 @@ import {
 import Footer from "@/components/sections/Footer";
 
 const ICON_MAP = {
-  Sunrise,
-  Bus,
-  TreePine,
-  Mountain,
-  Waves,
-  Compass,
-  Tent,
-  Coffee,
-  Utensils,
-  Bed,
+  Sunrise, Bus, TreePine, Mountain, Waves, Compass, Tent, Coffee, Utensils, Bed,
 };
 
 // ─── Image Slider ──────────────────────────────────────────────────────────────
@@ -85,7 +76,7 @@ function ImageSlider({ gallery }) {
       )}
       <div className="flex flex-col gap-3 h-full">
         <div
-          className="relative rounded-3xl overflow-hidden aspect-4/3 bg-[#0a2a0a]/40 cursor-zoom-in"
+          className="relative rounded-3xl overflow-hidden aspect-4/3 bg-app-elevated cursor-zoom-in shadow-md"
           onClick={() => setLightboxIndex(current)}
         >
           <AnimatePresence initial={false} custom={direction}>
@@ -155,7 +146,7 @@ function ImageSlider({ gallery }) {
               onClick={() => go(i)}
               className={`relative rounded-xl overflow-hidden aspect-square transition-all duration-300 ${
                 i === current
-                  ? "ring-2 ring-(--site-accent) ring-offset-2 ring-offset-transparent scale-105"
+                  ? "ring-2 ring-(--site-accent) ring-offset-2 ring-offset-app-bg scale-105"
                   : "opacity-60 hover:opacity-90"
               }`}
             >
@@ -302,16 +293,22 @@ function TimelineItem({ item, index }) {
   const isLeft = index % 2 === 0;
   const Icon = ICON_MAP[item.icon] ?? Compass;
 
+  const nodeClass =
+    "rounded-full bg-(--site-accent)/15 border-2 border-(--site-accent) flex items-center justify-center shadow-[0_0_18px_var(--site-shadow-soft)]";
+
+  const cardClass =
+    "rounded-2xl border border-app-border bg-app-card shadow-sm hover:border-(--site-accent)/40 hover:shadow-md transition-all duration-500";
+
   return (
     <div ref={ref}>
-      {/* ── Mobile layout (< md): icon left, card right ── */}
+      {/* Mobile */}
       <div className="flex md:hidden items-start gap-4">
         <div className="flex flex-col items-center shrink-0">
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={isInView ? { scale: 1, opacity: 1 } : {}}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-            className="w-11 h-11 rounded-full bg-[#0a2a0a] border-2 border-(--site-accent) flex items-center justify-center shadow-[0_0_14px_rgba(255,215,0,0.2)] shrink-0"
+            className={`w-11 h-11 shrink-0 ${nodeClass}`}
           >
             <Icon className="w-5 h-5 text-(--site-accent)" />
           </motion.div>
@@ -320,22 +317,22 @@ function TimelineItem({ item, index }) {
           initial={{ opacity: 0, x: 24 }}
           animate={isInView ? { opacity: 1, x: 0 } : {}}
           transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-          className="flex-1 min-w-0 rounded-2xl border border-[#1a6b1a]/20 bg-[#0a2a0a]/50 backdrop-blur-sm p-4"
+          className={`flex-1 min-w-0 p-4 ${cardClass}`}
         >
           <span className="text-[11px] font-bold uppercase tracking-widest text-(--site-accent) block mb-1">
             День {item.day}
           </span>
           <h3
-            className="text-lg font-bold text-white mb-2 leading-snug"
+            className="text-lg font-bold text-app-fg mb-2 leading-snug"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
             {item.title}
           </h3>
-          <p className="text-white/55 text-sm leading-relaxed">{item.description}</p>
+          <p className="text-app-subtle text-sm leading-relaxed">{item.description}</p>
         </motion.div>
       </div>
 
-      {/* ── Desktop layout (md+): alternating snake ── */}
+      {/* Desktop */}
       <div
         className={`hidden md:flex relative items-center gap-0 ${isLeft ? "flex-row" : "flex-row-reverse"}`}
       >
@@ -345,24 +342,18 @@ function TimelineItem({ item, index }) {
           transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
           className="w-[calc(50%-36px)] shrink-0"
         >
-          <div
-            className={`rounded-2xl border border-[#1a6b1a]/20 bg-[#0a2a0a]/50 backdrop-blur-sm hover:border-(--site-accent)/30 transition-all duration-500 group ${
-              isLeft ? "mr-6" : "ml-6"
-            }`}
-          >
+          <div className={`${cardClass} ${isLeft ? "mr-6" : "ml-6"}`}>
             <div className="p-5">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[11px] font-bold uppercase tracking-widest text-(--site-accent)">
-                  День {item.day}
-                </span>
-              </div>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-(--site-accent) block mb-1.5">
+                День {item.day}
+              </span>
               <h3
-                className="text-xl font-bold text-white mb-2.5"
+                className="text-xl font-bold text-app-fg mb-2.5"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 {item.title}
               </h3>
-              <p className="text-white/55 text-sm leading-relaxed">{item.description}</p>
+              <p className="text-app-subtle text-sm leading-relaxed">{item.description}</p>
             </div>
           </div>
         </motion.div>
@@ -372,7 +363,7 @@ function TimelineItem({ item, index }) {
             initial={{ scale: 0, opacity: 0 }}
             animate={isInView ? { scale: 1, opacity: 1 } : {}}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
-            className="w-12 h-12 rounded-full bg-[#0a2a0a] border-2 border-(--site-accent) flex items-center justify-center shadow-[0_0_18px_rgba(255,215,0,0.25)]"
+            className={`w-12 h-12 ${nodeClass}`}
           >
             <Icon className="w-5 h-5 text-(--site-accent)" />
           </motion.div>
@@ -399,7 +390,6 @@ function SnakeTimeline({ items }) {
           const cy = i * itemH + itemH / 2;
           const nextCy = (i + 1) * itemH + itemH / 2;
           const midY = (cy + nextCy) / 2;
-
           return (
             <motion.path
               key={i}
@@ -434,13 +424,14 @@ export default function TourClient({ tour }) {
 
   return (
     <div className="min-h-screen bg-app-bg text-app-fg">
-      {/* Hero bar */}
+
+      {/* ── Hero bar ── */}
       <div className="relative overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-25"
+          className="absolute inset-0 bg-cover bg-center opacity-20"
           style={{ backgroundImage: `url('${tour.gallery[0]?.src}')` }}
         />
-        <div className="absolute inset-0 bg-linear-to-b from-app-bg/0 via-app-bg/60 to-app-bg" />
+        <div className="absolute inset-0 bg-linear-to-b from-app-bg/10 via-app-bg/70 to-app-bg" />
         <div className="relative z-10 max-w-7xl mx-auto px-6 pt-28 pb-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -449,7 +440,7 @@ export default function TourClient({ tour }) {
           >
             <Link
               href="/trips"
-              className="inline-flex items-center gap-2 text-white/50 hover:text-white/80 text-sm mb-6 transition-colors"
+              className="inline-flex items-center gap-2 text-app-subtle hover:text-app-fg text-sm mb-6 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Все туры
@@ -458,9 +449,10 @@ export default function TourClient({ tour }) {
         </div>
       </div>
 
-      {/* Main two-col section */}
+      {/* ── Two-column ── */}
       <div className="max-w-7xl mx-auto px-6 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 xl:gap-16 items-start">
+
           {/* Left: carousel */}
           <motion.div
             initial={{ opacity: 0, x: -32 }}
@@ -484,20 +476,20 @@ export default function TourClient({ tour }) {
                   🔥 Горящий тур
                 </span>
               )}
-              <span className="px-3 py-1 rounded-full border border-(--site-accent)/30 text-(--site-accent) text-xs font-medium">
+              <span className="px-3 py-1 rounded-full border border-(--site-accent)/40 text-(--site-accent) text-xs font-semibold bg-(--site-accent)/8">
                 {tour.country}
               </span>
             </div>
 
-            {/* Title */}
+            {/* Title + location */}
             <div>
               <h1
-                className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-2"
+                className="text-4xl xl:text-5xl font-bold text-app-fg leading-tight mb-2"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 {tour.title}
               </h1>
-              <div className="flex items-center gap-1.5 text-white/50 text-sm">
+              <div className="flex items-center gap-1.5 text-app-subtle text-sm">
                 <MapPin className="w-3.5 h-3.5 text-(--site-accent)" />
                 {tour.subtitle}
               </div>
@@ -514,8 +506,8 @@ export default function TourClient({ tour }) {
                   />
                 ))}
               </div>
-              <span className="text-white font-bold">{tour.rating}</span>
-              <span className="text-white/40 text-sm">({tour.reviews_count} отзывов)</span>
+              <span className="text-app-fg font-bold">{tour.rating}</span>
+              <span className="text-app-faint text-sm">({tour.reviews_count} отзывов)</span>
             </div>
 
             {/* Stats row */}
@@ -527,29 +519,32 @@ export default function TourClient({ tour }) {
               ].map(({ icon: Icon, label, value }) => (
                 <div
                   key={label}
-                  className="flex flex-col gap-1 p-3.5 rounded-2xl border border-[#1a6b1a]/20 bg-[#0a2a0a]/40"
+                  className="relative flex flex-col gap-1 p-3.5 rounded-2xl border border-app-border bg-app-card shadow-sm overflow-hidden hover:border-(--site-accent)/40 hover:shadow-md transition-all duration-300"
                 >
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-linear-to-r from-(--site-accent)/60 to-(--site-accent-bright)/60" />
                   <Icon className="w-4 h-4 text-(--site-accent)" />
-                  <div className="text-white font-semibold text-sm">{value}</div>
-                  <div className="text-white/40 text-xs">{label}</div>
+                  <div className="text-app-fg font-semibold text-sm">{value}</div>
+                  <div className="text-app-faint text-xs">{label}</div>
                 </div>
               ))}
             </div>
 
             {/* Description */}
-            <p className="text-white/60 leading-relaxed text-[15px]">{tour.description}</p>
+            <p className="text-app-subtle leading-relaxed text-[15px]">{tour.description}</p>
 
             {/* Includes */}
-            <div className="rounded-2xl border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 p-5">
-              <div className="text-white/70 text-xs uppercase tracking-widest font-semibold mb-3">
+            <div className="rounded-2xl border border-(--site-accent)/25 bg-(--site-accent)/6 p-5 shadow-sm">
+              <div className="text-app-fg text-xs uppercase tracking-widest font-bold mb-3 flex items-center gap-2">
+                <div className="h-px flex-1 bg-linear-to-r from-(--site-accent)/30 to-transparent" />
                 Включено в стоимость
+                <div className="h-px flex-1 bg-linear-to-l from-(--site-accent)/30 to-transparent" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {(tour.includes ?? []).map((inc) => {
                   const label = typeof inc === "string" ? inc : inc.text;
                   return (
-                    <div key={label} className="flex items-center gap-2.5 text-white/70 text-sm">
-                      <div className="w-4 h-4 rounded-full bg-(--site-accent)/20 border border-(--site-accent)/30 flex items-center justify-center shrink-0">
+                    <div key={label} className="flex items-center gap-2.5 text-app-muted text-sm">
+                      <div className="w-4 h-4 rounded-full bg-(--site-accent)/20 border border-(--site-accent)/40 flex items-center justify-center shrink-0">
                         <Check className="w-2.5 h-2.5 text-(--site-accent)" />
                       </div>
                       {label}
@@ -560,28 +555,28 @@ export default function TourClient({ tour }) {
             </div>
 
             {/* Price & CTA */}
-            <div className="flex items-end justify-between gap-4 pt-2">
-              <div>
-                <div className="text-white/40 text-xs mb-0.5">Стоимость от</div>
+            <div className="flex items-end justify-between gap-4 pt-2 border-t border-app-border">
+              <div className="pt-4">
+                <div className="text-app-faint text-xs mb-0.5">Стоимость от</div>
                 <div
                   className="text-4xl font-bold text-(--site-accent)"
                   style={{ fontFamily: "Cormorant Garamond, serif" }}
                 >
                   {Number(tour.price).toLocaleString()} {tour.currency}
                 </div>
-                <div className="text-white/35 text-xs mt-0.5">за человека · {tour.days} дней</div>
+                <div className="text-app-faint text-xs mt-0.5">за человека · {tour.days} дней</div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2.5">
-                <button className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/20 text-white/60 hover:border-white/40 hover:text-white text-sm transition-all">
+              <div className="flex flex-col sm:flex-row gap-2.5 pt-4">
+                <button className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-app-border text-app-subtle hover:border-(--site-accent)/40 hover:text-(--site-accent) text-sm transition-all">
                   <Heart className="w-4 h-4" />
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/20 text-white/60 hover:border-white/40 hover:text-white text-sm transition-all">
+                <button className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-app-border text-app-subtle hover:border-(--site-accent)/40 hover:text-(--site-accent) text-sm transition-all">
                   <Share2 className="w-4 h-4" />
                 </button>
                 <motion.button
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.97 }}
-                  className="flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-semibold text-sm shadow-lg hover:shadow-(--site-accent)/30 transition-all"
+                  className="flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-semibold text-sm shadow-lg hover:shadow-[0_8px_24px_var(--site-shadow-strong)] transition-all"
                 >
                   <Phone className="w-4 h-4" />
                   Забронировать
@@ -592,7 +587,7 @@ export default function TourClient({ tour }) {
         </div>
       </div>
 
-      {/* Timeline section */}
+      {/* ── Timeline ── */}
       <div className="max-w-5xl mx-auto px-6 pb-24">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -605,12 +600,12 @@ export default function TourClient({ tour }) {
             Маршрут
           </div>
           <h2
-            className="text-4xl md:text-5xl font-bold text-white"
+            className="text-4xl md:text-5xl font-bold text-app-fg"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
             {tour.days} дней приключений
           </h2>
-          <p className="text-white/45 mt-3 max-w-lg mx-auto text-sm leading-relaxed">
+          <p className="text-app-faint mt-3 max-w-lg mx-auto text-sm leading-relaxed">
             Детальная программа каждого дня — от рассвета до заката
           </p>
           <div className="flex items-center justify-center gap-3 mt-6">

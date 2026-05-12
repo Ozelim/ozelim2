@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Minus } from 'lucide-react'
+import { Plus, Minus, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 
 const faqs = [
   {
@@ -47,7 +48,7 @@ export default function Accordion() {
           </h2>
         </motion.div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 mb-8">
           {faqs.map((item, i) => (
             <motion.div
               key={i}
@@ -57,8 +58,8 @@ export default function Accordion() {
               transition={{ delay: i * 0.07 }}
               className={`rounded-2xl border overflow-hidden transition-all duration-300 ${
                 open === i
-                  ? 'border-(--site-accent)/30 bg-[#0f3d0f]/50'
-                  : 'border-[#1a6b1a]/20 bg-[#0a2a0a]/10 hover:border-[#1a6b1a]/40'
+                  ? 'border-(--site-accent)/30 bg-transparent dark:bg-[#0f3d0f]/50'
+                  : 'border-[#1a6b1a]/20 bg-transparent dark:bg-[#0a2a0a]/10 hover:border-[#1a6b1a]/40'
               }`}
             >
               <button
@@ -95,6 +96,20 @@ export default function Accordion() {
             </motion.div>
           ))}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="flex justify-center mt-6"
+        >
+          <Link
+            href="/faq"
+            className="flex items-center gap-2 text-(--site-accent) text-sm hover:gap-3 transition-all group"
+          >
+            Все вопросы <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   )

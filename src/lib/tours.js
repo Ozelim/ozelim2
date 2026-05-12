@@ -34,10 +34,10 @@ function formatGroup(min, max) {
 
 export async function getLatestTours(limit = 6) {
   const rows = await sql`
-    SELECT id, title, country, city, days, group_min, group_max,
-           price, currency, gallery, hot, created_at
-      FROM tours
-     ORDER BY hot DESC, created_at DESC
+    SELECT t.id, t.title, t.country, t.city, t.days, t.group_min, t.group_max,
+           t.price, t.currency, t.gallery, t.hot, t.created_at
+      FROM tours t
+     ORDER BY t.hot DESC, t.created_at DESC
      LIMIT ${limit}
   `;
 
@@ -52,6 +52,8 @@ export async function getLatestTours(limit = 6) {
     price: formatPrice(r.price, r.currency),
     diff: diffFromDays(r.days),
     hot: r.hot ?? false,
+    popular: r.hot ?? false,
+    rating: 0,
     img: firstGalleryImage(r.gallery) || PLACEHOLDER_IMG,
   }));
 }

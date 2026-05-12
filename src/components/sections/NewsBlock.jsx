@@ -33,7 +33,7 @@ function NewsModal({ article, onClose }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-100 flex items-center justify-center p-4 md:p-8 bg-black/70 backdrop-blur-sm"
+      className="fixed top-20 left-0 right-0 bottom-0 z-[999] flex items-center justify-center p-4 md:p-8 bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -128,10 +128,6 @@ export default function NewsBlock({ items = [] }) {
               Новости и советы
             </h2>
           </div>
-          <button className="flex items-center gap-2 text-(--site-accent) text-sm hover:gap-3 transition-all group">
-            Все статьи{" "}
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">

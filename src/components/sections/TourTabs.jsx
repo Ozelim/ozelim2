@@ -1,13 +1,13 @@
 'use client'
 import { motion } from 'framer-motion'
-import { MapPin, Clock, Users } from 'lucide-react'
+import { MapPin, Clock, Users, ArrowRight, Star } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
 const diffColor = {
-  'Лёгкий': 'text-(--site-accent-bright) border-(--site-accent-bright)/30 bg-(--site-accent-bright)/10',
-  'Средний': 'text-(--site-accent) border-(--site-accent)/30 bg-(--site-accent)/10',
-  'Сложный': 'text-red-400 border-red-400/30 bg-red-400/10',
+  'Лёгкий':  'text-emerald-200 border-emerald-300/40 bg-[#0a2a0a]/70 backdrop-blur-sm shadow-sm',
+  'Средний': 'text-amber-200 border-amber-300/40 bg-[#0a2a0a]/70 backdrop-blur-sm shadow-sm',
+  'Сложный': 'text-rose-200 border-rose-300/40 bg-[#0a2a0a]/70 backdrop-blur-sm shadow-sm',
 }
 
 function TourCard({ tour, i }) {
@@ -27,8 +27,13 @@ function TourCard({ tour, i }) {
           draggable={false}
         />
         <div className="absolute inset-0 bg-linear-to-t from-[#030f03]/80 to-transparent" />
+        {tour.popular && (
+          <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[#0a2a0a]/70 border border-amber-300/40 text-amber-200 text-xs font-medium backdrop-blur-sm shadow-sm">
+            ⭐ Популярное
+          </div>
+        )}
         {tour.diff && (
-          <span className={`absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full border ${diffColor[tour.diff] || ''}`}>
+          <span className={`absolute top-3 right-3 text-xs font-medium px-2.5 py-1 rounded-full border ${diffColor[tour.diff] || ''}`}>
             {tour.diff}
           </span>
         )}
@@ -41,11 +46,17 @@ function TourCard({ tour, i }) {
           </div>
         )}
         <h3
-          className="text-white font-bold text-xl mb-4"
+          className="text-white font-bold text-xl mb-2"
           style={{ fontFamily: 'Cormorant Garamond, serif' }}
         >
           {tour.title}
         </h3>
+        {tour.rating > 0 && (
+          <div className="flex items-center gap-1 text-(--site-accent) mb-3">
+            <Star className="w-3.5 h-3.5 fill-current" />
+            <span className="text-sm font-bold">{tour.rating}</span>
+          </div>
+        )}
         <div className="flex items-center gap-4 text-sm text-white/50 mb-5">
           <span className="flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" />
@@ -90,14 +101,21 @@ export default function TourTabs({ items = [] }) {
           viewport={{ once: true }}
           className="mb-10"
         >
-          <div className="text-(--site-accent) text-xs uppercase tracking-widest mb-2">Туры</div>
-          <h2
-            className="text-5xl font-bold text-white mb-3"
-            style={{ fontFamily: 'Cormorant Garamond, serif' }}
-          >
-            Наши туры
-          </h2>
-          <p className="text-white/50">Откройте мир вместе с нами — от горных вершин до тропических пляжей</p>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <div className="text-(--site-accent) text-xs uppercase tracking-widest mb-2">Туры</div>
+              <h2
+                className="text-5xl font-bold text-white mb-3"
+                style={{ fontFamily: 'Cormorant Garamond, serif' }}
+              >
+                Наши туры
+              </h2>
+              <p className="text-white/50">Откройте мир вместе с нами — от горных вершин до тропических пляжей</p>
+            </div>
+            <Link href="/trips" className="flex items-center gap-2 text-(--site-accent) text-sm hover:gap-3 transition-all group shrink-0">
+              Все туры <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
