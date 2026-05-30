@@ -1,5 +1,2 @@
-import { neon } from "@neondatabase/serverless";
-
-const sql = neon(process.env.DATABASE_URL);
-
-export default sql;
+// Legacy: use @/lib/supabase for most routes, @/lib/pool for raw SQL transactions
+export { default } from "@/lib/supabase";

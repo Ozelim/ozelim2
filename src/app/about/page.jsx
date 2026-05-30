@@ -1,6 +1,5 @@
 "use client";
 import { motion } from "framer-motion";
-import Hero from "@/components/sections/Hero";
 import Footer, { MarqueeTicker } from "@/components/sections/Footer";
 import {
   Users,
@@ -9,12 +8,8 @@ import {
   HandHeart,
   FileText,
   Building,
-  Mail,
-  ArrowRight,
-  ShieldCheck,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 
 const teamPoints = [
   {
@@ -46,10 +41,10 @@ const requisites = [
 ];
 
 const documents = [
-  { title: "Свидетельство о регистрации", note: "ЮЛ" },
-  { title: "Подтверждение из e-gov", note: "Учёт" },
-  { title: "Государственная регистрация", note: "ОЮЛ" },
-  { title: "Сертификат МФЦА", note: "AFSA" },
+  { title: "Свидетельство о регистрации", note: "ЮЛ", img: "/abt-1.jpg" },
+  { title: "Подтверждение из e-gov", note: "Учёт", img: "/abt-2.jpg" },
+  { title: "Государственная регистрация", note: "ОЮЛ", img: "/abt-3.jpg" },
+  { title: "Сертификат МФЦА", note: "AFSA", img: "/abt-4.jpg" },
 ];
 
 const team = [
@@ -57,38 +52,38 @@ const team = [
     name: "Жангазы Еркеғали Жұмабайұлы",
     role: "Директор Ассоциации туристов Казахстана «Öz Elim»",
     desc: "Член общественного Совета Павлодарской области, бухгалтер-экономист, опыт работы в правоохранительных органах.",
+    img: "/assoc-erkegali.jpeg",
   },
   {
     name: "Султанов Искандер Серикович",
     role: "Юрист Ассоциации",
     desc: "Автор инновационной методики управления человеческими ресурсами, директор юридической компании «GRT COMPANY».",
+    img: "/abt-isk.jpeg",
   },
   {
     name: "Оразалинова Мадина Төлемысовна",
     role: "Агент страховой компании «Халык-Life»",
     desc: "Консультант по всем видам страхования и финансовой грамотности.",
+    img: "/abt-mad.jpeg",
   },
   {
     name: "Какенова Сауле",
     role: "Учредитель Ассоциации",
     desc: "Эндаумент-фонд «Öz Elim», основатель на территории МФЦА. Автор разработчик автоматизированного подбора.",
+    img: "/abt-sau.jpg",
   },
   {
     name: "Мукатаева Айгуль Куланбаевна",
     role: "Директор миграционно-визового консалтинга",
     desc: "Специалист по всем видам визовых услуг. Агент страховой компании «Nomad».",
+    img: "/abt-aig.jpeg",
   },
 ];
 
 export default function AboutPage() {
   return (
-    <main>
-      <Hero
-        title="О нас"
-        highlight="OzElim"
-        subtitle="Команда профессионалов и единомышленников, развивающая внутренний туризм Казахстана."
-        badge="Команда"
-      />
+    <main className="pt-20">
+      <div className="fixed top-0 left-0 right-0 h-20 bg-[#0f3d0f] z-[999] pointer-events-none" />
       <MarqueeTicker />
 
       {/* Team intro */}
@@ -105,21 +100,27 @@ export default function AboutPage() {
                 Команда
               </div>
               <h2
-                className="text-4xl md:text-5xl font-bold text-white mb-5 leading-tight"
+                className="text-4xl md:text-5xl font-bold text-app-fg mb-5 leading-tight"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 Центр притяжения{" "}
                 <span className="text-gradient">профессионалов-единомышленников</span>
               </h2>
-              <p className="text-white/65 leading-relaxed">
+              <p className="text-app-subtle leading-relaxed">
                 Главный ресурс — это кадры. Наш коллектив, как команда
                 профессионалов и единомышленников, преданных друг другу и общему
                 делу, готовы к решению поставленных задач и достижению общей
                 цели.
               </p>
             </div>
-            <div className="rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 aspect-video flex items-center justify-center">
-              <Users className="w-20 h-20 text-(--site-accent)/40" />
+            <div className="rounded-3xl overflow-hidden border border-[#1a6b1a]/25 aspect-video">
+              <Image
+                src="/abt-center.png"
+                alt="Команда OzElim"
+                width={800}
+                height={450}
+                className="w-full h-full object-cover"
+              />
             </div>
           </motion.div>
 
@@ -136,7 +137,7 @@ export default function AboutPage() {
                 <div className="w-10 h-10 rounded-xl bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center shrink-0">
                   <p.icon className="w-5 h-5 text-(--site-accent)" />
                 </div>
-                <p className="text-white/65 text-sm leading-relaxed">{p.text}</p>
+                <p className="text-app-subtle text-sm leading-relaxed">{p.text}</p>
               </motion.div>
             ))}
           </div>
@@ -155,7 +156,7 @@ export default function AboutPage() {
             <div className="flex items-center gap-3 mb-6">
               <Building className="w-6 h-6 text-(--site-accent)" />
               <h3
-                className="text-2xl md:text-3xl font-bold text-white"
+                className="text-2xl md:text-3xl font-bold text-app-fg"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 Реквизиты
@@ -167,8 +168,8 @@ export default function AboutPage() {
                   key={r.label}
                   className="flex justify-between gap-3 border-b border-[#1a6b1a]/15 pb-2"
                 >
-                  <span className="text-white/40">{r.label}</span>
-                  <span className="text-white font-medium text-right">
+                  <span className="text-app-faint">{r.label}</span>
+                  <span className="text-app-fg font-medium text-right">
                     {r.value}
                   </span>
                 </div>
@@ -185,20 +186,23 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-white text-center mb-10"
+            className="text-3xl md:text-4xl font-bold text-app-fg text-center mb-10"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
             Наши реквизиты
           </motion.h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {documents.map((doc, i) => (
-              <motion.div
+              <motion.a
                 key={doc.title}
+                href={doc.img}
+                target="_blank"
+                rel="noopener noreferrer"
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.06 }}
-                className="rounded-2xl border border-[#1a6b1a]/25 bg-[#061506]/60 p-5 flex flex-col gap-3"
+                className="rounded-2xl border border-[#1a6b1a]/25 bg-app-card p-5 flex flex-col gap-3 cursor-pointer hover:border-(--site-accent)/40 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <FileText className="w-5 h-5 text-(--site-accent)" />
@@ -206,13 +210,19 @@ export default function AboutPage() {
                     {doc.note}
                   </span>
                 </div>
-                <div className="aspect-[3/4] rounded-xl border border-dashed border-[#1a6b1a]/40 bg-[#030f03]/60 flex items-center justify-center text-white/25 text-xs">
-                  Документ
+                <div className="aspect-[3/4] rounded-xl overflow-hidden">
+                  <Image
+                    src={doc.img}
+                    alt={doc.title}
+                    width={300}
+                    height={400}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <div className="text-white text-sm font-medium leading-snug">
+                <div className="text-app-fg text-sm font-medium leading-snug">
                   {doc.title}
                 </div>
-              </motion.div>
+              </motion.a>
             ))}
           </div>
         </div>
@@ -225,7 +235,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-white text-center mb-10"
+            className="text-3xl md:text-4xl font-bold text-app-fg text-center mb-10"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
             Наша команда
@@ -241,11 +251,17 @@ export default function AboutPage() {
                 transition={{ delay: i * 0.06 }}
                 className="rounded-3xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 p-6 text-center card-hover"
               >
-                <div className="w-24 h-24 rounded-full border border-(--site-accent)/30 bg-[#061506]/60 mx-auto mb-4 flex items-center justify-center">
-                  <Users className="w-10 h-10 text-(--site-accent)/40" />
+                <div className="w-48 h-48 rounded-full border border-(--site-accent)/30 bg-[#061506]/60 mx-auto mb-4 overflow-hidden">
+                  <Image
+                    src={member.img}
+                    alt={member.name}
+                    width={192}
+                    height={192}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <h3
-                  className="text-white font-bold text-lg mb-1"
+                  className="text-app-fg font-bold text-lg mb-1"
                   style={{ fontFamily: "Cormorant Garamond, serif" }}
                 >
                   {member.name}
@@ -253,47 +269,12 @@ export default function AboutPage() {
                 <div className="text-(--site-accent) text-xs uppercase tracking-widest mb-3">
                   {member.role}
                 </div>
-                <p className="text-white/55 text-sm leading-relaxed mb-4">
+                <p className="text-app-subtle text-sm leading-relaxed">
                   {member.desc}
                 </p>
-                <button className="inline-flex items-center gap-1.5 text-(--site-accent) text-sm font-medium hover:gap-2 transition-all">
-                  Перейти по ссылке
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="px-6 pb-24">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="rounded-3xl border border-(--site-accent)/30 bg-linear-to-br from-(--site-accent)/10 to-transparent p-8 md:p-10 text-center"
-          >
-            <ShieldCheck className="w-10 h-10 text-(--site-accent) mx-auto mb-4" />
-            <h3
-              className="text-2xl md:text-3xl font-bold text-white mb-3"
-              style={{ fontFamily: "Cormorant Garamond, serif" }}
-            >
-              Хотите присоединиться к команде?
-            </h3>
-            <p className="text-white/55 text-sm mb-6 max-w-xl mx-auto">
-              Напишите нам — мы расскажем, как стать частью Ассоциации туристов
-              Казахстана «OzElim».
-            </p>
-            <Link
-              href="/legal"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-bold text-sm"
-            >
-              <Mail className="w-4 h-4" />
-              Связаться с нами
-            </Link>
-          </motion.div>
         </div>
       </section>
 

@@ -28,8 +28,16 @@ import {
   Phone,
   MessageCircle,
   Clock,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { Input } from "../ui/input";
+import { useCurrentUser } from "@/lib/use-current-user";
+
+function fullName(u) {
+  if (!u) return "";
+  return [u.name, u.surname].filter(Boolean).join(" ").trim();
+}
 
 const GROUP_PRESETS = [
   { id: "solo", label: "Один", hint: "1 человек", icon: UserRound, adults: 1, children: 0 },
@@ -216,15 +224,38 @@ function dayWord(n) {
   return "дней";
 }
 
-export function RequestFormDialog({ trigger, triggerClassName }) {
+export function RequestFormDialog({
+  trigger,
+  triggerClassName,
+  kind = "tour_request",
+  tourId = null,
+  resortDirectionId = null,
+  resortBaseId = null,
+  source = null,
+  context = null, // дополнительные поля для leads.data (название тура, номер и т.п.)
+  directionPreset = null, // { id, name } — пропускает шаг «куда хотите поехать»
+}) {
+  // compactMode: на странице конкретного тура нужны только Состав группы
+  // и Ваши контакты — дата/длительность/направление уже определены туром.
+  const compactMode = kind === "tour_booking";
+  const skipDirectionStep = !!directionPreset?.id || compactMode;
+
+  const visibleSteps = compactMode
+    ? [2, 5]
+    : skipDirectionStep
+      ? [2, 3, 4, 5]
+      : [1, 2, 3, 4, 5];
+
+  const initialStep = visibleSteps[0];
+
   const [open, setOpen] = React.useState(false);
-  const [step, setStep] = React.useState(1);
+  const [step, setStep] = React.useState(initialStep);
   const [direction, setDirection] = React.useState(1);
 
   const [directions, setDirections] = React.useState([]);
   const [directionsLoading, setDirectionsLoading] = React.useState(false);
 
-  const [resort, setResort] = React.useState("");
+  const [resort, setResort] = React.useState(directionPreset?.id ?? "");
   const [groupPreset, setGroupPreset] = React.useState("");
   const [adults, setAdults] = React.useState(2);
   const [children, setChildren] = React.useState(0);
@@ -234,8 +265,22 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
   const [name, setName] = React.useState("");
   const [phone, setPhone] = React.useState("");
 
+  const [submitting, setSubmitting] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState("");
+  const [submitted, setSubmitted] = React.useState(false);
+
+  const { user } = useCurrentUser();
+
+  // Авторизованным — предзаполняем имя и телефон при открытии формы.
+  React.useEffect(() => {
+    if (!open || !user) return;
+    setName((cur) => cur || fullName(user));
+    setPhone((cur) => cur || user.phone || "");
+  }, [open, user]);
+
   React.useEffect(() => {
     if (!open) return;
+    if (skipDirectionStep) return;
     let cancelled = false;
     setDirectionsLoading(true);
     fetch("/api/resort-directions")
@@ -252,7 +297,7 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, [open, skipDirectionStep]);
 
   const goTo = React.useCallback(
     (next) => {
@@ -269,7 +314,15 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
     [goTo],
   );
 
-  const progress = (step / TOTAL_STEPS) * 100;
+  const stepIdx = visibleSteps.indexOf(step);
+  const visibleStepIndex = stepIdx + 1;
+  const totalVisibleSteps = visibleSteps.length;
+  const progress = (visibleStepIndex / totalVisibleSteps) * 100;
+  const isLastStep = stepIdx === visibleSteps.length - 1;
+  const prevStep = stepIdx > 0 ? visibleSteps[stepIdx - 1] : null;
+  const nextStep = stepIdx >= 0 && stepIdx < visibleSteps.length - 1
+    ? visibleSteps[stepIdx + 1]
+    : null;
 
   const canProceed =
     (step === 1 && resort) ||
@@ -279,9 +332,9 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
     (step === 5 && name.trim() && phone.trim() && contactMethod);
 
   const reset = () => {
-    setStep(1);
+    setStep(initialStep);
     setDirection(1);
-    setResort("");
+    setResort(directionPreset?.id ?? "");
     setGroupPreset("");
     setAdults(2);
     setChildren(0);
@@ -290,21 +343,66 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
     setContactMethod("whatsapp");
     setName("");
     setPhone("");
+    setSubmitting(false);
+    setSubmitError("");
+    setSubmitted(false);
   };
 
-  const handleSubmit = () => {
-    console.log({
-      resort,
-      adults,
-      children,
-      date: date ? date.toISOString() : null,
-      duration,
+  const handleOpenChange = (next) => {
+    if (submitting) return;
+    setOpen(next);
+    if (!next) setTimeout(reset, 300);
+  };
+
+  const selectedDirection =
+    directionPreset?.id && directionPreset.id === resort
+      ? directionPreset
+      : directions.find((d) => d.id === resort);
+
+  const handleSubmit = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setSubmitError("");
+
+    const payload = {
+      kind,
+      name: name.trim(),
+      phone: phone.trim(),
       contactMethod,
-      name,
-      phone,
-    });
-    setOpen(false);
-    setTimeout(reset, 300);
+      tourId,
+      resortDirectionId: resortDirectionId ?? resort ?? null,
+      resortBaseId,
+      source: source ?? (typeof window !== "undefined" ? window.location.pathname : null),
+      data: {
+        ...(context || {}),
+        adults,
+        children,
+        ...(compactMode
+          ? {}
+          : {
+              date: date ? date.toISOString() : null,
+              durationDays: duration,
+              directionName: selectedDirection?.name ?? null,
+            }),
+      },
+    };
+
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json.error || `Ошибка ${res.status}`);
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err.message || "Не удалось отправить заявку");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const slideVariants = {
@@ -322,7 +420,7 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
   ];
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger ?? (
           <motion.button
@@ -346,8 +444,14 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
         <div className="px-7 pt-7 pb-5 border-b border-(--app-border)">
           <div className="flex items-center gap-3 mb-1">
             <span className="text-xs font-medium text-(--app-subtle) uppercase tracking-widest">
-              Шаг {step} из {TOTAL_STEPS}
+              Шаг {visibleStepIndex} из {totalVisibleSteps}
             </span>
+            {skipDirectionStep && directionPreset?.name && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-(--site-accent) uppercase tracking-widest">
+                <MapPin className="w-3 h-3" />
+                {directionPreset.name}
+              </span>
+            )}
           </div>
           <AnimatePresence mode="wait" custom={direction}>
             <motion.h2
@@ -579,10 +683,10 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
         </div>
 
         <div className="px-7 pb-7 pt-2 border-t border-(--app-border) flex items-center justify-between gap-3">
-          {step > 1 ? (
+          {prevStep ? (
             <button
               type="button"
-              onClick={() => goTo(step - 1)}
+              onClick={() => goTo(prevStep)}
               className="flex items-center gap-1.5 text-sm text-(--app-subtle) hover:text-(--app-fg) transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -592,12 +696,12 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
             <span />
           )}
 
-          {step < TOTAL_STEPS ? (
+          {!isLastStep ? (
             <motion.button
               type="button"
               whileHover={canProceed ? { scale: 1.03 } : {}}
               whileTap={canProceed ? { scale: 0.97 } : {}}
-              onClick={() => canProceed && goTo(step + 1)}
+              onClick={() => canProceed && nextStep && goTo(nextStep)}
               disabled={!canProceed}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all ${
                 canProceed
@@ -609,23 +713,61 @@ export function RequestFormDialog({ trigger, triggerClassName }) {
               <ArrowRight className="w-4 h-4" />
             </motion.button>
           ) : (
-            <motion.button
-              type="button"
-              whileHover={canProceed ? { scale: 1.03 } : {}}
-              whileTap={canProceed ? { scale: 0.97 } : {}}
-              onClick={canProceed ? handleSubmit : undefined}
-              disabled={!canProceed}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all ${
-                canProceed
-                  ? "bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent) hover:shadow-[0_0_24px_var(--site-shadow-glow)]"
-                  : "bg-(--app-panel) text-(--app-faint) cursor-not-allowed"
-              }`}
-            >
-              Отправить заявку
-              <Check className="w-4 h-4" />
-            </motion.button>
+            <div className="flex flex-col items-end gap-1.5">
+              {submitError && (
+                <p className="text-xs text-red-400 max-w-[260px] text-right">
+                  {submitError}
+                </p>
+              )}
+              <motion.button
+                type="button"
+                whileHover={canProceed && !submitting ? { scale: 1.03 } : {}}
+                whileTap={canProceed && !submitting ? { scale: 0.97 } : {}}
+                onClick={canProceed && !submitting ? handleSubmit : undefined}
+                disabled={!canProceed || submitting}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all ${
+                  canProceed && !submitting
+                    ? "bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent) hover:shadow-[0_0_24px_var(--site-shadow-glow)]"
+                    : "bg-(--app-panel) text-(--app-faint) cursor-not-allowed"
+                }`}
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Отправка...
+                  </>
+                ) : (
+                  <>
+                    Отправить заявку
+                    <Check className="w-4 h-4" />
+                  </>
+                )}
+              </motion.button>
+            </div>
           )}
         </div>
+
+        {submitted && (
+          <div className="absolute inset-0 bg-(--app-card) flex flex-col items-center justify-center gap-4 px-8 text-center z-10 rounded-3xl">
+            <div className="w-16 h-16 rounded-full bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-(--site-on-accent)" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-(--app-fg)">Заявка отправлена!</h3>
+              <p className="text-sm text-(--app-subtle) mt-2 max-w-sm">
+                Наш менеджер свяжется с вами в течение рабочего дня
+                {contactMethod === "whatsapp" ? " в WhatsApp" : " по телефону"}.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleOpenChange(false)}
+              className="mt-2 px-6 py-2.5 rounded-full bg-(--app-panel) border border-(--app-border) text-(--app-fg) text-sm font-medium hover:border-(--site-accent)/50 transition-colors"
+            >
+              Закрыть
+            </button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

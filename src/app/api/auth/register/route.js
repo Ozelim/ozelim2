@@ -1,52 +1,34 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
-import sql from "@/lib/db";
-import {
-  ensureReferralColumns,
-  generateUniqueReferralCode,
-  findReferrerByCode,
-} from "@/lib/referral";
-
-async function ensureUsersTable() {
-  await sql`
-    CREATE TABLE IF NOT EXISTS users (
-      id   SERIAL PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )
-  `;
-  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS name TEXT`;
-  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT`;
-  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`;
-  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS balance INTEGER DEFAULT 0`;
-  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus INTEGER DEFAULT 0`;
-  await ensureReferralColumns();
-}
+import sb from "@/lib/supabase";
+import { generateUniqueReferralCode, findReferrerByCode } from "@/lib/referral";
+import { signSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/jwt";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, email, password } = body;
+    const { name, surname, email, password } = body;
     let { ref } = body;
 
-    if (!name?.trim() || !email?.trim() || !password) {
+    if (!name?.trim() || !surname?.trim() || !email?.trim() || !password) {
       return NextResponse.json({ error: "Заполните все поля" }, { status: 400 });
     }
     if (password.length < 8) {
       return NextResponse.json({ error: "Пароль должен быть не менее 8 символов" }, { status: 400 });
     }
 
-    await ensureUsersTable();
+    const { data: existing } = await sb
+      .from("users")
+      .select("id")
+      .eq("email", email.toLowerCase())
+      .maybeSingle();
 
-    const existing = await sql`SELECT id FROM users WHERE email = ${email.toLowerCase()}`;
-    if (existing.length > 0) {
+    if (existing) {
       return NextResponse.json({ error: "Этот email уже зарегистрирован" }, { status: 409 });
     }
 
     const cookieStore = await cookies();
-
-    // Fallback: ref from cookie if not provided in body
     if (!ref) ref = cookieStore.get("ref_code")?.value || null;
 
     let referrerId = null;
@@ -64,30 +46,37 @@ export async function POST(request) {
     const referralCode = await generateUniqueReferralCode();
     const referredAt = referrerId ? new Date().toISOString() : null;
 
-    const [user] = await sql`
-      INSERT INTO users (name, email, password_hash, balance, bonus, referral_code, referred_by, referred_at)
-      VALUES (
-        ${name.trim()},
-        ${email.toLowerCase()},
-        ${passwordHash},
-        0,
-        0,
-        ${referralCode},
-        ${referrerId},
-        ${referredAt}
-      )
-      RETURNING id, name, email, balance, bonus, referral_code
-    `;
+    const { data: user, error } = await sb
+      .from("users")
+      .insert({
+        name: name.trim().slice(0, 100),
+        surname: surname.trim().slice(0, 100),
+        email: email.toLowerCase(),
+        password_hash: passwordHash,
+        balance: 0,
+        bonus: 0,
+        referral_code: referralCode,
+        referred_by: referrerId,
+        referred_at: referredAt,
+      })
+      .select("id, name, surname, email, balance, bonus, referral_code")
+      .single();
 
-    cookieStore.set("session_user_id", String(user.id), {
+    if (error) throw error;
+
+    const token = await signSession({
+      sub: String(user.id),
+      userId: user.id,
+      email: user.email,
+    });
+    cookieStore.set(SESSION_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: SESSION_MAX_AGE,
       path: "/",
     });
-
-    // Clean up the ref cookie once applied
+    cookieStore.delete("session_user_id"); // legacy
     cookieStore.delete("ref_code");
 
     return NextResponse.json({
@@ -95,6 +84,7 @@ export async function POST(request) {
       user: {
         id: user.id,
         name: user.name,
+        surname: user.surname,
         email: user.email,
         referralCode: user.referral_code,
       },

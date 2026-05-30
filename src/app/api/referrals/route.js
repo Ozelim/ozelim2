@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import sql from "@/lib/db";
-import { ensureReferralColumns } from "@/lib/referral";
+import sb from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -12,18 +11,17 @@ export async function GET() {
       return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
     }
 
-    await ensureReferralColumns();
+    const { data, error } = await sb
+      .from("users")
+      .select("id, name, email, referred_at, created_at")
+      .eq("referred_by", user.id)
+      .order("referred_at", { ascending: false });
 
-    const rows = await sql`
-      SELECT id, name, email, referred_at, created_at
-      FROM users
-      WHERE referred_by = ${user.id}
-      ORDER BY COALESCE(referred_at, created_at) DESC
-    `;
+    if (error) throw error;
 
     return NextResponse.json({
-      count: rows.length,
-      referrals: rows.map((r) => ({
+      count: data?.length ?? 0,
+      referrals: (data ?? []).map((r) => ({
         id: r.id,
         name: r.name,
         email: r.email,

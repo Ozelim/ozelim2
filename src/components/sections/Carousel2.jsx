@@ -1,9 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import ImageLightbox from "@/components/lightbox/ImageLightbox";
 
-const items = [
+const FALLBACK_ITEMS = [
   {
     img: "https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=900&q=80",
     thumb:
@@ -38,21 +39,21 @@ const items = [
   },
 ];
 
-export default function Carousel2() {
+export default function Carousel2({ items: itemsProp }) {
+  const items = Array.isArray(itemsProp) && itemsProp.length > 0 ? itemsProp : FALLBACK_ITEMS;
   const [current, setCurrent] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(
-      () => setCurrent((c) => (c + 1) % items.length),
-      6000,
-    );
-    return () => clearInterval(t);
-  }, []);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   return (
     <div className="relative rounded-3xl overflow-hidden">
       {/* Main image with crossfade */}
-      <div className="relative h-[440px] media-contrast">
+      <div
+        className="relative h-[440px] media-contrast cursor-zoom-in"
+        onClick={() => setLightboxOpen(true)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setLightboxOpen(true); }}
+      >
         {items.map((item, i) => (
           <motion.div
             key={i}
@@ -129,6 +130,14 @@ export default function Carousel2() {
           </button>
         ))}
       </div>
+
+      <ImageLightbox
+        images={items.map((it) => it.img)}
+        index={current}
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onIndexChange={(i) => setCurrent(i)}
+      />
     </div>
   );
 }

@@ -63,7 +63,7 @@ function writeRefCookie(code) {
 function RegisterPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
+  const [form, setForm] = useState({ name: "", surname: "", email: "", password: "", confirm: "" });
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -95,6 +95,7 @@ function RegisterPageInner() {
   function validate() {
     const e = {};
     if (!form.name.trim()) e.name = "Введите имя";
+    if (!form.surname.trim()) e.surname = "Введите фамилию";
     if (!form.email.trim()) e.email = "Введите email";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Некорректный email";
     if (!form.password) e.password = "Введите пароль";
@@ -117,6 +118,7 @@ function RegisterPageInner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
+          surname: form.surname,
           email: form.email,
           password: form.password,
           ref: ref || undefined,
@@ -203,16 +205,28 @@ function RegisterPageInner() {
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <InputField
-              label="Имя"
-              type="text"
-              id="name"
-              value={form.name}
-              onChange={set("name")}
-              icon={User}
-              placeholder="Алия Сейткали"
-              error={errors.name}
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <InputField
+                label="Имя"
+                type="text"
+                id="name"
+                value={form.name}
+                onChange={set("name")}
+                icon={User}
+                placeholder="Имя..."
+                error={errors.name}
+              />
+              <InputField
+                label="Фамилия"
+                type="text"
+                id="surname"
+                value={form.surname}
+                onChange={set("surname")}
+                icon={User}
+                placeholder="Фамилия..."
+                error={errors.surname}
+              />
+            </div>
             <InputField
               label="Email"
               type="email"
@@ -243,6 +257,27 @@ function RegisterPageInner() {
               placeholder="Повторите пароль"
               error={errors.confirm}
             />
+
+            <p className="text-xs text-center text-app-muted leading-relaxed">
+              При регистрации вы принимаете{" "}
+              <a
+                href="/reg-agent-agreement.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-(--site-accent) hover:underline"
+              >
+                агентский договор
+              </a>{" "}
+              и{" "}
+              <a
+                href="/reg-pub_offer.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-(--site-accent) hover:underline"
+              >
+                договор публичной оферты
+              </a>
+            </p>
 
             <motion.button
               type="submit"

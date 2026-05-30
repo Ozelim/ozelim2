@@ -1,28 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import sql from "@/lib/db";
+import pool from "@/lib/pool";
+import { notifyAdmins } from "@/lib/notifications";
 
 const ALLOWED_STATUSES = ["created", "success", "rejected"];
-
-async function ensureSchema() {
-  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS frozen_balance INTEGER DEFAULT 0`;
-  await sql`
-    CREATE TABLE IF NOT EXISTS withdraw_requests (
-      id              SERIAL PRIMARY KEY,
-      user_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      amount          INTEGER NOT NULL CHECK (amount > 0),
-      bank_name       TEXT NOT NULL,
-      iban            TEXT NOT NULL,
-      account_holder  TEXT NOT NULL,
-      iin             TEXT NOT NULL,
-      status          TEXT NOT NULL DEFAULT 'created' CHECK (status IN ('created', 'success', 'rejected')),
-      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `;
-  await sql`CREATE INDEX IF NOT EXISTS withdraw_requests_user_id_idx ON withdraw_requests(user_id)`;
-  await sql`CREATE INDEX IF NOT EXISTS withdraw_requests_created_at_idx ON withdraw_requests(created_at DESC)`;
-}
 
 function serialize(row) {
   return {
@@ -47,14 +28,13 @@ export async function GET() {
       return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
     }
 
-    await ensureSchema();
-
-    const rows = await sql`
-      SELECT id, amount, bank_name, iban, account_holder, iin, status, created_at, updated_at
-      FROM withdraw_requests
-      WHERE user_id = ${user.id}
-      ORDER BY created_at DESC, id DESC
-    `;
+    const { rows } = await pool.query(
+      `SELECT id, amount, bank_name, iban, account_holder, iin, status, created_at, updated_at
+       FROM withdraw_requests
+       WHERE user_id = $1
+       ORDER BY created_at DESC, id DESC`,
+      [user.id],
+    );
 
     return NextResponse.json({ withdrawals: rows.map(serialize) });
   } catch (err) {
@@ -102,37 +82,45 @@ export async function POST(request) {
       return NextResponse.json({ error: "ИИН должен содержать ровно 12 цифр" }, { status: 400 });
     }
 
-    await ensureSchema();
-
     // Atomic: deduct balance + freeze + create row only if balance is sufficient.
-    const inserted = await sql`
-      WITH updated_user AS (
+    const { rows: inserted } = await pool.query(
+      `WITH updated_user AS (
         UPDATE users
-        SET balance = balance - ${amount},
-            frozen_balance = COALESCE(frozen_balance, 0) + ${amount}
-        WHERE id = ${user.id} AND COALESCE(balance, 0) >= ${amount}
-        RETURNING id, balance, COALESCE(frozen_balance, 0) AS frozen_balance
+        SET balance = balance - $1,
+            frozen_balance = COALESCE(frozen_balance, 0) + $1
+        WHERE id = $2 AND COALESCE(balance, 0) >= $1
+        RETURNING id
       )
       INSERT INTO withdraw_requests (user_id, amount, bank_name, iban, account_holder, iin, status)
-      SELECT id, ${amount}, ${bankName}, ${ibanRaw}, ${accountHolder}, ${iin}, 'created'
+      SELECT id, $1, $3, $4, $5, $6, 'created'
       FROM updated_user
-      RETURNING id, amount, bank_name, iban, account_holder, iin, status, created_at, updated_at
-    `;
+      RETURNING id, amount, bank_name, iban, account_holder, iin, status, created_at, updated_at`,
+      [amount, user.id, bankName, ibanRaw, accountHolder, iin],
+    );
 
     if (inserted.length === 0) {
       return NextResponse.json({ error: "Недостаточно средств на балансе" }, { status: 409 });
     }
 
-    const [{ balance, frozen_balance }] = await sql`
-      SELECT balance, COALESCE(frozen_balance, 0) AS frozen_balance
-      FROM users
-      WHERE id = ${user.id}
-    `;
+    const { rows: [userRow] } = await pool.query(
+      `SELECT balance, COALESCE(frozen_balance, 0) AS frozen_balance, name, email
+       FROM users WHERE id = $1`,
+      [user.id],
+    );
+
+    await notifyAdmins("admin.withdrawal.new", {
+      withdrawalId: inserted[0].id,
+      userId: user.id,
+      userName: userRow.name || null,
+      userEmail: userRow.email || null,
+      amount,
+      bankName,
+    });
 
     return NextResponse.json({
       withdrawal: serialize(inserted[0]),
-      balance,
-      frozenBalance: frozen_balance,
+      balance: userRow.balance,
+      frozenBalance: userRow.frozen_balance,
     });
   } catch (err) {
     console.error("POST /api/withdrawals error:", err);

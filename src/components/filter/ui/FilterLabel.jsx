@@ -1,7 +1,7 @@
 
 export function FilterLabel({ children, className = '' }) {
   return (
-    <div className={`text-[10px] font-semibold uppercase tracking-widest text-white/35 mb-1.5 px-0.5 ${className}`}>
+    <div className={`text-[10px] font-semibold uppercase tracking-widest text-app-muted mb-1.5 px-0.5 ${className}`}>
       {children}
     </div>
   )

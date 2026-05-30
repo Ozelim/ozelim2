@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Compass } from "lucide-react";
 
 function InputField({ label, type: initialType, id, value, onChange, icon: Icon, placeholder, error, autoComplete }) {
@@ -45,8 +45,10 @@ function InputField({ label, type: initialType, id, value, onChange, icon: Icon,
   );
 }
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") || "/";
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
@@ -77,7 +79,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) { setServerError(data.error); return; }
-      router.push("/");
+      router.push(next.startsWith("/") ? next : "/");
     } finally {
       setLoading(false);
     }
@@ -193,5 +195,13 @@ export default function LoginPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageInner />
+    </Suspense>
   );
 }

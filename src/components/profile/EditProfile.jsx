@@ -1,52 +1,70 @@
 'use client'
-import { useState, useRef } from 'react'
-import { User, Mail, Phone, Lock, Eye, EyeOff, Camera, Save, Check } from 'lucide-react'
-import { Button, Input, Textarea, Avatar, Card, CardHeader, CardBody, SectionHeader, Toast, Divider, cn } from './ui'
+import { useState } from 'react'
+import { User, Mail, Phone, Lock, Eye, EyeOff, Save, Check, Info } from 'lucide-react'
+import { Button, Input, Textarea, Card, CardHeader, CardBody, SectionHeader, Toast, cn } from './ui'
 
-function AvatarUpload({ src, name }) {
-  const fileRef = useRef(null)
-  const [preview, setPreview] = useState(src)
+// Детерминированный hue по строке — у одного имени всегда один и тот же цвет.
+function hueFromString(str) {
+  let hash = 0
+  for (let i = 0; i < (str || '').length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0
+  return hash % 360
+}
 
-  function handleFile(e) {
-    const file = e.target.files?.[0]
-    if (file) {
-      const url = URL.createObjectURL(file)
-      setPreview(url)
-    }
+function initialsFrom(name) {
+  if (!name) return '?'
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+function Monogram({ name, size = 'xl' }) {
+  const sizes = {
+    md: { box: 'w-12 h-12', text: 'text-base' },
+    lg: { box: 'w-20 h-20', text: 'text-2xl' },
+    xl: { box: 'w-28 h-28', text: 'text-4xl' },
   }
-
+  const s = sizes[size] ?? sizes.xl
+  const hue = hueFromString(name)
+  const bg = `linear-gradient(135deg, hsl(${hue} 70% 55%) 0%, hsl(${(hue + 45) % 360} 65% 38%) 100%)`
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="relative group cursor-pointer" onClick={() => fileRef.current?.click()}>
-        <Avatar src={preview} name={name} size="xl" />
-        <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity media-contrast">
-          <Camera className="w-6 h-6 text-white" />
-        </div>
-      </div>
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-      <Button variant="secondary" size="sm" onClick={() => fileRef.current?.click()}>
-        <Camera className="w-3.5 h-3.5" />
-        Загрузить фото
-      </Button>
-      <p className="text-white/30 text-xs text-center">JPG, PNG, GIF · до 5 МБ</p>
+    <div
+      className={cn(
+        'rounded-full flex items-center justify-center font-bold text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)] ring-2 ring-white/10 select-none',
+        s.box, s.text,
+      )}
+      style={{ background: bg, fontFamily: 'Cormorant Garamond, serif', letterSpacing: '0.05em' }}
+      aria-label={`Аватар ${name || ''}`}
+    >
+      {initialsFrom(name)}
     </div>
   )
 }
 
-export function EditProfile({ user, onBack }) {
+export function EditProfile({ user, onBack, onUpdated }) {
   const [form, setForm] = useState({
-    name: user.name,
-    email: user.email,
-    phone: user.phone,
-    city: user.city,
-    country: user.country,
-    bio: user.bio,
+    name: user.name ?? '',
+    surname: user.surname ?? '',
+    phone: user.phone ?? '',
+    city: user.city ?? '',
+    bio: user.bio ?? '',
   })
   const [passwords, setPasswords] = useState({ current: '', newPass: '', confirm: '' })
   const [showPwd, setShowPwd] = useState({ current: false, newPass: false, confirm: false })
   const [errors, setErrors] = useState({})
   const [toast, setToast] = useState(null)
-  const [saved, setSaved] = useState(false)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [savedProfile, setSavedProfile] = useState(false)
+  const [savedPassword, setSavedPassword] = useState(false)
+
+  function showToast(message, type = 'success') {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3000)
+  }
 
   function setF(key, val) { setForm(f => ({ ...f, [key]: val })); setErrors(e => ({ ...e, [key]: '' })) }
   function setP(key, val) { setPasswords(p => ({ ...p, [key]: val })); setErrors(e => ({ ...e, [key]: '' })) }
@@ -54,8 +72,9 @@ export function EditProfile({ user, onBack }) {
   function validateProfile() {
     const e = {}
     if (!form.name.trim()) e.name = 'Имя обязательно'
-    if (!form.email.includes('@')) e.email = 'Введите корректный email'
-    if (form.phone && !/^\+/.test(form.phone)) e.phone = 'Формат: +7 XXX XXX XX XX'
+    if (form.phone && !/^\+?[\d\s()-]{7,40}$/.test(form.phone.trim())) {
+      e.phone = 'Формат: +7 XXX XXX XX XX'
+    }
     return e
   }
 
@@ -67,34 +86,88 @@ export function EditProfile({ user, onBack }) {
     return e
   }
 
-  function handleSaveProfile() {
+  async function handleSaveProfile() {
     const e = validateProfile()
     if (Object.keys(e).length) { setErrors(e); return }
-    setSaved(true)
-    setToast({ message: 'Профиль успешно сохранён', type: 'success' })
-    setTimeout(() => setSaved(false), 3000)
+    setSavingProfile(true)
+    try {
+      const res = await fetch('/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          surname: form.surname,
+          phone: form.phone,
+          city: form.city,
+          bio: form.bio,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        showToast(data.error || 'Не удалось сохранить', 'error')
+        return
+      }
+      onUpdated?.(data.user)
+      setSavedProfile(true)
+      showToast('Профиль сохранён', 'success')
+      setTimeout(() => setSavedProfile(false), 2200)
+    } catch {
+      showToast('Ошибка сети', 'error')
+    } finally {
+      setSavingProfile(false)
+    }
   }
 
-  function handleChangePassword() {
+  async function handleChangePassword() {
     const e = validatePassword()
     if (Object.keys(e).length) { setErrors(e); return }
-    setPasswords({ current: '', newPass: '', confirm: '' })
-    setToast({ message: 'Пароль успешно изменён', type: 'success' })
+    setSavingPassword(true)
+    try {
+      const res = await fetch('/api/users/me/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          current: passwords.current,
+          newPassword: passwords.newPass,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        if (res.status === 401) setErrors({ current: data.error || 'Неверный пароль' })
+        else showToast(data.error || 'Не удалось сменить пароль', 'error')
+        return
+      }
+      setPasswords({ current: '', newPass: '', confirm: '' })
+      setSavedPassword(true)
+      showToast('Пароль изменён', 'success')
+      setTimeout(() => setSavedPassword(false), 2200)
+    } catch {
+      showToast('Ошибка сети', 'error')
+    } finally {
+      setSavingPassword(false)
+    }
   }
+
+  const displayName = [form.name, form.surname].filter(Boolean).join(' ') || user.email
 
   return (
     <div className="space-y-6">
-      <SectionHeader title="Редактирование профиля" subtitle="Обновите ваши личные данные и настройки безопасности" />
+      <SectionHeader title="Редактирование профиля" subtitle="Обновите личные данные и пароль" />
 
       {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm shadow-lg">
+          <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+        </div>
       )}
 
       {/* Avatar + Personal info */}
       <div className="grid lg:grid-cols-[auto_1fr] gap-6">
-        {/* Avatar */}
-        <Card className="p-6 flex flex-col items-center justify-center min-w-[200px]">
-          <AvatarUpload src={user.avatar} name={user.name} />
+        {/* Avatar (монограмма) */}
+        <Card className="p-6 flex flex-col items-center justify-center min-w-[200px] gap-3">
+          <Monogram name={displayName} size="xl" />
+          <p className="text-app-subtle dark:text-white/40 text-xs text-center max-w-[180px] leading-relaxed">
+            Аватар формируется автоматически<br />из первых букв вашего имени
+          </p>
         </Card>
 
         {/* Personal data */}
@@ -103,7 +176,7 @@ export function EditProfile({ user, onBack }) {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-(--profile-accent)" />
-                <span className="text-white font-medium text-sm">Личные данные</span>
+                <span className="text-app-fg dark:text-white font-medium text-sm">Личные данные</span>
               </div>
               <Button variant="secondary" size="sm" onClick={onBack}>
                 Назад
@@ -112,17 +185,28 @@ export function EditProfile({ user, onBack }) {
           </CardHeader>
           <CardBody className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
-              <Input label="Полное имя" icon={User} value={form.name} onChange={e => setF('name', e.target.value)} error={errors.name} placeholder="Ваше имя" />
-              <Input label="Email" icon={Mail} value={form.email} onChange={e => setF('email', e.target.value)} error={errors.email} type="email" placeholder="email@example.kz" />
+              <Input label="Имя" icon={User} value={form.name} onChange={e => setF('name', e.target.value)} error={errors.name} placeholder="Алия" />
+              <Input label="Фамилия" value={form.surname} onChange={e => setF('surname', e.target.value)} error={errors.surname} placeholder="Сейткали" />
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <Input label="Телефон" icon={Phone} value={form.phone} onChange={e => setF('phone', e.target.value)} error={errors.phone} placeholder="+7 777 000 00 00" />
               <Input label="Город" value={form.city} onChange={e => setF('city', e.target.value)} placeholder="Алматы" />
             </div>
+            <div>
+              <label className="text-xs font-medium text-app-subtle dark:text-white/50 uppercase tracking-wider">Email</label>
+              <div className="mt-1.5 flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-app-border bg-app-card/60 text-sm text-app-muted dark:text-white/60">
+                <Mail className="w-4 h-4 text-app-faint" />
+                <span className="flex-1 truncate">{user.email}</span>
+                <Info className="w-3.5 h-3.5 text-app-faint" title="Для смены email обратитесь в поддержку" />
+              </div>
+            </div>
             <Textarea label="О себе" value={form.bio} onChange={e => setF('bio', e.target.value)} rows={3} placeholder="Расскажите немного о себе..." />
             <div className="flex justify-end">
-              <Button variant="primary" onClick={handleSaveProfile}>
-                {saved ? <><Check className="w-4 h-4" /> Сохранено</> : <><Save className="w-4 h-4" /> Сохранить изменения</>}
+              <Button variant="primary" onClick={handleSaveProfile} disabled={savingProfile}>
+                {savedProfile
+                  ? <><Check className="w-4 h-4" /> Сохранено</>
+                  : <><Save className="w-4 h-4" /> {savingProfile ? 'Сохранение…' : 'Сохранить изменения'}</>
+                }
               </Button>
             </div>
           </CardBody>
@@ -134,7 +218,7 @@ export function EditProfile({ user, onBack }) {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4 text-(--profile-accent)" />
-            <span className="text-white font-medium text-sm">Смена пароля</span>
+            <span className="text-app-fg dark:text-white font-medium text-sm">Смена пароля</span>
           </div>
         </CardHeader>
         <CardBody className="space-y-4">
@@ -156,7 +240,7 @@ export function EditProfile({ user, onBack }) {
                 <button
                   type="button"
                   onClick={() => setShowPwd(s => ({ ...s, [key]: !s[key] }))}
-                  className="absolute right-3 top-[34px] text-white/30 hover:text-white/60 transition-colors"
+                  className="absolute right-3 top-[34px] text-app-faint dark:text-white/30 hover:text-app-muted dark:hover:text-white/60 transition-colors"
                 >
                   {showPwd[key] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -174,15 +258,17 @@ export function EditProfile({ user, onBack }) {
                   }}
                 />
               </div>
-              <span className="text-xs text-white/40">
+              <span className="text-xs text-app-subtle dark:text-white/40">
                 {passwords.newPass.length < 6 ? 'Слабый' : passwords.newPass.length < 10 ? 'Средний' : 'Надёжный'}
               </span>
             </div>
           )}
           <div className="flex justify-end">
-            <Button variant="secondary" onClick={handleChangePassword}>
-              <Lock className="w-4 h-4" />
-              Изменить пароль
+            <Button variant="secondary" onClick={handleChangePassword} disabled={savingPassword}>
+              {savedPassword
+                ? <><Check className="w-4 h-4" /> Изменено</>
+                : <><Lock className="w-4 h-4" /> {savingPassword ? 'Сохранение…' : 'Изменить пароль'}</>
+              }
             </Button>
           </div>
         </CardBody>

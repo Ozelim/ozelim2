@@ -32,8 +32,16 @@ import {
   Hotel,
   Clock,
   Wallet,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { Input } from "../ui/input";
+import { useCurrentUser } from "@/lib/use-current-user";
+
+function fullName(u) {
+  if (!u) return "";
+  return [u.name, u.surname].filter(Boolean).join(" ").trim();
+}
 
 const datesToGo = [
   { id: "soon", label: "В самое ближайшее время", icon: AlarmClock },
@@ -151,6 +159,18 @@ export function TourSelectionDialog() {
   const [servicesLoading, setServicesLoading] = React.useState(false);
   const [selectedServiceIds, setSelectedServiceIds] = React.useState([]);
 
+  const [submitting, setSubmitting] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState("");
+  const [submitted, setSubmitted] = React.useState(false);
+
+  const { user } = useCurrentUser();
+
+  React.useEffect(() => {
+    if (!open || !user) return;
+    setName((cur) => cur || fullName(user));
+    setPhone((cur) => cur || user.phone || "");
+  }, [open, user]);
+
   // Load directions when dialog opens
   React.useEffect(() => {
     if (!open) return;
@@ -207,7 +227,13 @@ export function TourSelectionDialog() {
     fetch(`/api/resort-services?baseId=${selectedBase.id}`)
       .then((r) => r.json())
       .then((data) => {
-        if (!cancelled) setServices(data.services ?? []);
+        if (cancelled) return;
+        const list = data.services ?? [];
+        setServices(list);
+        // Pre-select default services — клиент не может их снять.
+        setSelectedServiceIds(
+          list.filter((s) => s.is_default).map((s) => s.id),
+        );
       })
       .catch(() => {
         if (!cancelled) setServices([]);
@@ -273,36 +299,81 @@ export function TourSelectionDialog() {
     }
   })();
 
-  const handleSubmit = () => {
-    console.log({
-      adultsCount,
-      childrenCount,
-      selectedTimeframe,
-      tourDuration,
-      selectedDirection,
-      selectedBase,
-      selectedServiceIds,
-      totalPrice,
-      selectedContact,
-      name,
-      phone,
-    });
-    setOpen(false);
-    setTimeout(() => {
-      setStepIndex(0);
-      setDirection(1);
-      setGroupPreset("");
-      setAdultsCount(2);
-      setChildrenCount(0);
-      setSelectedTimeframe("");
-      setTourDuration(3);
-      setSelectedDirection(null);
-      setSelectedBase(null);
-      setSelectedServiceIds([]);
-      setSelectedContact("");
-      setName("");
-      setPhone("");
-    }, 300);
+  const reset = () => {
+    setStepIndex(0);
+    setDirection(1);
+    setGroupPreset("");
+    setAdultsCount(2);
+    setChildrenCount(0);
+    setSelectedTimeframe("");
+    setTourDuration(3);
+    setSelectedDirection(null);
+    setSelectedBase(null);
+    setSelectedServiceIds([]);
+    setSelectedContact("");
+    setName("");
+    setPhone("");
+    setSubmitting(false);
+    setSubmitError("");
+    setSubmitted(false);
+  };
+
+  const handleOpenChange = (next) => {
+    if (submitting) return;
+    setOpen(next);
+    if (!next) setTimeout(reset, 300);
+  };
+
+  const handleSubmit = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setSubmitError("");
+
+    const selectedServices = services.filter((s) =>
+      selectedServiceIds.includes(s.id),
+    );
+
+    const payload = {
+      kind: "tour_calculator",
+      name: name.trim(),
+      phone: phone.trim(),
+      contactMethod: selectedContact === "wa" ? "whatsapp" : selectedContact,
+      resortDirectionId: selectedDirection?.id ?? null,
+      resortBaseId: selectedBase?.id ?? null,
+      source: typeof window !== "undefined" ? window.location.pathname : null,
+      data: {
+        adults: adultsCount,
+        children: childrenCount,
+        timeframe: selectedTimeframe,
+        durationDays: tourDuration,
+        directionName: selectedDirection?.name ?? null,
+        baseName: selectedBase?.name ?? null,
+        services: selectedServices.map((s) => ({
+          id: s.id,
+          name: s.name,
+          priceAdult: s.price_adult,
+          priceChild: s.price_child,
+        })),
+        totalPrice,
+      },
+    };
+
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json.error || `Ошибка ${res.status}`);
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err.message || "Не удалось отправить заявку");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const slideVariants = {
@@ -323,6 +394,8 @@ export function TourSelectionDialog() {
   };
 
   const toggleService = (id) => {
+    const svc = services.find((s) => s.id === id);
+    if (svc?.is_default) return; // дефолтные услуги нельзя снимать
     setSelectedServiceIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
@@ -331,7 +404,7 @@ export function TourSelectionDialog() {
   const isLastStep = stepIndex === totalSteps - 1;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <motion.button
           whileHover={{ scale: 1.04 }}
@@ -601,21 +674,34 @@ export function TourSelectionDialog() {
                     ) : (
                       services.map((s) => {
                         const isSelected = selectedServiceIds.includes(s.id);
+                        const isLocked = Boolean(s.is_default);
                         return (
                           <button
                             key={s.id}
                             type="button"
                             onClick={() => toggleService(s.id)}
+                            disabled={isLocked}
+                            aria-disabled={isLocked}
+                            title={isLocked ? "Включено по умолчанию" : undefined}
                             className={`relative w-full text-left px-4 py-3 rounded-2xl border transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-(--site-accent) ${
-                              isSelected
-                                ? "border-(--site-accent) bg-linear-to-br from-(--site-gradient-from)/15 to-(--site-gradient-to)/10 shadow-[0_0_16px_var(--site-shadow-soft)]"
-                                : "border-(--app-border) bg-(--app-panel) hover:border-(--site-accent)/50 hover:bg-(--app-panel-strong)"
+                              isLocked
+                                ? "border-(--site-accent) bg-linear-to-br from-(--site-gradient-from)/20 to-(--site-gradient-to)/15 cursor-not-allowed"
+                                : isSelected
+                                  ? "border-(--site-accent) bg-linear-to-br from-(--site-gradient-from)/15 to-(--site-gradient-to)/10 shadow-[0_0_16px_var(--site-shadow-soft)]"
+                                  : "border-(--app-border) bg-(--app-panel) hover:border-(--site-accent)/50 hover:bg-(--app-panel-strong)"
                             }`}
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex-1 min-w-0">
-                                <div className="text-sm font-semibold text-(--app-fg) mb-1">
-                                  {s.name}
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
+                                  <div className="text-sm font-semibold text-(--app-fg)">
+                                    {s.name}
+                                  </div>
+                                  {isLocked && (
+                                    <span className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-(--site-on-accent) bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) rounded-full px-2 py-0.5">
+                                      Входит в тур
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-(--app-faint)">
                                   <span>
@@ -749,23 +835,61 @@ export function TourSelectionDialog() {
               <ArrowRight className="w-4 h-4" />
             </motion.button>
           ) : (
-            <motion.button
-              type="button"
-              whileHover={canProceed ? { scale: 1.03 } : {}}
-              whileTap={canProceed ? { scale: 0.97 } : {}}
-              onClick={canProceed ? handleSubmit : undefined}
-              disabled={!canProceed}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all ${
-                canProceed
-                  ? "bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent) hover:shadow-[0_0_24px_var(--site-shadow-glow)]"
-                  : "bg-(--app-panel) text-(--app-faint) cursor-not-allowed"
-              }`}
-            >
-              Подобрать тур
-              <Check className="w-4 h-4" />
-            </motion.button>
+            <div className="flex flex-col items-end gap-1.5">
+              {submitError && (
+                <p className="text-xs text-red-400 max-w-[260px] text-right">
+                  {submitError}
+                </p>
+              )}
+              <motion.button
+                type="button"
+                whileHover={canProceed && !submitting ? { scale: 1.03 } : {}}
+                whileTap={canProceed && !submitting ? { scale: 0.97 } : {}}
+                onClick={canProceed && !submitting ? handleSubmit : undefined}
+                disabled={!canProceed || submitting}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all ${
+                  canProceed && !submitting
+                    ? "bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent) hover:shadow-[0_0_24px_var(--site-shadow-glow)]"
+                    : "bg-(--app-panel) text-(--app-faint) cursor-not-allowed"
+                }`}
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Отправка...
+                  </>
+                ) : (
+                  <>
+                    Подобрать тур
+                    <Check className="w-4 h-4" />
+                  </>
+                )}
+              </motion.button>
+            </div>
           )}
         </div>
+
+        {submitted && (
+          <div className="absolute inset-0 bg-(--app-card) flex flex-col items-center justify-center gap-4 px-8 text-center z-10 rounded-3xl">
+            <div className="w-16 h-16 rounded-full bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-(--site-on-accent)" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-(--app-fg)">Заявка отправлена!</h3>
+              <p className="text-sm text-(--app-subtle) mt-2 max-w-sm">
+                Наш менеджер подберёт тур и свяжется с вами
+                {selectedContact === "wa" ? " в WhatsApp" : " по телефону"}.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleOpenChange(false)}
+              className="mt-2 px-6 py-2.5 rounded-full bg-(--app-panel) border border-(--app-border) text-(--app-fg) text-sm font-medium hover:border-(--site-accent)/50 transition-colors"
+            >
+              Закрыть
+            </button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

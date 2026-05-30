@@ -381,16 +381,7 @@ html:not(.dark) main .tour-card-body .text-white\/40 {
   color: color-mix(in srgb, var(--app-fg) 40%, transparent);
 }
 
-/* Tour carousel header: remap white text to foreground in light theme */
-html:not(.dark) main .tour-carousel-header .text-white {
-  color: var(--app-fg);
-}
-html:not(.dark) main .tour-carousel-header .border-white\/20 {
-  border-color: color-mix(in srgb, var(--app-fg) 20%, transparent);
-}
-html:not(.dark) main .tour-carousel-header .bg-white\/10 {
-  background-color: color-mix(in srgb, var(--app-fg) 10%, transparent);
-}
+/* Tour carousel header lives inside the Hero section (dark scrim bg) — keep white text always */
 
 /* Text on top of photos must stay light */
 html:not(.dark) main .media-contrast .text-white {

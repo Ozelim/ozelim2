@@ -6,6 +6,7 @@ import {
   Gift,
   Plus,
   ArrowUpRight,
+  ArrowDownLeft,
   CheckCircle,
   ChevronDown,
   Inbox,
@@ -437,12 +438,135 @@ function WithdrawHistory({ items, loading }) {
   );
 }
 
+// ─── Deposit history ──────────────────────────────────────────────────────────
+const DEPOSIT_STATUS_META = {
+  pending:   { label: "Ожидает",   variant: "pending"   },
+  completed: { label: "Зачислено", variant: "active"    },
+  failed:    { label: "Ошибка",    variant: "danger"    },
+};
+
+function DepositHistory({ items, loading }) {
+  if (loading && items.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-10 text-app-subtle dark:text-white/45 text-sm gap-2">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        Загрузка пополнений…
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        icon={Plus}
+        title="Пополнений пока нет"
+        subtitle="Здесь будут отображаться ваши пополнения баланса банковской картой."
+      />
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-app-border">
+      {items.map((d) => {
+        const meta = DEPOSIT_STATUS_META[d.status] ?? DEPOSIT_STATUS_META.pending;
+        return (
+          <li key={d.id} className="py-3 first:pt-0 last:pb-0 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl border border-emerald-200 dark:border-emerald-400/25 bg-emerald-50 dark:bg-emerald-400/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <ArrowDownLeft className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm text-app-fg dark:text-white flex items-center gap-2">
+                <span className="font-semibold">+{Number(d.amount).toLocaleString("ru-RU")} ₸</span>
+                <Badge variant={meta.variant}>{meta.label}</Badge>
+              </div>
+              <div className="text-[11px] text-app-faint dark:text-white/35 flex items-center gap-2 mt-0.5">
+                <span>{d.method}</span>
+                {d.tx_id && (
+                  <>
+                    <span className="opacity-50">·</span>
+                    <span className="font-mono truncate">{d.tx_id}</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="text-[11px] text-app-faint dark:text-white/35 shrink-0 text-right">
+              {formatDate(d.completed_at || d.created_at)}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+// ─── Bonus history ────────────────────────────────────────────────────────────
+function BonusHistory({ items, loading }) {
+  if (loading && items.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-10 text-app-subtle dark:text-white/45 text-sm gap-2">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        Загрузка истории…
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        icon={Gift}
+        title="Начислений пока нет"
+        subtitle="Здесь будут отображаться все ваши бонусные начисления и списания."
+      />
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-app-border">
+      {items.map((b) => {
+        const isAccrual = b.type === "accrual";
+        const Icon = isAccrual ? ArrowDownLeft : ArrowUpRight;
+        return (
+          <li key={b.id} className="py-3 first:pt-0 last:pb-0 flex items-start gap-3">
+            <div className={cn(
+              "w-9 h-9 rounded-xl border flex items-center justify-center shrink-0",
+              isAccrual
+                ? "bg-emerald-50 dark:bg-emerald-400/10 border-emerald-200 dark:border-emerald-400/25 text-emerald-500 dark:text-emerald-400"
+                : "bg-red-50 dark:bg-red-400/10 border-red-200 dark:border-red-400/25 text-red-500 dark:text-red-400"
+            )}>
+              <Icon className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm text-app-fg dark:text-white truncate">
+                {b.reason || (isAccrual ? "Начисление бонусов" : "Списание бонусов")}
+              </div>
+              <div className="text-[11px] text-app-faint dark:text-white/35">
+                {formatDate(b.created_at)}
+              </div>
+            </div>
+            <div className={cn(
+              "font-semibold text-sm shrink-0",
+              isAccrual ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"
+            )}>
+              {isAccrual ? "+" : "−"}{Number(b.amount).toLocaleString("ru-RU")} Б
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 // ─── MAIN EXPORT ─────────────────────────────────────────────────────────────
 export function BalanceSection({ user, setUser }) {
   // "idle" | "deposit" | "withdraw" | "deposit-success" | "withdraw-success"
   const [mode, setMode] = useState("idle");
   const [withdrawals, setWithdrawals] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
+  const [bonusEntries, setBonusEntries] = useState([]);
+  const [loadingBonus, setLoadingBonus] = useState(true);
+  const [deposits, setDeposits] = useState([]);
+  const [loadingDeposits, setLoadingDeposits] = useState(true);
+  const [historyTab, setHistoryTab] = useState("deposit"); // 'deposit' | 'bonus' | 'withdraw'
   const [toast, setToast] = useState(null); // { message, type }
 
   const showToast = useCallback((message, type = "success") => {
@@ -466,9 +590,42 @@ export function BalanceSection({ user, setUser }) {
     }
   }, []);
 
+  const loadBonus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/bonus/my", { cache: "no-store" });
+      if (!res.ok) throw new Error("failed");
+      const data = await res.json();
+      setBonusEntries(Array.isArray(data.entries) ? data.entries : []);
+      // Подтягиваем актуальную сумму бонусов — на серверном рендере она могла
+      // отстать от свежих начислений (например, после одобрения пакета).
+      if (typeof data.bonus === "number") {
+        setUser((u) => ({ ...u, bonus: data.bonus }));
+      }
+    } catch (err) {
+      console.error("load bonus history failed:", err);
+    } finally {
+      setLoadingBonus(false);
+    }
+  }, [setUser]);
+
+  const loadDeposits = useCallback(async () => {
+    try {
+      const res = await fetch("/api/deposits/my", { cache: "no-store" });
+      if (!res.ok) throw new Error("failed");
+      const data = await res.json();
+      setDeposits(Array.isArray(data.deposits) ? data.deposits : []);
+    } catch (err) {
+      console.error("load deposits failed:", err);
+    } finally {
+      setLoadingDeposits(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadWithdrawals();
-  }, [loadWithdrawals]);
+    loadBonus();
+    loadDeposits();
+  }, [loadWithdrawals, loadBonus, loadDeposits]);
 
   function handleDepositSuccess(amount) {
     setUser((u) => ({ ...u, balance: (u.balance || 0) + amount }));
@@ -544,11 +701,13 @@ export function BalanceSection({ user, setUser }) {
         {mode === "idle" && (
           <div className="flex">
             <button
-              onClick={() => setMode("deposit")}
-              className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium text-(--profile-accent) hover:bg-(--profile-accent-soft) transition-colors border-r border-app-border"
+              disabled
+              title="Эквайринг ещё не подключён"
+              className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium text-app-faint dark:text-white/35 border-r border-app-border opacity-60 cursor-not-allowed"
             >
               <Plus className="w-4 h-4" />
               Пополнить
+              <span className="text-[10px] uppercase tracking-wider opacity-70">скоро</span>
             </button>
             <button
               onClick={() => setMode("withdraw")}
@@ -607,22 +766,67 @@ export function BalanceSection({ user, setUser }) {
         )}
       </div>
 
-      {/* History */}
+      {/* History (bonuses + withdrawals tabs) */}
       <div className="rounded-2xl border border-app-border bg-app-card dark:bg-[#0a2a0a]/60 p-5">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <div>
             <h3 className="text-app-fg dark:text-white font-semibold text-lg" style={{ fontFamily: "Cormorant Garamond, serif" }}>
-              История заявок
+              История
             </h3>
             <p className="text-app-subtle dark:text-white/45 text-xs mt-0.5">
-              Все ваши заявки на вывод средств
+              {historyTab === "deposit"
+                ? "Пополнения банковской картой"
+                : historyTab === "bonus"
+                ? "Начисления и списания бонусов"
+                : "Заявки на вывод средств"}
             </p>
           </div>
-          {loadingList && withdrawals.length > 0 && (
-            <Loader2 className="w-4 h-4 animate-spin text-app-faint dark:text-white/35" />
-          )}
+          <div className="flex gap-1.5 flex-wrap">
+            <button
+              onClick={() => setHistoryTab("deposit")}
+              className={cn(
+                "px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5",
+                historyTab === "deposit"
+                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-400/25"
+                  : "border border-app-border text-app-subtle dark:text-white/50 hover:text-app-fg dark:hover:text-white",
+              )}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Пополнения
+            </button>
+            <button
+              onClick={() => setHistoryTab("bonus")}
+              className={cn(
+                "px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5",
+                historyTab === "bonus"
+                  ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-400/25"
+                  : "border border-app-border text-app-subtle dark:text-white/50 hover:text-app-fg dark:hover:text-white",
+              )}
+            >
+              <Gift className="w-3.5 h-3.5" />
+              Бонусы
+            </button>
+            <button
+              onClick={() => setHistoryTab("withdraw")}
+              className={cn(
+                "px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5",
+                historyTab === "withdraw"
+                  ? "bg-(--profile-accent-soft) text-(--profile-accent) border border-(--profile-accent-border)"
+                  : "border border-app-border text-app-subtle dark:text-white/50 hover:text-app-fg dark:hover:text-white",
+              )}
+            >
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              Выводы
+            </button>
+          </div>
         </div>
-        <WithdrawHistory items={withdrawals} loading={loadingList} />
+        {historyTab === "deposit" ? (
+          <DepositHistory items={deposits} loading={loadingDeposits} />
+        ) : historyTab === "bonus" ? (
+          <BonusHistory items={bonusEntries} loading={loadingBonus} />
+        ) : (
+          <WithdrawHistory items={withdrawals} loading={loadingList} />
+        )}
       </div>
     </div>
   );

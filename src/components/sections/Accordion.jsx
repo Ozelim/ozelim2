@@ -1,34 +1,29 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Minus, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
-const faqs = [
-  {
-    q: 'Как забронировать тур на сайте?',
-    a: 'Процесс бронирования прост: выберите интересующий маршрут, укажите даты и количество туристов, заполните контактную форму. Наш менеджер свяжется с вами в течение 2 часов для подтверждения и уточнения деталей поездки.',
-  },
-  {
-    q: 'Включено ли страхование в стоимость тура?',
-    a: 'Да, все наши туры включают базовое медицинское страхование. По желанию можно оформить расширенное страхование, включающее страхование багажа, задержку рейсов и другие риски — это добавит спокойствия в путешествии.',
-  },
-  {
-    q: 'Можно ли отменить или перенести тур?',
-    a: 'Бронирование можно отменить за 30 и более дней до начала тура с полным возвратом средств. При отмене за 15–29 дней удерживается 25% стоимости. За 7–14 дней — 50%. За менее чем 7 дней — 100%.',
-  },
-  {
-    q: 'Предоставляете ли вы визовую поддержку?',
-    a: 'Разумеется! Мы предлагаем полный комплекс визовых услуг: консультации, помощь в сборе документов, подача заявлений. Для граждан Казахстана мы имеем наработанную практику получения виз в десятки стран.',
-  },
-  {
-    q: 'Есть ли туры для детей и семей?',
-    a: 'Конечно! У нас богатая программа семейных туров, специально разработанных с учётом интересов и потребностей детей разного возраста. Детские скидки до 30% от стоимости взрослого тура.',
-  },
-]
+const HOMEPAGE_LIMIT = 5
 
 export default function Accordion() {
+  const [faqs, setFaqs] = useState([])
   const [open, setOpen] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/faq-items')
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return
+        const items = (data.items ?? []).slice(0, HOMEPAGE_LIMIT)
+        setFaqs(items)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  if (faqs.length === 0) return null
 
   return (
     <section className="py-20 px-6">
@@ -51,7 +46,7 @@ export default function Accordion() {
         <div className="space-y-3 mb-8">
           {faqs.map((item, i) => (
             <motion.div
-              key={i}
+              key={item.id ?? i}
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -66,7 +61,7 @@ export default function Accordion() {
                 onClick={() => setOpen(open === i ? null : i)}
                 className="w-full flex items-center justify-between p-6 text-left"
               >
-                <span className="text-white font-medium pr-4">{item.q}</span>
+                <span className="text-white font-medium pr-4">{item.question}</span>
                 <motion.div
                   animate={{ rotate: open === i ? 45 : 0 }}
                   transition={{ duration: 0.3 }}
@@ -87,8 +82,8 @@ export default function Accordion() {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                   >
-                    <div className="px-6 pb-6 text-white/60 leading-relaxed text-sm border-t border-(--site-accent)/10 pt-4">
-                      {item.a}
+                    <div className="px-6 pb-6 text-white/60 leading-relaxed text-sm border-t border-(--site-accent)/10 pt-4 whitespace-pre-wrap">
+                      {item.answer}
                     </div>
                   </motion.div>
                 )}

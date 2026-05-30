@@ -3,20 +3,21 @@ import { motion } from 'framer-motion'
 import { MapPin, Clock, Users, ArrowRight, Star } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-
-const diffColor = {
-  'Лёгкий':  'text-emerald-200 border-emerald-300/40 bg-[#0a2a0a]/70 backdrop-blur-sm shadow-sm',
-  'Средний': 'text-amber-200 border-amber-300/40 bg-[#0a2a0a]/70 backdrop-blur-sm shadow-sm',
-  'Сложный': 'text-rose-200 border-rose-300/40 bg-[#0a2a0a]/70 backdrop-blur-sm shadow-sm',
-}
+import FavoriteButton from '@/components/favorite/FavoriteButton'
+import { isTourBurning } from '@/lib/utils'
 
 function TourCard({ tour, i }) {
+  const burning = isTourBurning(tour.seasonFrom, tour.seasonTo)
   return (
-    <Link
-      href={tour.id ? `/tours/${tour.id}` : '#'}
-      className="group rounded-3xl overflow-hidden border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 hover:border-(--site-accent)/20 transition-all duration-500 block"
-    >
-      <div className="relative h-52 overflow-hidden media-contrast">
+    <div className="group relative rounded-3xl overflow-hidden border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 hover:border-(--site-accent)/20 transition-all duration-500">
+      {tour.id && (
+        <FavoriteButton kind="tour" id={tour.id} variant="absolute" />
+      )}
+      <Link
+        href={tour.id ? `/tours/${tour.id}` : '#'}
+        className="block"
+      >
+      <div className="relative aspect-video overflow-hidden media-contrast">
         <Image
           src={tour.img}
           alt={tour.title}
@@ -27,22 +28,34 @@ function TourCard({ tour, i }) {
           draggable={false}
         />
         <div className="absolute inset-0 bg-linear-to-t from-[#030f03]/80 to-transparent" />
-        {tour.popular && (
-          <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[#0a2a0a]/70 border border-amber-300/40 text-amber-200 text-xs font-medium backdrop-blur-sm shadow-sm">
-            ⭐ Популярное
-          </div>
-        )}
-        {tour.diff && (
-          <span className={`absolute top-3 right-3 text-xs font-medium px-2.5 py-1 rounded-full border ${diffColor[tour.diff] || ''}`}>
-            {tour.diff}
+        <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5">
+          {burning && (
+            <span className="px-2.5 py-1 rounded-full bg-rose-600/90 border border-rose-300/50 text-white text-xs font-medium backdrop-blur-sm shadow-[0_0_12px_rgba(225,29,72,0.55)]">
+              🔥 Горящий
+            </span>
+          )}
+          {tour.hot && (
+            <span className="px-2.5 py-1 rounded-full bg-orange-500/90 border border-orange-300/50 text-white text-xs font-medium backdrop-blur-sm shadow-sm">
+              HOT
+            </span>
+          )}
+          {tour.popular && (
+            <span className="px-2.5 py-1 rounded-full bg-[#0a2a0a]/70 border border-amber-300/40 text-amber-200 text-xs font-medium backdrop-blur-sm shadow-sm">
+              ⭐ Популярное
+            </span>
+          )}
+        </div>
+        {tour.popularOrder && (
+          <span className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full leading-none">
+            #{tour.popularOrder}
           </span>
         )}
       </div>
       <div className="p-5 tour-card-body">
-        {(tour.city || tour.country) && (
+        {(tour.direction || tour.city || tour.country) && (
           <div className="flex items-center gap-1.5 text-white/50 text-xs mb-2">
             <MapPin className="w-3 h-3" />
-            {[tour.city, tour.country].filter(Boolean).join(', ')}
+            {tour.direction || [tour.city, tour.country].filter(Boolean).join(', ')}
           </div>
         )}
         <h3
@@ -72,7 +85,7 @@ function TourCard({ tour, i }) {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-white/40 text-xs">от</div>
-            <div className="text-(--site-accent) font-bold text-xl">{tour.price}</div>
+            <div className="text-(--site-accent) font-bold text-xl">{tour.price ? `${tour.price} ₸` : "—"}</div>
           </div>
           <motion.span
             whileHover={{ scale: 1.05 }}
@@ -83,7 +96,8 @@ function TourCard({ tour, i }) {
           </motion.span>
         </div>
       </div>
-    </Link>
+      </Link>
+    </div>
   )
 }
 

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { MapPin, Users, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import FavoriteButton from '@/components/favorite/FavoriteButton'
 
 export default function KurortCards({ items = [] }) {
   const kurorts = items;
@@ -26,12 +27,12 @@ export default function KurortCards({ items = [] }) {
               Курортные направления Казахстана
             </h2>
           </div>
-          <Link href="/resorts" className="flex items-center gap-2 text-(--site-accent) text-sm hover:gap-3 transition-all group">
-            Все курорты <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <Link href="/directions" className="flex items-center gap-2 text-(--site-accent) text-sm hover:gap-3 transition-all group">
+            Все направления <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
           {kurorts.map((kurort, i) => (
             <motion.div
               key={kurort.id ?? kurort.title}
@@ -39,17 +40,20 @@ export default function KurortCards({ items = [] }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="group rounded-3xl overflow-hidden border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 hover:border-(--site-accent)/20 transition-all duration-500 card-hover cursor-pointer"
+              className="group relative rounded-3xl overflow-hidden border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 hover:border-(--site-accent)/20 transition-all duration-500 card-hover cursor-pointer"
             >
-              <Link href={kurort.id ? `/tours/${kurort.id}` : '#'} className="block">
+              {kurort.id && (
+                <FavoriteButton kind="direction" id={kurort.id} variant="absolute" />
+              )}
+              <Link href={kurort.id ? `/directions/${kurort.id}` : '#'} className="block">
                 {/* Image */}
-                <div className="relative h-52 overflow-hidden media-contrast">
+                <div className="relative aspect-video overflow-hidden media-contrast">
                   <Image
                     src={kurort.img}
                     alt={kurort.title}
                     fill
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    sizes="(max-width: 768px) 100vw, 33vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                     priority={i < 2}
                   />
                   <div className="absolute inset-0 bg-linear-to-t from-[#030f03]/80 to-transparent" />
@@ -65,25 +69,34 @@ export default function KurortCards({ items = [] }) {
 
                 {/* Content */}
                 <div className="p-5">
-                  <div className="flex items-center mb-3">
-                    <div className="flex items-center gap-1.5 text-white/50 text-xs">
-                      <MapPin className="w-3 h-3" />
-                      {kurort.city}, {kurort.country}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-white/50 mb-5">
-                    <span className="flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5" />
-                      {kurort.group} чел.
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-white/40 text-xs">от</div>
-                      <div className="text-(--site-accent) font-bold text-xl">
-                        {kurort.price.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₸
+                  {(kurort.city || kurort.country) && (
+                    <div className="flex items-center mb-3">
+                      <div className="flex items-center gap-1.5 text-white/50 text-xs">
+                        <MapPin className="w-3 h-3" />
+                        {[kurort.city, kurort.country].filter(Boolean).join(', ')}
                       </div>
                     </div>
+                  )}
+                  {kurort.short && (
+                    <p className="text-white/60 text-sm mb-4 line-clamp-2">{kurort.short}</p>
+                  )}
+                  {kurort.group && (
+                    <div className="flex items-center gap-4 text-sm text-white/50 mb-5">
+                      <span className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5" />
+                        {kurort.group} чел.
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    {kurort.price ? (
+                      <div>
+                        <div className="text-white/40 text-xs">от</div>
+                        <div className="text-(--site-accent) font-bold text-xl">
+                          {Number(kurort.price).toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₸
+                        </div>
+                      </div>
+                    ) : <div />}
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

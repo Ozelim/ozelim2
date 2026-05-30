@@ -1,92 +1,151 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import sql from "@/lib/db";
+import sb from "@/lib/supabase";
 
-// `resorts` is owned by the main admin panel. We only own `favorites`.
-async function ensureFavoritesTable() {
-  await sql`
-    CREATE TABLE IF NOT EXISTS favorites (
-      id         SERIAL PRIMARY KEY,
-      user_id    INTEGER NOT NULL,
-      resort_id  INTEGER NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      UNIQUE(user_id, resort_id)
-    )
-  `;
+function firstGalleryImage(gallery) {
+  if (!Array.isArray(gallery) || gallery.length === 0) return null;
+  const first = gallery[0];
+  if (typeof first === "string") return first;
+  return first?.src || first?.url || null;
+}
+
+function intOrNull(v) {
+  const n = Number.parseInt(v, 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 export const dynamic = "force-dynamic";
 
+// GET /api/favorites — туры + направления, объединённые в один список.
 export async function GET() {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ favorites: [] });
 
-    await ensureFavoritesTable();
+    const { data, error } = await sb
+      .from("favorites")
+      .select(
+        "id, created_at, tour_id, resort_direction_id, " +
+          "tours(id, title, country, city, gallery, price), " +
+          "resort_directions(id, name, region, image_url)",
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
 
-    const rows = await sql`
-      SELECT r.id,
-             r.name,
-             COALESCE(r.images->>0, NULL) AS hero_image,
-             COALESCE(r.region, r.resort_area, 'Казахстан') AS location,
-             COALESCE(r.hotel_class, 'Курорт') AS category,
-             COALESCE((
-               SELECT ROUND(AVG(rating)::numeric, 1)
-               FROM reviews
-               WHERE resort_id = r.id
-             ), 0) AS rating,
-             COALESCE(r.base_price, 0) AS price_from
-      FROM favorites f
-      JOIN resorts r ON r.id = f.resort_id
-      WHERE f.user_id = ${user.id}
-      ORDER BY f.created_at DESC
-    `;
+    if (error) throw error;
 
-    return NextResponse.json({ favorites: rows });
+    const favorites = (data ?? []).flatMap((row) => {
+      if (row.tour_id && row.tours) {
+        const t = row.tours;
+        return [
+          {
+            id: t.id,
+            kind: "tour",
+            name: t.title,
+            hero_image: firstGalleryImage(t.gallery),
+            location: [t.country, t.city].filter(Boolean).join(", ") || "Казахстан",
+            rating: 0,
+            price_from: Number(t.price) || 0,
+          },
+        ];
+      }
+      if (row.resort_direction_id && row.resort_directions) {
+        const d = row.resort_directions;
+        return [
+          {
+            id: d.id,
+            kind: "direction",
+            name: d.name,
+            hero_image: d.image_url || null,
+            location: d.region || "Казахстан",
+            rating: 0,
+          },
+        ];
+      }
+      return [];
+    });
+
+    return NextResponse.json({ favorites });
   } catch (err) {
     console.error("GET /api/favorites error:", err);
     return NextResponse.json({ favorites: [] });
   }
 }
 
+// POST /api/favorites  body: { tour_id } | { direction_id }
 export async function POST(request) {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
 
-    const { resort_id } = await request.json();
-    if (!resort_id) {
-      return NextResponse.json({ error: "resort_id обязателен" }, { status: 400 });
+    const body = await request.json();
+    const tour_id = intOrNull(body.tour_id ?? body.resort_id);
+    const direction_id = intOrNull(body.direction_id ?? body.resort_direction_id);
+
+    if (!tour_id && !direction_id) {
+      return NextResponse.json(
+        { error: "tour_id или direction_id обязателен" },
+        { status: 400 },
+      );
+    }
+    if (tour_id && direction_id) {
+      return NextResponse.json(
+        { error: "Только одно: tour_id или direction_id" },
+        { status: 400 },
+      );
     }
 
-    await ensureFavoritesTable();
+    // Сначала проверяем, нет ли уже такого избранного — чтобы избежать upsert
+    // на partial unique индекс (user_id, resort_direction_id) WHERE … IS NOT NULL,
+    // который PostgREST не всегда корректно матчит через onConflict.
+    const existsQuery = sb.from("favorites").select("id").eq("user_id", user.id);
+    const { data: existing, error: existsErr } = await (tour_id
+      ? existsQuery.eq("tour_id", tour_id)
+      : existsQuery.eq("resort_direction_id", direction_id)
+    ).maybeSingle();
+    if (existsErr) throw existsErr;
+    if (existing) return NextResponse.json({ ok: true, already: true });
 
-    await sql`
-      INSERT INTO favorites (user_id, resort_id)
-      VALUES (${user.id}, ${resort_id})
-      ON CONFLICT (user_id, resort_id) DO NOTHING
-    `;
+    const row = tour_id
+      ? { user_id: user.id, tour_id }
+      : { user_id: user.id, resort_direction_id: direction_id };
 
-    return NextResponse.json({ ok: true, resort_id });
+    const { error } = await sb.from("favorites").insert(row);
+    if (error) throw error;
+    return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("POST /api/favorites error:", err);
+    console.error("POST /api/favorites error:", err?.message || err, err?.details || "");
     return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });
   }
 }
 
+// DELETE /api/favorites?tour_id=X | ?direction_id=X
 export async function DELETE(request) {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
-    const resort_id = searchParams.get("resort_id");
-    if (!resort_id) return NextResponse.json({ error: "resort_id обязателен" }, { status: 400 });
+    const tour_id = intOrNull(
+      searchParams.get("tour_id") ?? searchParams.get("resort_id"),
+    );
+    const direction_id = intOrNull(
+      searchParams.get("direction_id") ?? searchParams.get("resort_direction_id"),
+    );
 
-    await ensureFavoritesTable();
+    if (!tour_id && !direction_id) {
+      return NextResponse.json(
+        { error: "tour_id или direction_id обязателен" },
+        { status: 400 },
+      );
+    }
 
-    await sql`DELETE FROM favorites WHERE user_id = ${user.id} AND resort_id = ${resort_id}`;
+    const q = sb.from("favorites").delete().eq("user_id", user.id);
+    const { error } = tour_id
+      ? await q.eq("tour_id", tour_id)
+      : await q.eq("resort_direction_id", direction_id);
 
+    if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("DELETE /api/favorites error:", err);

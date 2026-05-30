@@ -1,4 +1,4 @@
-import sql from "@/lib/db";
+import sb from "@/lib/supabase";
 
 const MONTHS_RU = [
   "января", "февраля", "марта", "апреля", "мая", "июня",
@@ -13,15 +13,15 @@ function formatDateRu(value) {
 }
 
 export async function getLatestNews(limit = 5) {
-  const rows = await sql`
-    SELECT id, title, description, content, body, image, tag, read_time, date
-      FROM news
-     WHERE published = TRUE
-     ORDER BY date DESC, id DESC
-     LIMIT ${limit}
-  `;
+  const { data } = await sb
+    .from("news")
+    .select("id, title, description, content, body, image, tag, read_time, date")
+    .eq("published", true)
+    .order("date", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(limit);
 
-  return rows.map((r) => ({
+  return (data ?? []).map((r) => ({
     id: r.id,
     tag: r.tag,
     date: formatDateRu(r.date),

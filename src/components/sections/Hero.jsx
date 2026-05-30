@@ -19,106 +19,91 @@ import {
   Sparkles,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TourSelectionDialog } from "../tour-selection/tour-selection";
 import { RequestFormDialog } from "../request-form/request-form";
+import FavoriteButton from "../favorite/FavoriteButton";
 
 // ─── Service tiles ────────────────────────────────────────────────────────────
 const TILES = [
-  { label: "Поездки",                        icon: Plane,       href: "/trips" },
+  { label: "Туры",                           icon: Plane,       href: "/trips" },
   { label: "Визы",                           icon: FileCheck,   href: "https://vizapro.kz", external: true },
   { label: "Halyk Life",                     icon: ShieldCheck, image: "/halyk-life.png", href: "/insurance" },
   { label: "Фонд",                           icon: HandCoins,   href: "/endowment" },
   { label: "Ассоциация туристов Казахстана", icon: UsersRound,  href: "/association" },
   { label: "Правовая защита",                icon: Scale,       href: "/legal" },
-  { label: "Nomad Insurance",                icon: Waves,       image: "/nomad.svg", href: "/sanatoriums" },
+  { label: "Nomad Insurance",                icon: Waves,       image: "/nomad.svg", href: "/nomad-insurance" },
   { label: "АВИА ЖД билеты",                icon: Ticket,      href: "/tickets" },
   { label: "О нас",                icon: Users,      href: "/about" },
   { label: `Вопрос-ответ`,                icon: MessageCircleQuestion,      href: "/faq" },
 ];
 
-// ─── Tour cards data (trips page hero) ───────────────────────────────────────
-const TOURS = [
-  {
-    img: "https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600&q=75",
-    country: "Испания", city: "Барселона",
-    title: "Сокровища Каталонии",
-    days: 8, group: "6–12", rating: 4.9, reviews: 128, price: 2100, hot: true,
-  },
-  {
-    img: "https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=600&q=75",
-    country: "Франция", city: "Прованс",
-    title: "Лавандовые поля Прованса",
-    days: 6, group: "8–16", rating: 4.8, reviews: 94, price: 1850, hot: false,
-  },
-  {
-    img: "https://images.unsplash.com/photo-1527549993586-dff825b37782?w=600&q=75",
-    country: "Исландия", city: "Рейкьявик",
-    title: "Северное сияние",
-    days: 7, group: "4–10", rating: 5.0, reviews: 67, price: 3400, hot: true,
-  },
-  {
-    img: "https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=600&q=75",
-    country: "Хорватия", city: "Дубровник",
-    title: "Жемчужина Адриатики",
-    days: 10, group: "10–18", rating: 4.7, reviews: 151, price: 2600, hot: false,
-  },
-  {
-    img: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=75",
-    country: "Норвегия", city: "Фьорды",
-    title: "Мистические фьорды",
-    days: 12, group: "6–14", rating: 4.9, reviews: 83, price: 3100, hot: false,
-  },
-  {
-    img: "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&q=75",
-    country: "Кения", city: "Масаи Мара",
-    title: "Великое переселение",
-    days: 11, group: "4–8", rating: 5.0, reviews: 45, price: 5200, hot: true,
-  },
-];
-
-// ─── Tour Carousel (infinite loop) ───────────────────────────────────────────
+// ─── Tour Carousel (infinite loop, dynamic data) ─────────────────────────────
 const CARD_WIDTH = 408;
 const GAP = 24;
 const STEP = CARD_WIDTH + GAP;
-const N = TOURS.length;
-const SET_WIDTH = N * STEP;
-// Triple the list so we always have cards on both sides
-const ITEMS = [...TOURS, ...TOURS, ...TOURS];
-const START = -SET_WIDTH; // begin at middle copy
 
-function TourCard({ tour, i }) {
+function PopularTourCard({ tour, i }) {
+  const img = Array.isArray(tour.gallery) && tour.gallery.length > 0 ? tour.gallery[0] : null;
+  const price = tour.price_adult ?? tour.price;
+  const duration = tour.duration_min_days != null
+    ? (tour.duration_max_days && tour.duration_max_days !== tour.duration_min_days
+        ? `${tour.duration_min_days}–${tour.duration_max_days} дн.`
+        : `${tour.duration_min_days} дн.`)
+    : null;
+
   return (
-    <div
-      className="w-full md:w-[408px] group rounded-3xl overflow-hidden border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 hover:border-(--site-accent)/20 transition-all duration-500 shrink-0"
-    >
-      <div className="relative h-52 overflow-hidden media-contrast">
-        <Image
-          src={tour.img}
-          alt={tour.title}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
-          sizes="408px"
-          priority={i < 3}
-          draggable={false}
-        />
+    <div className="w-full md:w-[408px] group relative rounded-3xl overflow-hidden border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 hover:border-(--site-accent)/20 transition-all duration-500 shrink-0">
+      {tour.id && (
+        <FavoriteButton kind="tour" id={tour.id} variant="absolute" />
+      )}
+      <div className="relative aspect-video overflow-hidden media-contrast bg-[#0a1a0a]">
+        {img ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={img}
+            alt={tour.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            draggable={false}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center opacity-20">
+            <MapPin className="w-16 h-16 text-white" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-linear-to-t from-[#030f03]/80 to-transparent" />
+        {tour.hot && (
+          <span className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full leading-none tracking-wide">
+            HOT
+          </span>
+        )}
+        {tour.popular_order && (
+          <span className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full leading-none">
+            #{tour.popular_order}
+          </span>
+        )}
       </div>
       <div className="p-5 tour-card-body">
-        <div className="flex items-center gap-1.5 text-white/50 text-xs mb-2">
-          <MapPin className="w-3 h-3" />{tour.city}, {tour.country}
-        </div>
+        {tour.direction_name && (
+          <div className="flex items-center gap-1.5 text-white/50 text-xs mb-2">
+            <MapPin className="w-3 h-3" />{tour.direction_name}
+          </div>
+        )}
         <h3 className="text-white font-bold text-xl mb-4" style={{ fontFamily: "Cormorant Garamond, serif" }}>
           {tour.title}
         </h3>
         <div className="flex items-center gap-4 text-sm text-white/50 mb-5">
-          <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{tour.days} дней</span>
-          <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" />{tour.group} чел.</span>
+          {duration && (
+            <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{duration}</span>
+          )}
         </div>
         <div className="flex items-center justify-between">
           <div>
             <div className="text-white/40 text-xs">от</div>
-            <div className="text-(--site-accent) font-bold text-xl">{tour.price.toLocaleString()} ₸</div>
+            <div className="text-(--site-accent) font-bold text-xl">
+              {price != null ? Number(price).toLocaleString("ru-RU") : "—"} ₸
+            </div>
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -134,12 +119,28 @@ function TourCard({ tour, i }) {
 }
 
 function TourCarousel() {
+  const [tours, setTours] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/tours/popular")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => { setTours(Array.isArray(data) ? data : []); setLoaded(true); })
+      .catch(() => setLoaded(true));
+  }, []);
+
   const trackRef = useRef(null);
-  const xRef = useRef(START);
+  const xRef = useRef(0);
   const autoRef = useRef(null);
   const [activeIdx, setActiveIdx] = useState(0);
 
+  const N = tours.length;
+  const SET_WIDTH = N * STEP;
+  const START = -SET_WIDTH;
+  const ITEMS = N > 0 ? [...tours, ...tours, ...tours] : [];
+
   const wrap = (val) => {
+    if (N === 0) return val;
     let v = val;
     if (v <= -(2 * SET_WIDTH)) v += SET_WIDTH;
     else if (v >= 0) v -= SET_WIDTH;
@@ -148,7 +149,7 @@ function TourCarousel() {
 
   const applyX = (val, animated) => {
     const el = trackRef.current;
-    if (!el) return;
+    if (!el || N === 0) return;
     xRef.current = val;
     el.style.transition = animated ? "transform 0.52s cubic-bezier(0.25, 1, 0.35, 1)" : "none";
     el.style.transform = `translateX(${val}px)`;
@@ -164,24 +165,28 @@ function TourCarousel() {
     }, 530);
   };
 
+  const stopAuto = () => clearInterval(autoRef.current);
   const startAuto = () => {
     stopAuto();
     autoRef.current = setInterval(() => step(1), 5000);
   };
-  const stopAuto = () => clearInterval(autoRef.current);
 
   useEffect(() => {
+    if (N === 0) return;
     applyX(START, false);
     startAuto();
     return stopAuto;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [N]);
 
   const handleArrow = (dir) => {
     stopAuto();
     step(dir);
     setTimeout(startAuto, 550);
   };
+
+  if (!loaded) return null;
+  if (N === 0) return null;
 
   return (
     <motion.div
@@ -193,7 +198,7 @@ function TourCarousel() {
       {/* Header */}
       <div className="flex items-end justify-between mb-8 px-6 max-w-7xl mx-auto tour-carousel-header">
         <div>
-          <div className="text-(--site-accent) text-xs uppercase tracking-widest mb-2">Туры</div>
+          <div className="text-white text-xs uppercase tracking-widest mb-2">Туры</div>
           <h2 className="text-4xl font-bold text-white" style={{ fontFamily: "Cormorant Garamond, serif" }}>
             Популярные направления
           </h2>
@@ -222,14 +227,14 @@ function TourCarousel() {
           style={{ paddingLeft: 24, gap: GAP }}
         >
           {ITEMS.map((tour, i) => (
-            <TourCard key={`${tour.title}-${i}`} tour={tour} i={i} />
+            <PopularTourCard key={`${tour.id}-${i}`} tour={tour} i={i} />
           ))}
         </div>
       </div>
 
       {/* Dots */}
       <div className="flex justify-center gap-1.5 mt-6">
-        {TOURS.map((_, i) => (
+        {tours.map((_, i) => (
           <button
             key={i}
             onClick={() => {
@@ -257,8 +262,9 @@ function KidsGoFreeBanner() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="relative overflow-hidden rounded-full border border-(--site-accent)/40 bg-linear-to-r from-(--site-gradient-from)/30 via-(--site-accent-bright)/35 to-(--site-gradient-to)/30 backdrop-blur-sm py-2.5 shadow-[0_0_30px_var(--site-shadow-soft)]"
+      className="relative overflow-hidden rounded-full border border-(--site-accent)/40 bg-linear-to-r from-(--site-gradient-from)/30 via-(--site-accent-bright)/35 to-(--site-gradient-to)/30 backdrop-blur-sm py-2.5 shadow-[0_0_30px_var(--site-shadow-soft)] cursor-pointer hover:border-(--site-accent)/70 transition-colors"
     >
+      <Link href="/kidsgofree" className="absolute inset-0 z-20" aria-label="Подробнее о Kids Go Free" />
       <motion.div
         aria-hidden
         className="absolute inset-y-0 w-1/3 bg-linear-to-r from-transparent via-white/40 to-transparent pointer-events-none"

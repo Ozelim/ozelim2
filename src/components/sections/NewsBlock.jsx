@@ -146,6 +146,7 @@ export default function NewsBlock({ items = [] }) {
                 fill
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 sizes="(max-width: 768px) 100vw, 33vw"
+                quality={90}
                 priority
               />
 
@@ -193,13 +194,14 @@ export default function NewsBlock({ items = [] }) {
               onClick={() => setActive(article)}
               className="group flex gap-4 rounded-2xl border border-[#1a6b1a]/20 bg-[#0a2a0a]/40 hover:border-(--site-accent)/20 transition-all duration-300 p-4 cursor-pointer overflow-hidden"
             >
-              <div className="relative w-48 h-50 rounded-xl overflow-hidden shrink-0">
+              <div className="relative w-48 h-48 rounded-xl overflow-hidden shrink-0">
                 <Image
                   src={article.img}
                   alt=""
                   fill
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  sizes="96px"
+                  sizes="(max-width: 768px) 50vw, 240px"
+                  quality={90}
                   priority={i === 0}
                 />
               </div>

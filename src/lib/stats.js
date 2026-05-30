@@ -1,17 +1,17 @@
-import sql from "@/lib/db";
+import sb from "@/lib/supabase";
 
 export async function getMainPageStats() {
-  const [row] = await sql`
-    SELECT happy_clients, countries, years_exp, avg_rating
-      FROM main_page_stats
-     WHERE id = 1
-     LIMIT 1
-  `;
-  if (!row) return null;
+  const { data } = await sb
+    .from("main_page_stats")
+    .select("happy_clients, countries, years_exp, avg_rating")
+    .eq("id", 1)
+    .maybeSingle();
+
+  if (!data) return null;
   return {
-    happyClients: Number(row.happy_clients) || 0,
-    countries:    Number(row.countries)     || 0,
-    yearsExp:     Number(row.years_exp)     || 0,
-    avgRating:    parseFloat(row.avg_rating) || 4.9,
+    happyClients: Number(data.happy_clients) || 0,
+    countries: Number(data.countries) || 0,
+    yearsExp: Number(data.years_exp) || 0,
+    avgRating: parseFloat(data.avg_rating) || 4.9,
   };
 }

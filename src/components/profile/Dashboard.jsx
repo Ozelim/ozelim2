@@ -1,8 +1,40 @@
 'use client'
-import { Plane, Heart, MessageSquare, Star, ChevronRight, Zap, Calendar, MapPin } from 'lucide-react'
-import { Card, CardBody, Avatar, Badge, Button, StatCard, Divider } from './ui'
-import { PACKAGE_FEATURES, MOCK_TRIPS } from '../../lib/mockData'
-import Image from 'next/image'
+import { useEffect, useState } from 'react'
+import { ClipboardList, Heart, MessageSquare, Star, ChevronRight, Zap, Calendar, MapPin, MapPinned } from 'lucide-react'
+import { Card, CardBody, Avatar, Badge, Button, StatCard } from './ui'
+import { PACKAGE_FEATURES } from '../../lib/mockData'
+import Link from 'next/link'
+
+const KIND_LABELS = {
+  tour_request: 'Заявка на тур',
+  tour_calculator: 'Расчёт тура',
+  tour_booking: 'Бронирование тура',
+  endowment: 'Эндаумент',
+  legal_consult: 'Юр. консультация',
+  insurance_request: 'Страхование',
+  tickets_request: 'Билеты',
+  kids_go_free: 'Kids Go Free',
+}
+
+const STATUS_META = {
+  new: { label: 'Новая', variant: 'pending' },
+  in_progress: { label: 'В работе', variant: 'active' },
+  closed: { label: 'Закрыта', variant: 'completed' },
+  rejected: { label: 'Отклонена', variant: 'danger' },
+}
+
+function fullName(user) {
+  return [user.name, user.surname].filter(Boolean).join(' ') || user.email || '—'
+}
+
+function formatDate(iso) {
+  if (!iso) return ''
+  try {
+    return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+  } catch {
+    return ''
+  }
+}
 
 function UpgradeBanner({ onUpgrade }) {
   return (
@@ -14,10 +46,10 @@ function UpgradeBanner({ onUpgrade }) {
             <Zap className="w-4 h-4 text-(--profile-accent)" />
             <span className="text-(--profile-accent) text-xs font-bold uppercase tracking-wider">Улучшить аккаунт</span>
           </div>
-          <h3 className="text-white font-semibold text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+          <h3 className="text-app-fg dark:text-white font-semibold text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
             Откройте расширенные возможности
           </h3>
-          <p className="text-white/50 text-sm">Семейный, корпоративный или агентский пакет — выберите своё.</p>
+          <p className="text-app-subtle dark:text-white/50 text-sm">Семейный, корпоративный или агентский пакет — выберите своё.</p>
         </div>
         <Button variant="primary" onClick={onUpgrade} className="shrink-0">
           Смотреть пакеты <ChevronRight className="w-4 h-4" />
@@ -35,43 +67,72 @@ function ActivePackageBadge({ pkg }) {
       <span className="text-lg leading-none">{info.icon}</span>
       <div>
         <div className="text-(--profile-accent) text-xs font-bold uppercase tracking-wide">{info.name} пакет</div>
-        <div className="text-white/40 text-[10px]">{info.price} · Активен</div>
+        <div className="text-app-faint dark:text-white/40 text-[10px]">{info.price} · Активен</div>
       </div>
       <div className="ml-auto w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
     </div>
   )
 }
 
-function RecentTripCard({ trip }) {
-  return (
-    <div className="flex items-center gap-3 p-3 rounded-xl border border-[#1a6b1a]/15 bg-[#0a2a0a]/40 hover:border-[#1a6b1a]/30 transition-colors cursor-pointer group">
-      <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 relative">
-        <Image
-          src={trip.img}
-          alt={trip.name}
-          fill
-          className="object-cover"
-          sizes="56px"
-        />
+function RecentLeadRow({ lead }) {
+  const kindLabel = KIND_LABELS[lead.kind] || lead.kind
+  const status = STATUS_META[lead.status] || { label: lead.status, variant: 'default' }
+  const targetName = lead.tour_title || lead.direction_title
+  const href = lead.tour_id
+    ? `/tours/${lead.tour_id}`
+    : lead.resort_direction_id
+    ? `/directions/${lead.resort_direction_id}`
+    : null
+
+  const Row = (
+    <div className="flex items-center gap-3 p-3 rounded-xl border border-app-border bg-app-card/70 dark:bg-[#0a2a0a]/40 hover:border-(--profile-accent)/40 transition-colors group">
+      <div className="w-10 h-10 rounded-xl bg-(--profile-accent-soft) border border-(--profile-accent-border) flex items-center justify-center shrink-0">
+        <ClipboardList className="w-4 h-4 text-(--profile-accent)" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-white font-medium text-sm truncate">{trip.name}</div>
+        <div className="text-app-fg dark:text-white font-medium text-sm truncate">{kindLabel}</div>
         <div className="flex items-center gap-2 mt-0.5">
-          <Calendar className="w-3 h-3 text-white/30" />
-          <span className="text-white/40 text-xs">{trip.date}</span>
-          <span className="text-white/25 text-xs">·</span>
-          <span className="text-white/40 text-xs">{trip.duration}</span>
+          {targetName && (
+            <span className="text-app-subtle dark:text-white/45 text-xs truncate flex items-center gap-1">
+              <MapPin className="w-3 h-3 shrink-0" />
+              {targetName}
+            </span>
+          )}
+          <Calendar className="w-3 h-3 text-app-faint dark:text-white/30 shrink-0" />
+          <span className="text-app-faint dark:text-white/40 text-xs">{formatDate(lead.created_at)}</span>
         </div>
       </div>
-      <Badge variant={trip.status === 'active' ? 'active' : 'completed'}>
-        {trip.status === 'active' ? 'Активен' : 'Завершён'}
-      </Badge>
+      <Badge variant={status.variant}>{status.label}</Badge>
     </div>
   )
+
+  return href ? <Link href={href}>{Row}</Link> : Row
 }
 
 export function Dashboard({ user, onNavigate }) {
-  const recent = MOCK_TRIPS.slice(0, 3)
+  const [recent, setRecent] = useState(null)
+  const [stats, setStats] = useState({ leads: 0, favorites: 0, reviews: 0 })
+
+  useEffect(() => {
+    fetch('/api/leads/my?limit=3', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then(({ leads }) => setRecent(leads ?? []))
+      .catch(() => setRecent([]))
+
+    Promise.all([
+      fetch('/api/leads/my', { cache: 'no-store' }).then((r) => r.json()).catch(() => ({ leads: [] })),
+      fetch('/api/favorites', { cache: 'no-store' }).then((r) => r.json()).catch(() => ({ favorites: [] })),
+      fetch('/api/reviews?my=true', { cache: 'no-store' }).then((r) => r.json()).catch(() => ({ reviews: [] })),
+    ]).then(([l, f, r]) => {
+      setStats({
+        leads: l.leads?.length ?? 0,
+        favorites: f.favorites?.length ?? 0,
+        reviews: r.reviews?.length ?? 0,
+      })
+    })
+  }, [])
+
+  const displayName = fullName(user)
 
   return (
     <div className="space-y-6">
@@ -79,19 +140,23 @@ export function Dashboard({ user, onNavigate }) {
       <Card>
         <CardBody className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
           <div className="relative shrink-0">
-            <Avatar src={user.avatar} name={user.name} size="xl" />
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-400 border-2 border-[#061506]" />
+            <Avatar src={user.image} name={displayName} size="xl" />
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-400 border-2 border-app-card dark:border-[#061506]" />
           </div>
           <div className="flex-1 text-center sm:text-left">
-            <h2 className="text-white font-bold text-2xl mb-0.5" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
-              {user.name}
+            <h2 className="text-app-fg dark:text-white font-bold text-2xl mb-0.5" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+              {displayName}
             </h2>
-            <div className="flex items-center gap-1.5 justify-center sm:justify-start mb-2">
-              <MapPin className="w-3.5 h-3.5 text-white/35" />
-              <span className="text-white/45 text-sm">{user.city}, {user.country}</span>
-            </div>
-            <p className="text-white/50 text-sm leading-relaxed max-w-md mb-4">{user.bio}</p>
-            {user.activePackage && <ActivePackageBadge pkg={user.activePackage} />}
+            {user.city && (
+              <div className="flex items-center gap-1.5 justify-center sm:justify-start mb-2">
+                <MapPinned className="w-3.5 h-3.5 text-app-faint dark:text-white/35" />
+                <span className="text-app-subtle dark:text-white/45 text-sm">{user.city}</span>
+              </div>
+            )}
+            {user.bio && (
+              <p className="text-app-subtle dark:text-white/50 text-sm leading-relaxed max-w-md mb-4">{user.bio}</p>
+            )}
+            {user.pocket_type && <ActivePackageBadge pkg={user.pocket_type} />}
           </div>
           <Button variant="secondary" onClick={() => onNavigate('edit')} className="shrink-0">
             Редактировать
@@ -99,27 +164,38 @@ export function Dashboard({ user, onNavigate }) {
         </CardBody>
       </Card>
 
-      {/* Upgrade banner if no package */}
-      {!user.activePackage && <UpgradeBanner onUpgrade={() => onNavigate('packages')} />}
+      {!user.pocket_type && <UpgradeBanner onUpgrade={() => onNavigate('packages')} />}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <StatCard icon={Plane} label="Поездок" value="5" color="gold" />
-        <StatCard icon={Heart} label="Избранное" value="4" color="green" />
-        <StatCard icon={Star} label="Отзывов" value="3" color="amber" />
+        <StatCard icon={ClipboardList} label="Заявок" value={stats.leads} color="gold" />
+        <StatCard icon={Heart} label="Избранное" value={stats.favorites} color="green" />
+        <StatCard icon={Star} label="Отзывов" value={stats.reviews} color="amber" />
       </div>
 
-      {/* Recent trips */}
+      {/* Recent requests */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-white/70 text-sm font-medium uppercase tracking-wider">Последние поездки</h3>
-          <button onClick={() => onNavigate('trips')} className="text-(--profile-accent) text-xs hover:underline flex items-center gap-1">
+          <h3 className="text-app-muted dark:text-white/70 text-sm font-medium uppercase tracking-wider">Последние заявки</h3>
+          <button onClick={() => onNavigate('requests')} className="text-(--profile-accent) text-xs hover:underline flex items-center gap-1">
             Все <ChevronRight className="w-3 h-3" />
           </button>
         </div>
-        <div className="space-y-2">
-          {recent.map(trip => <RecentTripCard key={trip.id} trip={trip} />)}
-        </div>
+        {recent === null ? (
+          <div className="space-y-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-16 rounded-xl bg-white/5 animate-pulse" />
+            ))}
+          </div>
+        ) : recent.length === 0 ? (
+          <div className="text-app-subtle dark:text-white/45 text-sm border border-dashed border-app-border rounded-2xl p-6 text-center">
+            Заявок пока нет. Отправьте заявку на тур или направление — она появится здесь.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {recent.map((lead) => <RecentLeadRow key={lead.id} lead={lead} />)}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -26,17 +26,17 @@ import Image from 'next/image'
 
 const navLinks = [
   { href: '/', label: 'Главная' },
-  { href: '/trips', label: 'Поездки' },
+  { href: '/trips', label: 'Туры' },
 ]
 
 const serviceLinks = [
-  { label: 'Поездки',                            icon: Plane,                   href: '/trips' },
+  { label: 'Туры',                               icon: Plane,                   href: '/trips' },
   { label: 'Визы',                               icon: FileCheck,               href: 'https://vizapro.kz', external: true },
   { label: 'Halyk Life',                         icon: ShieldCheck,             href: '/insurance' },
   { label: 'Фонд',                               icon: HandCoins,               href: '/endowment' },
   { label: 'Ассоциация туристов Казахстана',     icon: UsersRound,              href: '/association' },
   { label: 'Правовая защита',                    icon: Scale,                   href: '/legal' },
-  { label: 'Nomad Insurance',                    icon: Waves,                   href: '/sanatoriums' },
+  { label: 'Nomad Insurance',                    icon: Waves,                   href: '/nomad-insurance' },
   { label: 'АВИА ЖД билеты',                     icon: Ticket,                  href: '/tickets' },
   { label: 'О нас',                              icon: Users,                   href: '/about' },
   { label: 'Вопрос-ответ',                       icon: MessageCircleQuestion,   href: '/faq' },
@@ -130,9 +130,7 @@ export default function Header() {
                 Oz<span className="text-(--site-accent-bright)">Elim</span>
               </div>
               <div
-                className={`text-[10px] uppercase tracking-[0.2em] font-medium ${
-                  scrolled ? 'text-app-tagline' : 'text-[#86c986]'
-                }`}
+                className={`text-[10px] uppercase tracking-[0.2em] font-medium ${scrolled ? 'text-app-tagline' : 'text-[#86c986]'}`}
               >
                 Туризм & Отдых
               </div>
@@ -252,7 +250,7 @@ export default function Header() {
                 <motion.button
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.95 }}
-                  className="w-10 h-10 rounded-full border border-(--site-accent)/30 flex items-center justify-center text-(--site-accent) hover:bg-(--site-accent)/10 transition-colors duration-300"
+                  className={`w-10 h-10 rounded-full border flex items-center justify-center transition-colors duration-300 ${scrolled ? 'border-(--site-accent)/30 text-(--site-accent) hover:bg-(--site-accent)/10' : 'border-white/40 text-white hover:bg-white/10'}`}
                 >
                   <User className="w-4.5 h-4.5" />
                 </motion.button>
@@ -262,7 +260,7 @@ export default function Header() {
             {/* Mobile menu btn */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden w-10 h-10 rounded-full border border-app-border flex items-center justify-center text-app-fg hover:border-(--site-accent)/50 transition-colors"
+              className={`md:hidden w-10 h-10 rounded-full border flex items-center justify-center transition-colors ${scrolled ? 'border-app-border text-app-fg hover:border-(--site-accent)/50' : 'border-white/40 text-white hover:border-white/70'}`}
             >
               {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>

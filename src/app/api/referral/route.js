@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { ensureReferralColumns, ensureReferralCode } from "@/lib/referral";
+import { ensureReferralCode } from "@/lib/referral";
 
 export const dynamic = "force-dynamic";
 
@@ -11,9 +11,7 @@ export async function GET(request) {
       return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
     }
 
-    await ensureReferralColumns();
     const code = await ensureReferralCode(user.id);
-
     const origin = new URL(request.url).origin;
     const url = `${origin}/register?ref=${code}`;
 

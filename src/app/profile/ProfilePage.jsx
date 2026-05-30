@@ -1,16 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   LayoutDashboard,
-  UserCog,
-  Plane,
-  MapPin,
+  ClipboardList,
   Heart,
   MessageSquare,
   Package,
   Users,
-  Link2,
   Building2,
   LogOut,
   Mountain,
@@ -20,62 +17,55 @@ import {
   Zap,
   Wallet,
   Share2,
+  GraduationCap,
 } from "lucide-react";
 
-import { MOCK_USER, PACKAGE_FEATURES } from "../../lib/mockData";
-import { Avatar, Badge, Button, cn } from "../../components/profile/ui";
+import { PACKAGE_FEATURES } from "../../lib/mockData";
+import { Avatar, Badge, cn } from "../../components/profile/ui";
 import { Dashboard } from "../../components/profile/Dashboard";
 import { EditProfile } from "../../components/profile/EditProfile";
-import {
-  TripHistory,
-  VisitedPlaces,
-  Favorites,
-} from "../../components/profile/TripsFavsVisited";
+import { RequestsHistory, Favorites } from "../../components/profile/TripsFavsVisited";
 import {
   Reviews,
   PackagesSection,
 } from "../../components/profile/ReviewsPackages";
 import {
   FamilySection,
-  AgentSection,
   CorporateSection,
 } from "../../components/profile/PackageSections";
 import { BalanceSection } from "../../components/profile/BalanceSection";
 import { ReferralsSection } from "../../components/profile/ReferralsSection";
+import { CoursesSection } from "../../components/profile/CoursesSection";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
+// pkg ∈ { 'family' | 'agent' | 'corporate' | null }
+// - none: только базовые вкладки
+// - family: + «Семья»
+// - agent: + «Семья», + «Агентство» (Рефералы) — без отдельного "Агентство"
+// - corporate: + «Сотрудники»
 function buildNav(pkg) {
   const base = [
     { id: "dashboard", label: "Главная", icon: LayoutDashboard },
-    // { id: "edit", label: "Редактирование", icon: UserCog },
     { id: "balance", label: "Баланс", icon: Wallet },
-    { id: "trips", label: "История поездок", icon: Plane },
-    { id: "visited", label: "Посещённые места", icon: MapPin },
+    { id: "requests", label: "История заявок", icon: ClipboardList },
     { id: "favorites", label: "Избранное", icon: Heart },
     { id: "reviews", label: "Отзывы", icon: MessageSquare },
-    { id: "referrals", label: "Рефералы", icon: Share2 },
+    { id: "courses", label: "Курсы", icon: GraduationCap },
     { id: "packages", label: "Пакеты", icon: Package },
   ];
 
-  const pkgItems = {
-    family: { id: "family", label: "Семья", icon: Users },
-    agent: { id: "agent", label: "Агентство", icon: Link2 },
-    corporate: { id: "corporate", label: "Сотрудники", icon: Building2 },
-  };
+  const family = { id: "family", label: "Семья", icon: Users };
+  const referrals = { id: "referrals", label: "Рефералы", icon: Share2 };
+  const corporate = { id: "corporate", label: "Сотрудники", icon: Building2 };
 
-  if (pkg === "agent") {
-    // Agent package includes both tabs.
-    // Order matters: show "Агентство" first, then "Семья" under it.
-    return [base[0], pkgItems.agent, pkgItems.family, ...base.slice(1)];
-  }
+  const insertAfterDashboard = (extras) => [base[0], ...extras, ...base.slice(1)];
 
-  if (pkg && pkgItems[pkg]) {
-    // Place the extra menu item directly after "dashboard" (1st), as the 2nd item.
-    return [base[0], pkgItems[pkg], ...base.slice(1)];
-  }
+  if (pkg === "agent") return insertAfterDashboard([referrals, family]);
+  if (pkg === "family") return insertAfterDashboard([family]);
+  if (pkg === "corporate") return insertAfterDashboard([corporate]);
   return base;
 }
 // ─── Sidebar nav item ─────────────────────────────────────────────────────────
@@ -111,10 +101,15 @@ function NavItem({ item, active, onClick, badge }) {
   );
 }
 
+function fullName(user) {
+  return [user.name, user.surname].filter(Boolean).join(" ") || user.email || "—";
+}
+
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 function Sidebar({ user, nav, active, onNavigate, collapsed, onLogout }) {
-  const pkg = user.activePackage;
+  const pkg = user.pocket_type;
   const pkgInfo = pkg ? PACKAGE_FEATURES[pkg] : null;
+  const displayName = fullName(user);
 
   return (
     <aside
@@ -127,12 +122,12 @@ function Sidebar({ user, nav, active, onNavigate, collapsed, onLogout }) {
       <div className="px-4 pt-5 pb-4 border-b border-app-border">
         <div className="flex items-center gap-3 mb-3">
           <div className="relative">
-            <Avatar src={user.avatar} name={user.name} size="md" />
+            <Avatar src={user.image} name={displayName} size="md" />
             <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-app-surface-deep" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-app-fg font-semibold text-sm truncate">
-              {user.name}
+              {displayName}
             </div>
             <div className="text-app-subtle text-xs truncate">{user.email}</div>
           </div>
@@ -143,13 +138,13 @@ function Sidebar({ user, nav, active, onNavigate, collapsed, onLogout }) {
           <div className="flex-1 rounded-lg bg-app-fg/4 dark:bg-white/5 border border-app-border px-2.5 py-2">
             <div className="text-[9px] uppercase tracking-wide text-app-faint dark:text-white/35 mb-0.5">Баланс</div>
             <div className="text-app-fg dark:text-white text-xs font-semibold">
-              {user.balance?.toLocaleString("ru-RU")} ₸
+              {Number(user.balance ?? 0).toLocaleString("ru-RU")} ₸
             </div>
           </div>
           <div className="flex-1 rounded-lg bg-amber-50 dark:bg-amber-400/10 border border-amber-200 dark:border-amber-400/20 px-2.5 py-2">
             <div className="text-[9px] uppercase tracking-wide text-amber-500/70 dark:text-amber-400/60 mb-0.5">Бонусы</div>
             <div className="text-amber-600 dark:text-amber-400 text-xs font-semibold">
-              {user.bonus?.toLocaleString("ru-RU")} Б
+              {Number(user.bonus ?? 0).toLocaleString("ru-RU")} Б
             </div>
           </div>
         </div>
@@ -204,7 +199,7 @@ function Sidebar({ user, nav, active, onNavigate, collapsed, onLogout }) {
 }
 
 // ─── Mobile header ────────────────────────────────────────────────────────────
-function MobileHeader({ user, currentLabel, onMenuToggle, menuOpen }) {
+function MobileHeader({ currentLabel, onMenuToggle, menuOpen }) {
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-app-border bg-app-surface-deep/95 backdrop-blur-md sticky top-0 z-30 lg:hidden">
       <div className="flex items-center gap-2.5">
@@ -242,32 +237,29 @@ function ActiveSection({ section, user, onNavigate, setUser }) {
     case "dashboard":
       return <Dashboard user={user} onNavigate={onNavigate} />;
     case "edit":
-      return <EditProfile user={user} onBack={() => onNavigate("dashboard")} />;
+      return (
+        <EditProfile
+          user={user}
+          onBack={() => onNavigate("dashboard")}
+          onUpdated={(updated) => setUser((u) => ({ ...u, ...updated }))}
+        />
+      );
     case "balance":
       return <BalanceSection user={user} setUser={setUser} />;
-    case "trips":
-      return <TripHistory />;
-    case "visited":
-      return <VisitedPlaces />;
+    case "requests":
+      return <RequestsHistory />;
     case "favorites":
       return <Favorites />;
     case "reviews":
       return <Reviews />;
+    case "courses":
+      return <CoursesSection />;
     case "referrals":
       return <ReferralsSection />;
     case "packages":
-      return (
-        <PackagesSection
-          activePackage={user.activePackage}
-          onSelectPackage={(pkg) =>
-            setUser((u) => ({ ...u, activePackage: pkg }))
-          }
-        />
-      );
+      return <PackagesSection user={user} />;
     case "family":
       return <FamilySection />;
-    case "agent":
-      return <AgentSection />;
     case "corporate":
       return <CorporateSection />;
     default:
@@ -279,7 +271,6 @@ function ActiveSection({ section, user, onNavigate, setUser }) {
 export default function ProfilePage({ dbUser }) {
   const router = useRouter();
   const [user, setUser] = useState({
-    ...MOCK_USER,
     ...dbUser,
     balance: dbUser?.balance ?? 0,
     bonus: dbUser?.bonus ?? 0,
@@ -287,7 +278,7 @@ export default function ProfilePage({ dbUser }) {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const nav = buildNav(user.activePackage);
+  const nav = buildNav(user.pocket_type);
   const currentNavItem = nav.find((n) => n.id === activeSection);
 
   function navigate(sectionId) {
@@ -318,24 +309,12 @@ export default function ProfilePage({ dbUser }) {
 
       {/* Mobile header */}
       <MobileHeader
-        user={user}
         currentLabel={currentNavItem?.label || "Профиль"}
         onMenuToggle={() => setMobileMenuOpen((o) => !o)}
         menuOpen={mobileMenuOpen}
       />
 
       <div className="flex h-screen lg:h-screen overflow-hidden">
-        {/* ── Desktop sidebar ── */}
-        {/* <div className="hidden lg:flex">
-          <Sidebar
-            user={user}
-            nav={nav}
-            active={activeSection}
-            onNavigate={navigate}
-            collapsed={false}
-          />
-        </div> */}
-
         {/* ── Mobile slide-out menu ── */}
         {mobileMenuOpen && (
           <>
@@ -351,7 +330,6 @@ export default function ProfilePage({ dbUser }) {
                 active={activeSection}
                 onNavigate={navigate}
                 collapsed={false}
-                onMenuToggle={() => setMobileMenuOpen(false)}
                 onLogout={handleLogout}
               />
             </div>

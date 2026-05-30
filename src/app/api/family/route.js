@@ -1,24 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import sql from "@/lib/db";
+import sb from "@/lib/supabase";
 
 const MAX_ADULTS = 2;
 const MAX_CHILDREN = 3;
-
-async function ensureFamilyTable() {
-  await sql`
-    CREATE TABLE IF NOT EXISTS family_members (
-      id         SERIAL PRIMARY KEY,
-      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      name       TEXT NOT NULL,
-      type       TEXT NOT NULL CHECK (type IN ('adult', 'child')),
-      relation   TEXT,
-      age        INTEGER NOT NULL CHECK (age >= 0 AND age < 150),
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )
-  `;
-  await sql`CREATE INDEX IF NOT EXISTS family_members_user_id_idx ON family_members(user_id)`;
-}
 
 function serialize(row) {
   return {
@@ -39,19 +24,15 @@ export async function GET() {
       return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
     }
 
-    await ensureFamilyTable();
+    const { data, error } = await sb
+      .from("family_members")
+      .select("id, name, type, relation, age")
+      .eq("user_id", user.id)
+      .order("type")
+      .order("id");
 
-    const rows = await sql`
-      SELECT id, name, type, relation, age
-      FROM family_members
-      WHERE user_id = ${user.id}
-      ORDER BY
-        CASE WHEN type = 'adult' THEN 0 ELSE 1 END,
-        created_at ASC,
-        id ASC
-    `;
-
-    return NextResponse.json({ members: rows.map(serialize) });
+    if (error) throw error;
+    return NextResponse.json({ members: (data ?? []).map(serialize) });
   } catch (err) {
     console.error("GET /api/family error:", err);
     return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });
@@ -81,35 +62,28 @@ export async function POST(request) {
       return NextResponse.json({ error: "Некорректный возраст" }, { status: 400 });
     }
 
-    await ensureFamilyTable();
+    const { data: existing } = await sb
+      .from("family_members")
+      .select("id, type")
+      .eq("user_id", user.id);
 
-    const [{ adults, children }] = await sql`
-      SELECT
-        COUNT(*) FILTER (WHERE type = 'adult')::int AS adults,
-        COUNT(*) FILTER (WHERE type = 'child')::int AS children
-      FROM family_members
-      WHERE user_id = ${user.id}
-    `;
+    const adults = (existing ?? []).filter((m) => m.type === "adult").length;
+    const children = (existing ?? []).filter((m) => m.type === "child").length;
 
     if (type === "adult" && adults >= MAX_ADULTS) {
-      return NextResponse.json(
-        { error: `Максимум ${MAX_ADULTS} взрослых` },
-        { status: 409 },
-      );
+      return NextResponse.json({ error: `Максимум ${MAX_ADULTS} взрослых` }, { status: 409 });
     }
     if (type === "child" && children >= MAX_CHILDREN) {
-      return NextResponse.json(
-        { error: `Максимум ${MAX_CHILDREN} детей` },
-        { status: 409 },
-      );
+      return NextResponse.json({ error: `Максимум ${MAX_CHILDREN} детей` }, { status: 409 });
     }
 
-    const [row] = await sql`
-      INSERT INTO family_members (user_id, name, type, relation, age)
-      VALUES (${user.id}, ${name}, ${type}, ${relation || null}, ${age})
-      RETURNING id, name, type, relation, age
-    `;
+    const { data: row, error } = await sb
+      .from("family_members")
+      .insert({ user_id: user.id, name, type, relation: relation || null, age })
+      .select("id, name, type, relation, age")
+      .single();
 
+    if (error) throw error;
     return NextResponse.json({ member: serialize(row) });
   } catch (err) {
     console.error("POST /api/family error:", err);
@@ -130,15 +104,15 @@ export async function DELETE(request) {
       return NextResponse.json({ error: "id обязателен" }, { status: 400 });
     }
 
-    await ensureFamilyTable();
+    const { data, error } = await sb
+      .from("family_members")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .select("id");
 
-    const rows = await sql`
-      DELETE FROM family_members
-      WHERE id = ${id} AND user_id = ${user.id}
-      RETURNING id
-    `;
-
-    if (rows.length === 0) {
+    if (error) throw error;
+    if (!data || data.length === 0) {
       return NextResponse.json({ error: "Участник не найден" }, { status: 404 });
     }
 

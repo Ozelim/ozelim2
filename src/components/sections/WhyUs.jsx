@@ -1,6 +1,7 @@
 'use client'
 import { motion, useInView } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   Trophy, Users, Globe, Star, Shield, Headphones, Leaf, Award, Baby, Sparkles
 } from 'lucide-react'
@@ -109,7 +110,11 @@ export default function WhyUs({ stats: initialData } = {}) {
           viewport={{ once: true }}
           className="mb-16 flex flex-col items-center"
         >
-          <div className="w-full max-w-sm relative overflow-hidden rounded-full border border-(--site-accent)/40 bg-linear-to-r from-(--site-gradient-from)/30 via-(--site-accent-bright)/35 to-(--site-gradient-to)/30 backdrop-blur-sm py-2.5 shadow-[0_0_30px_var(--site-shadow-soft)]">
+          <Link
+            href="/kidsgofree"
+            aria-label="Подробнее о Kids Go Free"
+            className="w-full max-w-sm relative overflow-hidden rounded-full border border-(--site-accent)/40 bg-linear-to-r from-(--site-gradient-from)/30 via-(--site-accent-bright)/35 to-(--site-gradient-to)/30 backdrop-blur-sm py-2.5 shadow-[0_0_30px_var(--site-shadow-soft)] block hover:border-(--site-accent)/70 transition-colors"
+          >
             <motion.div
               aria-hidden
               className="absolute inset-y-0 w-1/3 bg-linear-to-r from-transparent via-white/40 to-transparent pointer-events-none"
@@ -143,7 +148,7 @@ export default function WhyUs({ stats: initialData } = {}) {
                 <Sparkles className="w-4 h-4 text-(--site-accent-bright)" />
               </motion.span>
             </div>
-          </div>
+          </Link>
           <p className="text-white/50 text-sm text-center mt-3">
             Государственная программа направленная для бесплатного путешествия детей
           </p>

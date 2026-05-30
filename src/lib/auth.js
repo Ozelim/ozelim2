@@ -1,25 +1,28 @@
 import { cookies } from "next/headers";
-import sql from "./db";
+import sb from "./supabase";
+import { verifySession, SESSION_COOKIE } from "./jwt";
 
-async function ensureUserColumns() {
-  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS balance INTEGER DEFAULT 0`;
-  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus INTEGER DEFAULT 0`;
-}
+// Старая кука (до 6.3) — плейн userId без подписи. Удаляется при выходе.
+const LEGACY_COOKIE = "session_user_id";
 
 export async function getCurrentUser() {
   try {
-    const cookieStore = await cookies();
-    const userId = cookieStore.get("session_user_id")?.value;
+    const c = await cookies();
+    const token = c.get(SESSION_COOKIE)?.value;
+    const session = await verifySession(token);
+
+    // Fallback на старую куку — даём текущим сессиям дожить до следующего логина.
+    const userId = session?.userId ?? c.get(LEGACY_COOKIE)?.value;
     if (!userId) return null;
 
-    await ensureUserColumns();
+    const { data, error } = await sb
+      .from("users")
+      .select("id, name, surname, email, phone, city, image, bio, balance, bonus, pocket_type, created_at")
+      .eq("id", userId)
+      .single();
 
-    const rows = await sql`
-      SELECT id, name, email, bio, balance, bonus, created_at
-      FROM users
-      WHERE id = ${userId}
-    `;
-    return rows[0] ?? null;
+    if (error) return null;
+    return data;
   } catch {
     return null;
   }

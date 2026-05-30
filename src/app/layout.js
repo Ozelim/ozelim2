@@ -1,7 +1,6 @@
 import './globals.css'
 import PageWrapper from './PageWrapper'
 import Header from '@/components/layout/Header'
-import SupportChat from '@/components/sections/SupportChat'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { Cormorant_Garamond, DM_Sans } from 'next/font/google'
 
@@ -21,8 +20,20 @@ const dmSans = DM_Sans({
 })
 
 export const metadata = {
-  title: 'Ozelim',
-  description: 'Туроператор Ozelim',
+  title: {
+    default: 'Ozelim — туры по Казахстану',
+    template: '%s · Ozelim',
+  },
+  description: 'Подбор и бронирование туров по Казахстану. Курорты, экскурсии, оздоровительные программы.',
+  metadataBase: process.env.NEXT_PUBLIC_SITE_URL
+    ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
+    : undefined,
+  openGraph: {
+    title: 'Ozelim — туры по Казахстану',
+    description: 'Подбор и бронирование туров по Казахстану.',
+    type: 'website',
+    locale: 'ru_RU',
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -32,7 +43,6 @@ export default function RootLayout({ children }) {
         <ThemeProvider>
           <Header />
           <PageWrapper>{children}</PageWrapper>
-          <SupportChat />
         </ThemeProvider>
       </body>
     </html>

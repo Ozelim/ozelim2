@@ -1,19 +1,15 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
+import ImageLightbox from '@/components/lightbox/ImageLightbox'
 
-const slides = [
+const FALLBACK_SLIDES = [
   {
     img: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=900&q=80',
     title: 'Горные вершины Алтая',
     desc: 'Захватывающие дух пейзажи и незабываемые восхождения для настоящих искателей приключений.',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1502780809386-00b7a7fc7f0e?w=900&q=80',
-    title: 'Бирюзовые озёра',
-    desc: 'Кристально чистые воды горных озёр отражают небо, создавая картину идеального покоя.',
   },
   {
     img: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=900&q=80',
@@ -27,20 +23,16 @@ const slides = [
   },
 ]
 
-export default function Carousel1() {
+export default function Carousel1({ items }) {
+  const slides = Array.isArray(items) && items.length > 0 ? items : FALLBACK_SLIDES
   const [current, setCurrent] = useState(0)
   const [dir, setDir] = useState(1)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   const go = (next) => {
     setDir(next > current ? 1 : -1)
     setCurrent((next + slides.length) % slides.length)
   }
-
-  useEffect(() => {
-    const t = setInterval(() => go(current + 1), 5000)
-    return () => clearInterval(t)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current])
 
   return (
     <div className="relative rounded-3xl overflow-hidden h-[500px] group media-contrast">
@@ -59,15 +51,22 @@ export default function Carousel1() {
           transition={{ duration: 0.65, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="absolute inset-0"
         >
-          <Image
-            src={slides[current].img}
-            alt={slides[current].title}
-            fill
-            className="w-full h-full object-cover"
-            sizes="(max-width: 900px) 100vw, 900px"
-            priority
-          />
-          <div className="absolute inset-0 bg-linear-to-t from-[#030f03] via-[#030f03]/30 to-transparent" />
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            className="absolute inset-0 w-full h-full cursor-zoom-in"
+            aria-label="Открыть фото"
+          >
+            <Image
+              src={slides[current].img}
+              alt={slides[current].title}
+              fill
+              className="w-full h-full object-cover"
+              sizes="(max-width: 900px) 100vw, 900px"
+              priority
+            />
+          </button>
+          <div className="absolute inset-0 bg-linear-to-t from-[#030f03] via-[#030f03]/30 to-transparent pointer-events-none" />
           <motion.div
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -116,6 +115,14 @@ export default function Carousel1() {
           />
         ))}
       </div>
+
+      <ImageLightbox
+        images={slides.map((s) => s.img)}
+        index={current}
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onIndexChange={(i) => setCurrent(i)}
+      />
     </div>
   )
 }

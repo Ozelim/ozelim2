@@ -2,27 +2,26 @@ export const dynamic = 'force-dynamic';
 
 import Hero from "@/components/sections/Hero";
 import KurortCards from "@/components/sections/KurortCards";
-import PopularResorts from "@/components/sections/PopularResorts";
 import TourTabs from "@/components/sections/TourTabs";
 import WhyUs from "@/components/sections/WhyUs";
 import Carousel1 from "@/components/sections/Carousel1";
 import Carousel2 from "@/components/sections/Carousel2";
-import Carousel3 from "@/components/sections/Carousel3";
 import NewsBlock from "@/components/sections/NewsBlock";
 import Accordion from "@/components/sections/Accordion";
 import Footer, { MarqueeTicker } from "@/components/sections/Footer";
 import { getLatestNews } from "@/lib/news";
-import { getPopularResorts } from "@/lib/resorts";
+import { listPublishedDirections } from "@/lib/resort-directions";
 import { getLatestTours } from "@/lib/tours";
 import { getMainPageStats } from "@/lib/stats";
-import Image from "next/image";
+import { getHomeGallery } from "@/lib/home-gallery";
 
 export default async function HomePage() {
-  const [news, resorts, tours, pageStats] = await Promise.all([
+  const [news, directions, tours, pageStats, homeGallery] = await Promise.all([
     getLatestNews(5),
-    getPopularResorts(6),
-    getLatestTours(9),
+    listPublishedDirections(12),
+    getLatestTours(9, { random: true }),
     getMainPageStats(),
+    getHomeGallery(),
   ]);
 
   return (
@@ -35,8 +34,7 @@ export default async function HomePage() {
 
       <MarqueeTicker />
       <NewsBlock items={news} />
-      <KurortCards items={resorts} />
-      {/* <PopularResorts /> */}
+      <KurortCards items={directions} />
       <TourTabs items={tours} />
 
       {/* Carousels section */}
@@ -55,10 +53,9 @@ export default async function HomePage() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8 mb-8">
-            <Carousel1 />
-            <Carousel2 />
+            <Carousel1 items={homeGallery.carousel1} />
+            <Carousel2 items={homeGallery.carousel2} />
           </div>
-          {/* <Carousel3 /> */}
         </div>
       </section>
 

@@ -1,45 +1,71 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  MapPin, Palmtree, Tag, Star, Utensils, Home,
+  MapPin, Tag, Star,
   SlidersHorizontal, Search, RotateCcw, X, Filter,
+  Clock, Wallet, Sparkles,
 } from 'lucide-react'
 
 import {
-  DEFAULT_FILTER, REGIONS, RESORTS, TOUR_TYPES,
-  HOTEL_CLASSES, ACCOMMODATION_TYPES, MEAL_PLANS,
+  DEFAULT_FILTER,
+  HOTEL_CLASSES,
 } from './FilterState'
 
 import { CustomSelect } from './ui/CustomSelect'
 import { MultiSelect } from './ui/MultiSelect'
-import { FilterLabel, FilterDivider } from './ui/FilterLabel'
+import { FilterLabel } from './ui/FilterLabel'
 import { DateRangePicker } from './fields/DateRangePicker'
-import { TouristCounter } from './fields/TouristCounter'
-import { BudgetSlider } from './fields/BudgetSlider'
-import { HotelServicesAccordion } from './fields/HotelServicesAccordion'
-import { Button } from '../ui/button'
+import { DurationRange } from './fields/DurationRange'
+import { PriceRange } from './fields/PriceRange'
+
+// ─── Toggle chip (boolean filter) ─────────────────────────────────────────────
+function ToggleChip({ active, onToggle, icon, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={active}
+      className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all ${
+        active
+          ? 'border-(--site-accent) bg-(--site-accent)/15 text-(--site-accent) shadow-[0_0_18px_var(--site-shadow-soft)]'
+          : 'border-white/15 bg-white/0 text-white/70 hover:border-white/30 hover:text-white'
+      }`}
+    >
+      {icon}
+      <span className="flex-1 text-left">{label}</span>
+      <span
+        className={`w-3.5 h-3.5 rounded border-2 flex items-center justify-center transition-all ${
+          active ? 'border-(--site-accent) bg-(--site-accent)' : 'border-white/30'
+        }`}
+      >
+        {active && (
+          <svg className="w-2 h-2 text-(--site-on-accent)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+          </svg>
+        )}
+      </span>
+    </button>
+  )
+}
 
 // ─── Active filter count badge ────────────────────────────────────────────────
 function countActiveFilters(f) {
   let n = 0
-  if (f.region) n++
-  if (f.resort) n++
+  if (f.directionId) n++
   if (f.tourTypes.length) n++
   if (f.dateFrom || f.dateTo) n++
-  if (f.adults !== 2 || f.children !== 0) n++
   if (f.hotelClass) n++
-  if (f.accommodation.length) n++
-  if (f.meal) n++
-  if (f.budgetMin > 0 || f.budgetMax < 2000000) n++
-  if (f.services.length) n++
+  if (f.durationMinDays !== DEFAULT_FILTER.durationMinDays || f.durationMaxDays !== DEFAULT_FILTER.durationMaxDays) n++
+  if (f.priceMin > 0 || f.priceMax < DEFAULT_FILTER.priceMax) n++
+  if (f.onlyPopular) n++
   return n
 }
 
 // ─── Filter panel inner content ───────────────────────────────────────────────
 
-function FilterPanel({ filter, setFilter, onSearch, onClose }) {
+function FilterPanel({ filter, setFilter, directions, relaxTypes, onSearch, onClose }) {
   function set(key, val) {
     setFilter(prev => ({ ...prev, [key]: val }))
   }
@@ -50,8 +76,13 @@ function FilterPanel({ filter, setFilter, onSearch, onClose }) {
 
   const activeCount = countActiveFilters(filter)
 
+  const directionOptions = [
+    { value: '', label: 'Все направления' },
+    ...directions.map(d => ({ value: String(d.id), label: d.name })),
+  ]
+
   return (
-    <div className="flex flex-col overflow-y-scroll h-screen lg:h-auto">
+    <div className="flex flex-col overflow-y-scroll lg:overflow-visible h-screen lg:h-auto">
       {/* Header */}
       <div className="shrink-0 px-5 pt-5 pb-4 border-b border-[#1a6b1a]/20">
         <div className="flex items-center justify-between">
@@ -94,24 +125,17 @@ function FilterPanel({ filter, setFilter, onSearch, onClose }) {
       </div>
 
       {/* Filter fields row */}
-      <div className="px-5 py-4 flex lg:flex-wrap flex-col lg:flex-row  gap-x-6 gap-y-4 overflow-y-scroll">
+      <div className="px-5 py-4 flex lg:flex-wrap flex-col lg:flex-row  gap-x-6 gap-y-4 overflow-y-scroll lg:overflow-visible">
 
-        {/* ── Регион + Курорт ─────────────────────────────────────────────── */}
+        {/* ── Направление ─────────────────────────────────────────────────── */}
         <div className="space-y-2 flex-1 min-w-[200px]">
           <FilterLabel>Направление</FilterLabel>
           <CustomSelect
-            options={REGIONS}
-            value={filter.region}
-            onChange={v => set('region', v)}
-            placeholder="Весь Казахстан"
+            options={directionOptions}
+            value={filter.directionId}
+            onChange={v => set('directionId', v)}
+            placeholder="Все направления"
             icon={<MapPin className="w-4 h-4" />}
-          />
-          <CustomSelect
-            options={RESORTS}
-            value={filter.resort}
-            onChange={v => set('resort', v)}
-            placeholder="Любой курорт"
-            icon={<Palmtree className="w-4 h-4" />}
           />
         </div>
 
@@ -119,10 +143,10 @@ function FilterPanel({ filter, setFilter, onSearch, onClose }) {
         <div className="space-y-2 flex-1 lg:min-w-[300px]">
           <FilterLabel>Вид отдыха</FilterLabel>
           <MultiSelect
-            options={TOUR_TYPES}
+            options={relaxTypes.map(t => ({ value: t.slug, label: t.name }))}
             value={filter.tourTypes}
             onChange={v => set('tourTypes', v)}
-            placeholder="Все виды отдыха"
+            placeholder={relaxTypes.length ? 'Все виды отдыха' : 'Загрузка…'}
             icon={<Tag className="w-4 h-4" />}
             maxShow={1}
           />
@@ -138,20 +162,9 @@ function FilterPanel({ filter, setFilter, onSearch, onClose }) {
           />
         </div>
 
-        {/* ── Туристы ─────────────────────────────────────────────────────── */}
-        <div className="space-y-2 flex-1 lg:min-w-[140px]">
-          <FilterLabel>Туристы</FilterLabel>
-          <TouristCounter
-            adults={filter.adults}
-            childrenCount={filter.children}
-            onAdultsChange={v => set('adults', v)}
-            onChildrenChange={v => set('children', v)}
-          />
-        </div>
-
-        {/* ── Отель ───────────────────────────────────────────────────────── */}
-        <div className="space-y-2 flex-1 lg:min-w-[300px]">
-          <FilterLabel>Класс и тип отеля</FilterLabel>
+        {/* ── Класс отеля ─────────────────────────────────────────────────── */}
+        <div className="space-y-2 flex-1 lg:min-w-[200px]">
+          <FilterLabel>Класс отеля</FilterLabel>
           <CustomSelect
             options={HOTEL_CLASSES}
             value={filter.hotelClass}
@@ -159,50 +172,51 @@ function FilterPanel({ filter, setFilter, onSearch, onClose }) {
             placeholder="Любой класс"
             icon={<Star className="w-4 h-4" />}
           />
-          <MultiSelect
-            options={ACCOMMODATION_TYPES}
-            value={filter.accommodation}
-            onChange={v => set('accommodation', v)}
-            placeholder="Любой тип размещения"
-            icon={<Home className="w-4 h-4" />}
-            maxShow={2}
+        </div>
+
+        {/* ── Длительность тура ───────────────────────────────────────────── */}
+        <div className="space-y-2 flex-1 lg:min-w-[200px]">
+          <FilterLabel>
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-(--site-accent)" />
+              Длительность тура
+            </span>
+          </FilterLabel>
+          <DurationRange
+            minDays={filter.durationMinDays}
+            maxDays={filter.durationMaxDays}
+            onMinChange={v => set('durationMinDays', v)}
+            onMaxChange={v => set('durationMaxDays', v)}
           />
         </div>
 
-        {/* ── Питание ─────────────────────────────────────────────────────── */}
-        <div className="space-y-2 flex-1 lg:min-w-[140px]">
-          <FilterLabel>Питание</FilterLabel>
-          <CustomSelect
-            options={MEAL_PLANS}
-            value={filter.meal}
-            onChange={v => set('meal', v)}
-            placeholder="Любое питание"
-            icon={<Utensils className="w-4 h-4" />}
+        {/* ── Стоимость ───────────────────────────────────────────────────── */}
+        <div className="space-y-2 flex-1 lg:min-w-[200px]">
+          <FilterLabel>
+            <span className="inline-flex items-center gap-1.5">
+              <Wallet className="w-3.5 h-3.5 text-(--site-accent)" />
+              Стоимость
+            </span>
+          </FilterLabel>
+          <PriceRange
+            priceMin={filter.priceMin}
+            priceMax={filter.priceMax}
+            onMinChange={v => set('priceMin', v)}
+            onMaxChange={v => set('priceMax', v)}
           />
         </div>
 
-        {/* ── Бюджет ──────────────────────────────────────────────────────── */}
-        <div className="space-y-2 flex-1 lg:min-w-[180px]">
-          <FilterLabel>Бюджет</FilterLabel>
-          <div className="px-1 pb-1">
-            <BudgetSlider
-              min={filter.budgetMin}
-              max={filter.budgetMax}
-              currency={filter.currency}
-              onMinChange={v => set('budgetMin', v)}
-              onMaxChange={v => set('budgetMax', v)}
-              onCurrencyChange={v => set('currency', v)}
+        {/* ── Спец. предложения ───────────────────────────────────────────── */}
+        <div className="space-y-2 flex-1 lg:min-w-[200px]">
+          <FilterLabel>Спец. предложения</FilterLabel>
+          <div className="flex flex-col gap-2">
+            <ToggleChip
+              active={filter.onlyPopular}
+              onToggle={() => set('onlyPopular', !filter.onlyPopular)}
+              icon={<Sparkles className="w-3.5 h-3.5" />}
+              label="Только популярные"
             />
           </div>
-        </div>
-
-        {/* ── Услуги отеля ────────────────────────────────────────────────── */}
-        <div className="space-y-2 flex-1 lg:min-w-[500px]">
-          <FilterLabel>Услуги отеля</FilterLabel>
-          <HotelServicesAccordion
-            value={filter.services}
-            onChange={v => set('services', v)}
-          />
         </div>
       </div>
 
@@ -262,20 +276,16 @@ function MobileTrigger({ activeCount, onClick }) {
 
 // ─── Active filter chips (shown above results) ────────────────────────────────
 
-function ActiveChips({ filter, onRemove, onReset }) {
+function ActiveChips({ filter, directions, relaxTypes, onRemove, onReset }) {
   const chips = []
 
-  if (filter.region) {
-    const r = REGIONS.find(x => x.value === filter.region)
-    chips.push({ label: r?.label || filter.region, onRemove: () => onRemove('region') })
-  }
-  if (filter.resort) {
-    const r = RESORTS.find(x => x.value === filter.resort)
-    chips.push({ label: r?.label || filter.resort, onRemove: () => onRemove('resort') })
+  if (filter.directionId) {
+    const d = directions.find(x => String(x.id) === String(filter.directionId))
+    chips.push({ label: d?.name || 'Направление', onRemove: () => onRemove('directionId') })
   }
   filter.tourTypes.forEach(t => {
-    const o = TOUR_TYPES.find(x => x.value === t)
-    chips.push({ label: o?.label || t, onRemove: () => onRemove('tourTypes', t) })
+    const o = relaxTypes.find(x => x.slug === t)
+    chips.push({ label: o?.name || t, onRemove: () => onRemove('tourTypes', t) })
   })
   if (filter.dateFrom || filter.dateTo) {
     chips.push({
@@ -287,9 +297,11 @@ function ActiveChips({ filter, onRemove, onReset }) {
     const h = HOTEL_CLASSES.find(x => x.value === filter.hotelClass)
     chips.push({ label: h?.label || filter.hotelClass, onRemove: () => onRemove('hotelClass') })
   }
-  if (filter.meal) {
-    const m = MEAL_PLANS.find(x => x.value === filter.meal)
-    chips.push({ label: m?.label?.split(' — ')[0] || filter.meal, onRemove: () => onRemove('meal') })
+  if (filter.onlyHot) {
+
+  }
+  if (filter.onlyPopular) {
+    chips.push({ label: '⭐ Популярные', onRemove: () => onRemove('onlyPopular') })
   }
 
   if (chips.length === 0) return null
@@ -330,6 +342,21 @@ function ActiveChips({ filter, onRemove, onReset }) {
 export default function TourFilter({ onSearch }) {
   const [filter, setFilter] = useState(DEFAULT_FILTER)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [directions, setDirections] = useState([])
+  const [relaxTypes, setRelaxTypes] = useState([])
+
+  useEffect(() => {
+    let alive = true
+    fetch('/api/resort-directions')
+      .then(r => r.json())
+      .then(d => { if (alive) setDirections(Array.isArray(d?.directions) ? d.directions : []) })
+      .catch(() => { if (alive) setDirections([]) })
+    fetch('/api/relax-types')
+      .then(r => r.json())
+      .then(d => { if (alive) setRelaxTypes(Array.isArray(d) ? d : []) })
+      .catch(() => { if (alive) setRelaxTypes([]) })
+    return () => { alive = false }
+  }, [])
 
   const handleSearch = useCallback(f => {
     console.log('🔍 Search with filters:', f)
@@ -343,12 +370,6 @@ export default function TourFilter({ onSearch }) {
       if (key === 'tourTypes' && val) {
         return { ...prev, tourTypes: prev.tourTypes.filter(v => v !== val) }
       }
-      if (key === 'accommodation' && val) {
-        return { ...prev, accommodation: prev.accommodation.filter(v => v !== val) }
-      }
-      if (key === 'services' && val) {
-        return { ...prev, services: prev.services.filter(v => v !== val) }
-      }
       if (key === 'dateFrom') {
         return { ...prev, dateFrom: null, dateTo: null }
       }
@@ -360,10 +381,12 @@ export default function TourFilter({ onSearch }) {
     <>
       {/* ── Desktop layout ────────────────────────────────────────────────── */}
       <div className="hidden lg:block">
-        <div className="rounded-2xl border border-[#1a6b1a]/25 backdrop-blur-sm overflow-hidden shadow-[0_8px_15px_rgba(0,0,0,0.2)]">
+        <div className="rounded-2xl border border-[#1a6b1a]/25 backdrop-blur-sm shadow-[0_8px_15px_rgba(0,0,0,0.2)] relative z-30">
           <FilterPanel
             filter={filter}
             setFilter={setFilter}
+            directions={directions}
+            relaxTypes={relaxTypes}
             onSearch={handleSearch}
           />
         </div>
@@ -383,7 +406,13 @@ export default function TourFilter({ onSearch }) {
         <div className="mb-4">
           <AnimatePresence>
             {activeCount > 0 && (
-              <ActiveChips filter={filter} onRemove={removeFilter} onReset={() => setFilter(DEFAULT_FILTER)} />
+              <ActiveChips
+                filter={filter}
+                directions={directions}
+                relaxTypes={relaxTypes}
+                onRemove={removeFilter}
+                onReset={() => setFilter(DEFAULT_FILTER)}
+              />
             )}
           </AnimatePresence>
         </div>
@@ -406,7 +435,7 @@ export default function TourFilter({ onSearch }) {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-                className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-[#1a6b1a]/30 bg-[#061506] overflow-hidden"
+                className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-[#1a6b1a]/30 bg-[#061506]"
                 style={{ maxHeight: '92dvh' }}
               >
                 {/* Drag handle */}
@@ -417,6 +446,8 @@ export default function TourFilter({ onSearch }) {
                   <FilterPanel
                     filter={filter}
                     setFilter={setFilter}
+                    directions={directions}
+                    relaxTypes={relaxTypes}
                     onSearch={handleSearch}
                     onClose={() => setMobileOpen(false)}
                   />
@@ -429,5 +460,3 @@ export default function TourFilter({ onSearch }) {
     </>
   )
 }
-
-

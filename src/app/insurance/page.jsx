@@ -1,7 +1,6 @@
 "use client";
-import { useState } from "react";
 import { motion } from "framer-motion";
-import Hero from "@/components/sections/Hero";
+import Image from "next/image";
 import Footer, { MarqueeTicker } from "@/components/sections/Footer";
 import {
   ShieldCheck,
@@ -14,10 +13,9 @@ import {
   UserCheck,
   Target,
   Award,
-  ArrowRight,
   Check,
-  Image as ImageIcon,
   BadgeCheck,
+  ImageIcon,
 } from "lucide-react";
 
 const protectionCards = [
@@ -61,16 +59,19 @@ const agentBenefits = [
     icon: Wallet,
     title: "Заработная плата",
     desc: "Вы сами решаете, сколько будете работать и сколько зарабатывать.",
+    img: "/zrbplt.jpg",
   },
   {
     icon: PiggyBank,
     title: "Страхование на пенсию",
     desc: "Накопительная программа, обеспечивающая стабильное будущее.",
+    img: "/strpns.webp",
   },
   {
     icon: GraduationCap,
     title: "Обучение и поддержка",
     desc: "Профессиональное обучение и помощь на каждом этапе работы.",
+    img: "/obch.jpg",
   },
 ];
 
@@ -82,18 +83,9 @@ const incomeWays = [
 ];
 
 export default function InsurancePage() {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [comment, setComment] = useState("");
-
   return (
-    <main>
-      <Hero
-        title="Страхование"
-        highlight="жизни"
-        subtitle="В случае непредвиденных событий обязательное страхование обеспечивает защиту от финансовых потерь."
-        badge="Halyk-Life"
-      />
+    <main className="pt-20">
+      <div className="fixed top-0 left-0 right-0 h-20 bg-[#0f3d0f] z-[999] pointer-events-none" />
       <MarqueeTicker />
 
       {/* Intro */}
@@ -110,21 +102,21 @@ export default function InsurancePage() {
                 О компании
               </div>
               <h2
-                className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight"
+                className="text-4xl md:text-5xl font-bold text-app-fg mb-6 leading-tight"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 АО <span className="text-gradient">«Халық-Life»</span> — лидер страхования жизни в Республике Казахстан
               </h2>
-              <p className="text-white/70 leading-relaxed mb-4">
+              <p className="text-app-muted leading-relaxed mb-4">
                 В случае непредвиденных событий обязательное страхование обеспечивает защиту от финансовых потерь. Например, страхование жизни и здоровья помогает получить помощь или компенсировать затраты в случае непредвиденного несчастного случая.
               </p>
-              <p className="text-white/60 leading-relaxed">
+              <p className="text-app-subtle leading-relaxed">
                 АО «Халык-Life» было основано в ноябре 2005 года как дочерняя организация АО «Народный Банк Казахстана». Халык-Life является лидером в отрасли «Страхование жизни» в Республике Казахстан.
               </p>
             </div>
 
-            <div className="aspect-[16/10] rounded-3xl border border-dashed border-[#1a6b1a]/40 bg-[#061506]/60 flex items-center justify-center">
-              <ImageIcon className="w-12 h-12 text-white/20" />
+            <div className="aspect-[16/10] rounded-3xl border border-[#1a6b1a]/25 bg-gray-100 dark:bg-[#061506]/60 flex items-center justify-center overflow-hidden p-6">
+              <Image src="/halyk-life.svg" alt="Халық-Life" width={300} height={150} className="object-contain w-full h-full" />
             </div>
           </motion.div>
         </div>
@@ -140,7 +132,7 @@ export default function InsurancePage() {
             className="text-center mb-10"
           >
             <h2
-              className="text-4xl md:text-5xl font-bold text-white"
+              className="text-4xl md:text-5xl font-bold text-app-fg"
               style={{ fontFamily: "Cormorant Garamond, serif" }}
             >
               Финансовая защита{" "}
@@ -160,13 +152,13 @@ export default function InsurancePage() {
               >
                 <card.icon className="w-7 h-7 text-(--site-accent) mb-4" />
                 <h3
-                  className="text-xl md:text-2xl font-bold text-white mb-3"
+                  className="text-xl md:text-2xl font-bold text-app-fg mb-3"
                   style={{ fontFamily: "Cormorant Garamond, serif" }}
                 >
                   {card.title}
                 </h3>
                 {card.desc && (
-                  <p className="text-white/60 text-sm leading-relaxed mb-3">
+                  <p className="text-app-subtle text-sm leading-relaxed mb-3">
                     {card.desc}
                   </p>
                 )}
@@ -175,7 +167,7 @@ export default function InsurancePage() {
                     {card.list.map((item) => (
                       <li
                         key={item}
-                        className="flex items-start gap-3 text-white/70 text-sm leading-relaxed"
+                        className="flex items-start gap-3 text-app-muted text-sm leading-relaxed"
                       >
                         <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-(--site-accent) shrink-0" />
                         {item}
@@ -184,7 +176,7 @@ export default function InsurancePage() {
                   </ul>
                 )}
                 {card.footer && (
-                  <p className="text-white/45 text-xs leading-relaxed mt-3">
+                  <p className="text-app-faint text-xs leading-relaxed mt-3">
                     {card.footer}
                   </p>
                 )}
@@ -203,8 +195,8 @@ export default function InsurancePage() {
             viewport={{ once: true }}
             className="rounded-3xl border border-[#1a6b1a]/30 bg-[#0a2a0a]/40 p-6 md:p-8 grid md:grid-cols-[auto_1fr] gap-6 md:gap-8 items-center"
           >
-            <div className="w-full md:w-72 aspect-[4/3] rounded-2xl border border-dashed border-[#1a6b1a]/40 bg-[#061506]/60 flex items-center justify-center shrink-0">
-              <ImageIcon className="w-12 h-12 text-white/20" />
+            <div className="w-full md:w-72 aspect-[4/3] rounded-2xl border border-[#1a6b1a]/25 bg-[#061506]/60 overflow-hidden shrink-0">
+              <Image src="/ins-mad.jpeg" alt="Оразалинова Мадина" width={288} height={216} className="w-full h-full object-cover" />
             </div>
             <div>
               <div className="flex items-center gap-3 mb-3">
@@ -214,23 +206,26 @@ export default function InsurancePage() {
                 </span>
               </div>
               <h3
-                className="text-2xl md:text-3xl font-bold text-white mb-3 leading-tight"
+                className="text-2xl md:text-3xl font-bold text-app-fg mb-3 leading-tight"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 Оразалинова Мадина Төлемысовна
               </h3>
-              <p className="text-white/65 text-sm leading-relaxed mb-5">
+              <p className="text-app-subtle text-sm leading-relaxed mb-5">
                 Представитель страховой компании «Халык-Life» и консультант по
                 всем видам страхования на платформе oz-elim.kz.
               </p>
-              <motion.button
+              <motion.a
+                href="/ins-pomyatka.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="px-6 py-3 rounded-full bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-bold text-sm flex items-center gap-2"
+                className="px-6 py-3 rounded-full bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-bold text-sm flex items-center gap-2 w-fit"
               >
                 <FileText className="w-4 h-4" />
                 Страховая памятка
-              </motion.button>
+              </motion.a>
             </div>
           </motion.div>
         </div>
@@ -246,7 +241,7 @@ export default function InsurancePage() {
             className="text-center mb-10"
           >
             <h2
-              className="text-4xl md:text-5xl font-bold text-white"
+              className="text-4xl md:text-5xl font-bold text-app-fg"
               style={{ fontFamily: "Cormorant Garamond, serif" }}
             >
               Станьте страховым{" "}
@@ -264,18 +259,18 @@ export default function InsurancePage() {
                 transition={{ delay: i * 0.06 }}
                 className="rounded-3xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 overflow-hidden card-hover"
               >
-                <div className="aspect-[4/3] border-b border-[#1a6b1a]/25 bg-[#061506]/60 flex items-center justify-center">
-                  <ImageIcon className="w-12 h-12 text-white/20" />
+                <div className="aspect-[4/3] border-b border-[#1a6b1a]/25 bg-[#061506]/60 overflow-hidden">
+                  <Image src={b.img} alt={b.title} width={400} height={300} className="w-full h-full object-cover" />
                 </div>
                 <div className="p-6">
                   <b.icon className="w-7 h-7 text-(--site-accent) mb-3" />
                   <h4
-                    className="text-xl font-bold text-white mb-2"
+                    className="text-xl font-bold text-app-fg mb-2"
                     style={{ fontFamily: "Cormorant Garamond, serif" }}
                   >
                     {b.title}
                   </h4>
-                  <p className="text-white/55 text-sm leading-relaxed">
+                  <p className="text-app-subtle text-sm leading-relaxed">
                     {b.desc}
                   </p>
                 </div>
@@ -298,13 +293,13 @@ export default function InsurancePage() {
               <div className="flex items-center gap-3 mb-3">
                 <UserCheck className="w-6 h-6 text-(--site-accent)" />
                 <h3
-                  className="text-2xl font-bold text-white"
+                  className="text-2xl font-bold text-app-fg"
                   style={{ fontFamily: "Cormorant Garamond, serif" }}
                 >
                   Страховой агент
                 </h3>
               </div>
-              <p className="text-white/65 text-sm leading-relaxed">
+              <p className="text-app-subtle text-sm leading-relaxed">
                 — это представитель компании, который по договору поручения
                 занимается продажей страховых полисов, а также помогает клиенту
                 в выборе программы и сборе документов.
@@ -315,13 +310,13 @@ export default function InsurancePage() {
               <div className="flex items-center gap-3 mb-3">
                 <Target className="w-6 h-6 text-(--site-accent)" />
                 <h3
-                  className="text-2xl font-bold text-white"
+                  className="text-2xl font-bold text-app-fg"
                   style={{ fontFamily: "Cormorant Garamond, serif" }}
                 >
                   Миссия страхового агента
                 </h3>
               </div>
-              <p className="text-white/65 text-sm leading-relaxed">
+              <p className="text-app-subtle text-sm leading-relaxed">
                 — обеспечить финансовую защиту каждой казахстанской семье и
                 предоставить лучший сервис.
               </p>
@@ -332,9 +327,9 @@ export default function InsurancePage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="aspect-square rounded-3xl border border-dashed border-[#1a6b1a]/40 bg-[#061506]/60 flex items-center justify-center"
+            className="aspect-square rounded-3xl border border-[#1a6b1a]/25 bg-[#061506]/60 overflow-hidden"
           >
-            <ImageIcon className="w-14 h-14 text-white/20" />
+            <Image src="/stragt.jpg" alt="Страховой агент" width={500} height={500} className="w-full h-full object-cover" />
           </motion.div>
         </div>
       </section>
@@ -351,13 +346,13 @@ export default function InsurancePage() {
               Миссия компании
             </div>
             <h2
-              className="text-3xl md:text-4xl font-bold text-white mb-6"
+              className="text-3xl md:text-4xl font-bold text-app-fg mb-6"
               style={{ fontFamily: "Cormorant Garamond, serif" }}
             >
               Миссия компании АО{" "}
               <span className="text-gradient">«Халық-Life»</span>
             </h2>
-            <p className="text-white/65 leading-relaxed">
+            <p className="text-app-subtle leading-relaxed">
               Обеспечение финансовой защиты граждан Казахстана в случае
               причинения ущерба их жизни и здоровью, достойное служение
               интересам общества, улучшение качества их жизни, а также
@@ -378,7 +373,7 @@ export default function InsurancePage() {
             className="rounded-3xl border border-(--site-accent)/30 bg-linear-to-br from-(--site-accent)/10 to-transparent p-8 md:p-10 text-center"
           >
             <h3
-              className="text-2xl md:text-3xl font-bold text-white"
+              className="text-2xl md:text-3xl font-bold text-app-fg"
               style={{ fontFamily: "Cormorant Garamond, serif" }}
             >
               Вы сами решаете, сколько будете работать{" "}
@@ -400,14 +395,14 @@ export default function InsurancePage() {
             <div className="flex items-center gap-3 mb-5">
               <BadgeCheck className="w-6 h-6 text-(--site-accent)" />
               <h3
-                className="text-2xl font-bold text-white"
+                className="text-2xl font-bold text-app-fg"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 Сотрудничество с АО «Халық-Life»
               </h3>
             </div>
-            <div className="aspect-[16/9] rounded-2xl border border-dashed border-[#1a6b1a]/40 bg-[#061506]/60 flex items-center justify-center">
-              <ImageIcon className="w-10 h-10 text-white/20" />
+            <div className="rounded-2xl overflow-hidden">
+              <Image src="/hlklyfe.png" alt="Сотрудничество с Халық-Life" width={600} height={340} className="w-full h-auto object-contain" />
             </div>
           </motion.div>
 
@@ -420,7 +415,7 @@ export default function InsurancePage() {
             <div className="flex items-center gap-3 mb-5">
               <Wallet className="w-6 h-6 text-(--site-accent)" />
               <h3
-                className="text-2xl font-bold text-white"
+                className="text-2xl font-bold text-app-fg"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 Способы получения дохода
@@ -430,7 +425,7 @@ export default function InsurancePage() {
               {incomeWays.map((item) => (
                 <li
                   key={item}
-                  className="flex items-start gap-3 text-white/75 text-sm"
+                  className="flex items-start gap-3 text-app-muted text-sm"
                 >
                   <span className="mt-1 w-5 h-5 rounded-full bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center shrink-0">
                     <Check className="w-3 h-3 text-(--site-accent)" />
@@ -452,9 +447,9 @@ export default function InsurancePage() {
             viewport={{ once: true }}
             className="rounded-3xl border border-[#1a6b1a]/30 bg-[#0a2a0a]/40 p-6 md:p-8 grid md:grid-cols-[auto_1fr] gap-6 md:gap-8 items-center"
           >
-            <div className="w-full md:w-80 aspect-[3/4] rounded-2xl border border-dashed border-[#1a6b1a]/40 bg-[#061506]/60 flex items-center justify-center shrink-0">
-              <ImageIcon className="w-12 h-12 text-white/20" />
-            </div>
+            <a href="/lcns.jpg" target="_blank" rel="noopener noreferrer" className="w-full md:w-80 rounded-2xl overflow-hidden shrink-0 block">
+              <Image src="/lcns.jpg" alt="Лицензии и Сертификаты" width={320} height={427} className="w-full h-auto object-contain" />
+            </a>
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <Award className="w-6 h-6 text-(--site-accent)" />
@@ -463,12 +458,12 @@ export default function InsurancePage() {
                 </span>
               </div>
               <h3
-                className="text-2xl md:text-3xl font-bold text-white mb-4"
+                className="text-2xl md:text-3xl font-bold text-app-fg mb-4"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 Лицензии и Сертификаты
               </h3>
-              <p className="text-white/65 text-sm leading-relaxed mb-6">
+              <p className="text-app-subtle text-sm leading-relaxed mb-6">
                 Компания осуществляет деятельность на страховом рынке в
                 соответствии с лицензией, выданной Национальным Банком
                 Республики Казахстан. АО «Халык-Life» имеет рейтинг финансовой
@@ -476,20 +471,23 @@ export default function InsurancePage() {
                 Best, который является наивысшим среди всех казахстанских
                 компаний по страхованию жизни.
               </p>
-              <motion.button
+              <motion.a
+                href="/ins-str.png"
+                target="_blank"
+                rel="noopener noreferrer"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="px-6 py-3 rounded-full bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-bold text-sm flex items-center gap-2"
+                className="px-6 py-3 rounded-full bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-bold text-sm flex items-center gap-2 w-fit"
               >
                 <FileText className="w-4 h-4" />
                 Страховая лицензия
-              </motion.button>
+              </motion.a>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Application form */}
+      {/* Application form — закомментировано
       <section className="px-6 py-16">
         <div className="max-w-3xl mx-auto">
           <motion.div
@@ -510,62 +508,16 @@ export default function InsurancePage() {
                 консультации.
               </p>
             </div>
-
             <form
               onSubmit={(e) => e.preventDefault()}
               className="px-8 py-7 space-y-4"
             >
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-white/45 text-xs uppercase tracking-widest mb-1.5 block">
-                    ФИО
-                  </label>
-                  <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Ваше имя и фамилия"
-                    className="w-full px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-white placeholder-white/25 text-sm focus:outline-none focus:border-(--site-accent)/50"
-                  />
-                </div>
-                <div>
-                  <label className="text-white/45 text-xs uppercase tracking-widest mb-1.5 block">
-                    Телефон / WhatsApp
-                  </label>
-                  <input
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+7 (000) 000-00-00"
-                    className="w-full px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-white placeholder-white/25 text-sm focus:outline-none focus:border-(--site-accent)/50"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-white/45 text-xs uppercase tracking-widest mb-1.5 block">
-                  Комментарий
-                </label>
-                <textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  rows={3}
-                  placeholder="Расскажите, какой вид страхования вас интересует..."
-                  className="w-full px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-white placeholder-white/25 text-sm focus:outline-none focus:border-(--site-accent)/50 resize-none"
-                />
-              </div>
-
-              <motion.button
-                type="submit"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-3.5 rounded-xl bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-bold text-sm flex items-center justify-center gap-2"
-              >
-                Отправить заявку
-                <ArrowRight className="w-4 h-4" />
-              </motion.button>
+              ...
             </form>
           </motion.div>
         </div>
       </section>
+      */}
 
       <MarqueeTicker />
       <Footer />

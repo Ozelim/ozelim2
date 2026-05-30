@@ -41,6 +41,17 @@ const nextConfig = {
         protocol: "https",
         hostname: "ozelim-fly.fly.dev",
       },
+      // Supabase Storage — обложки направлений и галереи туров.
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+      // Произвольные внешние URL, введённые вручную в админке (image_url поле направлений и т.п.)
+      {
+        protocol: "https",
+        hostname: "**",
+      },
     ],
   },
 };

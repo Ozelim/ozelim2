@@ -3,7 +3,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Footer, { MarqueeTicker } from "@/components/sections/Footer";
-import { RequestFormDialog } from "@/components/request-form/request-form";
 import {
   Sparkles,
   FileSignature,
@@ -98,29 +97,31 @@ const benefits = [
 ];
 
 const docLinks = [
-  { label: "Положение о членстве в Ассоциации", href: "#" },
-  { label: "Договор о членстве в Ассоциации", href: "#" },
-  { label: "Заявление на вступление в Ассоциацию", href: "#" },
+  { label: "Положение о членстве в Ассоциации", href: "/assoc-polozh.pdf" },
+  { label: "Договор о членстве в Ассоциации", href: "/assoc-chlenstvo.pdf" },
+  { label: "Заявление на вступление в Ассоциацию", href: "/assoc-zayav.pdf" },
 ];
 
 const memorandums = [
   {
     title: "Меморандум со страховой компанией Халық-Life",
     desc: "О сотрудничестве в сфере страховой защиты участников программ Ассоциации.",
+    href: "/assoc-memsotr.pdf",
   },
   {
     title: "Меморандум с Советом деловых женщин Павлодарской области",
     desc: "Соглашение о совместном развитии женского предпринимательства в туризме.",
+    href: "/assoc-memsov.pdf",
   },
   {
     title: "Меморандум с Отделом туризма при Управлении физкультуры и спорта Павлодарской области",
     desc: "О совместной работе по развитию внутреннего туризма региона.",
+    href: "/assoc-memtur.pdf",
   },
 ];
 
 // ─── Circular directions diagram ──────────────────────────────────────────────
 function DirectionsDiagram() {
-  // 5 segments around a centered logo
   const radius = 120;
   const cx = 160;
   const cy = 160;
@@ -208,6 +209,7 @@ export default function AssociationPage() {
 
   return (
     <main className="pt-28 pb-16">
+      <div className="fixed top-0 left-0 right-0 h-20 bg-[#0f3d0f] z-[999] pointer-events-none" />
       <MarqueeTicker />
 
       {/* ── Intro ── */}
@@ -389,17 +391,16 @@ export default function AssociationPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="relative aspect-square rounded-3xl overflow-hidden border border-(--app-border) bg-linear-to-br from-sky-400/30 to-amber-400/20 flex items-end justify-center"
+              className="relative aspect-square rounded-3xl overflow-hidden border border-(--app-border) bg-(--app-card)"
             >
-              <div className="absolute inset-0 bg-linear-to-br from-sky-400/40 to-amber-400/30" />
-              <div className="relative z-10 w-32 h-32 rounded-full bg-(--app-panel) border-4 border-(--site-accent-bright)/60 flex items-center justify-center mb-6 shadow-[0_0_30px_var(--site-shadow-glow)]">
-                <span
-                  className="text-3xl font-bold text-(--site-accent-bright)"
-                  style={{ fontFamily: "Cormorant Garamond, serif" }}
-                >
-                  ЕЖ
-                </span>
-              </div>
+              <Image
+                src="/erkegali.jpeg"
+                alt="Жанғазы Еркеғали Жұмабайұлы"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 280px"
+                priority
+              />
             </motion.div>
 
             <motion.div
@@ -421,14 +422,18 @@ export default function AssociationPage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <a
-                  href="#"
+                  href="/assoc-gosreg.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent) font-semibold text-sm hover:shadow-[0_0_24px_var(--site-shadow-glow)] transition-all"
                 >
                   <FileText className="w-4 h-4" />
                   Справка о Гос. Регистрации
                 </a>
                 <a
-                  href="#"
+                  href="/assoc-ustav.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent) font-semibold text-sm hover:shadow-[0_0_24px_var(--site-shadow-glow)] transition-all"
                 >
                   <Award className="w-4 h-4" />
@@ -511,32 +516,27 @@ export default function AssociationPage() {
         </div>
       </section>
 
-      {/* ── Document links + leave request ── */}
+      {/* ── Document links ── */}
       <section className="px-6 py-12">
-        <div className="max-w-6xl mx-auto flex flex-col items-center gap-8">
-          <div className="grid md:grid-cols-3 gap-6 w-full">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-4 w-full">
             {docLinks.map((d) => (
               <a
                 key={d.label}
                 href={d.href}
-                className="text-(--site-accent-bright) text-sm underline underline-offset-4 hover:text-(--site-accent) transition-colors text-center"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-3 px-4 py-3 rounded-2xl border border-(--app-border) bg-(--app-card) hover:border-(--site-accent)/60 hover:bg-(--app-panel) transition-all"
               >
-                {d.label}
+                <div className="w-10 h-10 rounded-xl bg-(--site-accent)/15 border border-(--site-accent)/30 flex items-center justify-center shrink-0 group-hover:bg-(--site-accent)/25 transition-colors">
+                  <FileText className="w-5 h-5 text-(--site-accent-bright)" />
+                </div>
+                <span className="text-(--site-accent-bright) text-sm font-medium underline underline-offset-4 group-hover:text-(--site-accent) transition-colors">
+                  {d.label}
+                </span>
               </a>
             ))}
           </div>
-
-          <RequestFormDialog
-            trigger={
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                className="px-10 py-3 rounded-full font-bold text-sm tracking-wider uppercase bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent) hover:shadow-[0_0_30px_var(--site-shadow-glow)] transition-all"
-              >
-                Оставить заявку
-              </motion.button>
-            }
-          />
         </div>
       </section>
 
@@ -574,13 +574,16 @@ export default function AssociationPage() {
             {memorandums
               .slice(memIdx, memIdx + visible)
               .map((m, i) => (
-                <motion.button
+                <motion.a
                   key={`${m.title}-${memIdx + i}`}
+                  href={m.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.07 }}
-                  className="text-left rounded-2xl bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) p-5 hover:shadow-[0_0_24px_var(--site-shadow-glow)] transition-all"
+                  className="block text-left rounded-2xl bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) p-5 hover:shadow-[0_0_24px_var(--site-shadow-glow)] transition-all"
                 >
                   <FileSignature className="w-6 h-6 text-(--site-on-accent) mb-3" />
                   <div className="text-(--site-on-accent) font-bold text-sm mb-2 leading-snug">
@@ -589,7 +592,7 @@ export default function AssociationPage() {
                   <p className="text-(--site-on-accent)/80 text-xs leading-relaxed">
                     {m.desc}
                   </p>
-                </motion.button>
+                </motion.a>
               ))}
           </div>
         </div>

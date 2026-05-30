@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Hero from "@/components/sections/Hero";
+import { useCurrentUser } from "@/lib/use-current-user";
 import Footer, { MarqueeTicker } from "@/components/sections/Footer";
 import {
   Scale,
@@ -13,8 +13,9 @@ import {
   ChevronDown,
   ArrowRight,
   Check,
-  Briefcase,
   HandCoins,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -55,8 +56,8 @@ const additionalServices = [
           Юридическая консультация является основополагающей частью правовой
           поддержки членов Ассоциации.
         </p>
-        <p className="mb-2 text-white/70">Особое внимание уделяется следующим аспектам:</p>
-        <ul className="list-disc pl-5 space-y-1.5 text-white/70">
+        <p className="mb-2 text-app-muted">Особое внимание уделяется следующим аспектам:</p>
+        <ul className="list-disc pl-5 space-y-1.5 text-app-muted">
           <li>Разъяснение норм законодательства в сфере туризма;</li>
           <li>Предоставление рекомендаций по правовому оформлению сделок;</li>
           <li>Помощь в решении правовых вопросов.</li>
@@ -111,7 +112,7 @@ function Accordion({ items }) {
             <button
               type="button"
               onClick={() => setOpen(isOpen ? -1 : i)}
-              className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left text-white hover:bg-[#0a2a0a]/60 transition-colors"
+              className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left text-app-fg hover:bg-[#0a2a0a]/60 transition-colors"
             >
               <span className="font-semibold">
                 {i + 1}. {item.title}
@@ -129,7 +130,7 @@ function Accordion({ items }) {
                   transition={{ duration: 0.25 }}
                   className="overflow-hidden"
                 >
-                  <div className="px-6 pb-5 text-sm text-white/70 leading-relaxed">
+                  <div className="px-6 pb-5 text-sm text-app-subtle leading-relaxed">
                     {item.body}
                   </div>
                 </motion.div>
@@ -146,15 +147,63 @@ export default function AssociationPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [topic, setTopic] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const { user } = useCurrentUser();
+
+  useEffect(() => {
+    if (!user || submitted) return;
+    const full = [user.name, user.surname].filter(Boolean).join(" ").trim();
+    setName((cur) => cur || full);
+    setPhone((cur) => cur || user.phone || "");
+  }, [user, submitted]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (submitting || submitted) return;
+    setSubmitError("");
+
+    if (!name.trim()) {
+      setSubmitError("Укажите имя");
+      return;
+    }
+    if (!phone.trim()) {
+      setSubmitError("Укажите телефон");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "legal_consult",
+          name: name.trim(),
+          phone: phone.trim(),
+          message: topic.trim() || null,
+          source: "/legal",
+          data: { topic: topic.trim() || null },
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || `Ошибка ${res.status}`);
+      setSubmitted(true);
+      setName("");
+      setPhone("");
+      setTopic("");
+    } catch (err) {
+      setSubmitError(err.message || "Не удалось отправить заявку");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <main>
-      <Hero
-        title="Правовая"
-        highlight="защита"
-        subtitle="Центр правовой защиты внутренних туристов Казахстана — юридическая поддержка туристов, агентств и партнёров отрасли."
-        badge="OzElim"
-      />
+      <div className="fixed top-0 left-0 right-0 h-20 bg-[#0f3d0f] z-[999] pointer-events-none" />
       <MarqueeTicker />
 
       {/* Director intro */}
@@ -166,17 +215,23 @@ export default function AssociationPage() {
             viewport={{ once: true }}
             className="mx-auto lg:mx-0"
           >
-            <div className="w-56 h-72 rounded-3xl overflow-hidden border border-(--site-accent)/30 bg-[#061506]/60 flex items-center justify-center">
-              <Briefcase className="w-14 h-14 text-(--site-accent)/40" />
+            <div className="w-56 h-72 rounded-3xl overflow-hidden border border-(--site-accent)/30">
+              <Image
+                src="/abt-isk.jpeg"
+                alt="Султанов Искандер Серикович"
+                width={224}
+                height={288}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="text-center mt-4">
               <div
-                className="text-white font-bold text-lg"
+                className="text-app-fg font-bold text-lg"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 Султанов Искандер Серикович
               </div>
-              <div className="text-white/40 text-xs mt-1">
+              <div className="text-app-faint text-xs mt-1">
                 Юрист Ассоциации, директор «GRT COMPANY»
               </div>
             </div>
@@ -191,13 +246,13 @@ export default function AssociationPage() {
               Центр правовой защиты
             </div>
             <h2
-              className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight"
+              className="text-4xl md:text-5xl font-bold text-app-fg mb-6 leading-tight"
               style={{ fontFamily: "Cormorant Garamond, serif" }}
             >
               Центр правовой защиты внутренних туристов{" "}
               <span className="text-gradient">Казахстана</span>
             </h2>
-            <p className="text-white/70 leading-relaxed mb-4">
+            <p className="text-app-muted leading-relaxed mb-4">
               Казахстанские туристы на мировом рынке отличаются требовательностью
               к качеству оказываемых услуг в сфере туризма, на которое каждый
               имеет право. Законодательством закреплены основные права
@@ -206,7 +261,7 @@ export default function AssociationPage() {
               государственную и общественную защиту в случае нарушения его прав
               и интересов.
             </p>
-            <p className="text-white/55 leading-relaxed">
+            <p className="text-app-subtle leading-relaxed">
               Юрист с многолетней профессиональной работой в правовой системе,
               директор юридической компании «GRT COMPANY», автор эксклюзивной
               системы создания и управления Эндаумент фондами в Казахстане,
@@ -228,17 +283,23 @@ export default function AssociationPage() {
             viewport={{ once: true }}
             className="rounded-3xl border border-[#1a6b1a]/30 bg-[#0a2a0a]/40 p-8 md:p-10 grid md:grid-cols-[auto_1fr] gap-8 items-center"
           >
-            <div className="w-44 h-44 rounded-2xl border border-(--site-accent)/30 bg-[#061506]/60 flex items-center justify-center shrink-0 mx-auto md:mx-0">
-              <Scale className="w-16 h-16 text-(--site-accent)/60" />
+            <div className="w-44 h-44 rounded-2xl overflow-hidden border border-(--site-accent)/30 shrink-0 mx-auto md:mx-0">
+              <Image
+                src="/leg-1.png"
+                alt="Члены Ассоциации Öz Elim"
+                width={176}
+                height={176}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
-              <p className="text-white/75 leading-relaxed mb-4">
+              <p className="text-app-muted leading-relaxed mb-4">
                 Члены Ассоциации «Öz Elim» на выгодных условиях имеют уникальный
                 доступ к широкому спектру юридических услуг, которые направлены
                 на защиту их прав, поддержку туристических проектов, а также
                 содействие развитию туристической отрасли в Казахстане.
               </p>
-              <p className="text-white/55 leading-relaxed text-sm">
+              <p className="text-app-subtle leading-relaxed text-sm">
                 Центр правовой защиты внутренних туристов Казахстана предлагает
                 услуги по защите прав граждан, путешествующих внутри страны.
                 Центр предоставляет консультации по вопросам соблюдения
@@ -257,7 +318,7 @@ export default function AssociationPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-white mb-8"
+            className="text-3xl md:text-4xl font-bold text-app-fg mb-8"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
             Основные функции Центра
@@ -277,12 +338,12 @@ export default function AssociationPage() {
                 </div>
                 <div>
                   <h3
-                    className="text-white font-bold text-lg mb-2"
+                    className="text-app-fg font-bold text-lg mb-2"
                     style={{ fontFamily: "Cormorant Garamond, serif" }}
                   >
                     {f.title}
                   </h3>
-                  <p className="text-white/55 text-sm leading-relaxed">
+                  <p className="text-app-subtle text-sm leading-relaxed">
                     {f.desc}
                   </p>
                 </div>
@@ -299,7 +360,7 @@ export default function AssociationPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-white mb-8 text-center"
+            className="text-3xl md:text-4xl font-bold text-app-fg mb-8 text-center"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
             Дополнительные юридические услуги
@@ -319,47 +380,72 @@ export default function AssociationPage() {
           >
             <div className="text-center mb-8">
               <h3
-                className="text-3xl md:text-4xl font-bold text-white mb-3"
+                className="text-3xl md:text-4xl font-bold text-app-fg mb-3"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 Профессиональное решение Ваших проблем!
               </h3>
-              <p className="text-white/55 text-sm">
+              <p className="text-app-subtle text-sm">
                 Оставьте заявку — мы свяжемся с вами и подберём подходящий формат
                 юридической поддержки.
               </p>
             </div>
             <form
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleSubmit}
               className="grid md:grid-cols-3 gap-3"
             >
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ваше имя"
-                className="px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-white placeholder-white/30 text-sm focus:outline-none focus:border-(--site-accent)/50"
+                disabled={submitting || submitted}
+                className="px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-app-fg placeholder-white/30 text-sm focus:outline-none focus:border-(--site-accent)/50 disabled:opacity-60"
               />
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+7 (___) ___-__-__"
-                className="px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-white placeholder-white/30 text-sm focus:outline-none focus:border-(--site-accent)/50"
+                disabled={submitting || submitted}
+                className="px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-app-fg placeholder-white/30 text-sm focus:outline-none focus:border-(--site-accent)/50 disabled:opacity-60"
               />
               <input
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="Тема обращения"
-                className="px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-white placeholder-white/30 text-sm focus:outline-none focus:border-(--site-accent)/50"
+                disabled={submitting || submitted}
+                className="px-4 py-3 rounded-xl bg-[#0a2a0a]/80 border border-[#1a6b1a]/30 text-app-fg placeholder-white/30 text-sm focus:outline-none focus:border-(--site-accent)/50 disabled:opacity-60"
               />
-              <motion.button
-                type="submit"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="md:col-span-3 mt-2 py-3.5 rounded-xl bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-bold text-sm flex items-center justify-center gap-2"
-              >
-                Оставить заявку
-                <ArrowRight className="w-4 h-4" />
-              </motion.button>
+              {submitError && (
+                <p className="md:col-span-3 text-sm text-red-400 text-center">
+                  {submitError}
+                </p>
+              )}
+              {submitted ? (
+                <div className="md:col-span-3 mt-2 py-3.5 rounded-xl border border-(--site-accent)/40 bg-(--site-accent)/10 flex items-center justify-center gap-2 text-(--site-accent) font-semibold text-sm">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Заявка отправлена — мы свяжемся с вами
+                </div>
+              ) : (
+                <motion.button
+                  type="submit"
+                  disabled={submitting}
+                  whileHover={submitting ? {} : { scale: 1.02 }}
+                  whileTap={submitting ? {} : { scale: 0.98 }}
+                  className="md:col-span-3 mt-2 py-3.5 rounded-xl bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Отправка...
+                    </>
+                  ) : (
+                    <>
+                      Оставить заявку
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </motion.button>
+              )}
             </form>
           </motion.div>
         </div>
