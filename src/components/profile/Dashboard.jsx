@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { ClipboardList, Heart, MessageSquare, Star, ChevronRight, Zap, Calendar, MapPin, MapPinned } from 'lucide-react'
+import { ClipboardList, Heart, MessageSquare, Star, ChevronRight, Zap, Calendar, MapPin, MapPinned, Phone, AlertTriangle } from 'lucide-react'
 import { Card, CardBody, Avatar, Badge, Button, StatCard } from './ui'
 import { PACKAGE_FEATURES } from '../../lib/mockData'
 import Link from 'next/link'
@@ -133,6 +133,9 @@ export function Dashboard({ user, onNavigate }) {
   }, [])
 
   const displayName = fullName(user)
+  const hasPhone = Boolean(user.phone?.trim())
+  const hasCity = Boolean(user.city?.trim())
+  const profileIncomplete = !hasPhone || !hasCity
 
   return (
     <div className="space-y-6">
@@ -144,23 +147,57 @@ export function Dashboard({ user, onNavigate }) {
             <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-400 border-2 border-app-card dark:border-[#061506]" />
           </div>
           <div className="flex-1 text-center sm:text-left">
-            <h2 className="text-app-fg dark:text-white font-bold text-2xl mb-0.5" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+            <h2 className="text-app-fg dark:text-white font-bold text-2xl mb-1.5" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
               {displayName}
             </h2>
-            {user.city && (
-              <div className="flex items-center gap-1.5 justify-center sm:justify-start mb-2">
-                <MapPinned className="w-3.5 h-3.5 text-app-faint dark:text-white/35" />
-                <span className="text-app-subtle dark:text-white/45 text-sm">{user.city}</span>
-              </div>
-            )}
+
+            {/* Контактные данные: телефон и город */}
+            <div className="flex flex-col gap-1.5 mb-3">
+              {/* Телефон */}
+              {hasPhone ? (
+                <div className="flex items-center gap-1.5 justify-center sm:justify-start">
+                  <Phone className="w-3.5 h-3.5 text-app-faint dark:text-white/35 shrink-0" />
+                  <span className="text-app-subtle dark:text-white/45 text-sm">{user.phone}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 justify-center sm:justify-start text-red-500 dark:text-red-400">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  <span className="text-sm font-medium">Номер контакта не указан</span>
+                </div>
+              )}
+
+              {/* Город */}
+              {hasCity ? (
+                <div className="flex items-center gap-1.5 justify-center sm:justify-start">
+                  <MapPinned className="w-3.5 h-3.5 text-app-faint dark:text-white/35 shrink-0" />
+                  <span className="text-app-subtle dark:text-white/45 text-sm">{user.city}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 justify-center sm:justify-start text-red-500 dark:text-red-400">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  <span className="text-sm font-medium">Город не указан</span>
+                </div>
+              )}
+            </div>
+
             {user.bio && (
               <p className="text-app-subtle dark:text-white/50 text-sm leading-relaxed max-w-md mb-4">{user.bio}</p>
             )}
             {user.pocket_type && <ActivePackageBadge pkg={user.pocket_type} />}
           </div>
-          <Button variant="secondary" onClick={() => onNavigate('edit')} className="shrink-0">
-            Редактировать
-          </Button>
+          <div className="relative shrink-0">
+            <Button variant="secondary" onClick={() => onNavigate('edit')}>
+              Редактировать
+            </Button>
+            {profileIncomplete && (
+              <span
+                className="absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full bg-red-500 ring-2 ring-app-card dark:ring-[#061506]"
+                title="Профиль заполнен не полностью"
+              >
+                <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-75" />
+              </span>
+            )}
+          </div>
         </CardBody>
       </Card>
 

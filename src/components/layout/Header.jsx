@@ -82,7 +82,10 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  if (pathname === '/profile') return <></>  
+  if (pathname === '/profile') return <></>
+
+  // Профиль считается неполным, если не указан телефон или город.
+  const profileIncomplete = currentUser && (!currentUser.phone?.trim() || !currentUser.city?.trim())
 
   return (
     <>
@@ -236,15 +239,41 @@ export default function Header() {
               }
             /> 
             {currentUser ? (
-              <motion.button
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => router.push('/profile')}
-                className="w-10 h-10 rounded-full bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) flex items-center justify-center text-(--site-on-accent) font-semibold text-sm shadow-[0_0_12px_var(--site-shadow-soft)] transition-all"
-                title={currentUser.name}
-              >
-                {currentUser.name?.charAt(0).toUpperCase()}
-              </motion.button>
+              <div className="relative group shrink-0">
+                <motion.button
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => router.push('/profile')}
+                  className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shadow-[0_0_12px_var(--site-shadow-soft)] transition-all"
+                >
+                  {currentUser.image ? (
+                    <Image
+                      src={currentUser.image}
+                      alt={currentUser.name || ''}
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="w-full h-full rounded-full bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) flex items-center justify-center text-(--site-on-accent) font-semibold text-sm">
+                      {currentUser.name?.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </motion.button>
+
+                {profileIncomplete && (
+                  <>
+                    {/* Красная пульсирующая точка */}
+                    <span className="pointer-events-none absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 ring-2 ring-app-header-scrolled">
+                      <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-75" />
+                    </span>
+                    {/* Подсказка — мгновенное появление при наведении */}
+                    <span className="pointer-events-none absolute top-full right-0 mt-2 whitespace-nowrap rounded-lg bg-red-500 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 translate-y-1 transition-[opacity,transform] duration-0 group-hover:opacity-100 group-hover:translate-y-0 z-50">
+                      Профиль заполнен не полностью
+                    </span>
+                  </>
+                )}
+              </div>
             ) : (
               <Link href="/login">
                 <motion.button

@@ -86,6 +86,22 @@ function RegisterPageInner() {
   const [loading, setLoading] = useState(false);
   const [ref, setRef] = useState("");
   const [refNotice, setRefNotice] = useState("");
+  // Шаг подтверждения email: "form" → ввод данных, "code" → ввод кода с почты.
+  const [step, setStep] = useState("form");
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+  const [resending, setResending] = useState(false);
+  const [resentNotice, setResentNotice] = useState("");
+
+  // Обратный отсчёт до возможности переотправить код.
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
 
   useEffect(() => {
     const fromUrl = (searchParams.get("ref") || "").trim();
@@ -143,13 +159,67 @@ function RegisterPageInner() {
       });
       const data = await res.json();
       if (!res.ok) { setServerError(data.error); return; }
-      try { localStorage.removeItem("ref_code"); } catch {}
       if (data.refInvalid) {
-        setRefNotice("Реферальный код не найден — регистрация прошла без него");
+        setRefNotice("Реферальный код не найден — регистрация продолжится без него");
       }
-      router.push("/");
+      // Аккаунт ещё не создан — переходим к вводу кода с почты.
+      setPendingEmail(data.email || form.email.toLowerCase().trim());
+      setCode("");
+      setCodeError("");
+      setStep("code");
+      setResendIn(60);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleVerify(e) {
+    e.preventDefault();
+    if (!/^\d{6}$/.test(code.trim())) { setCodeError("Введите 6-значный код"); return; }
+    setCodeError("");
+    setResentNotice("");
+    setVerifying(true);
+    try {
+      const res = await fetch("/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: pendingEmail, code: code.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCodeError(data.error);
+        if (data.expired) setStep("form"); // pending протух — назад к форме
+        return;
+      }
+      try { localStorage.removeItem("ref_code"); } catch {}
+      router.push("/");
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  async function handleResend() {
+    if (resendIn > 0 || resending) return;
+    setResending(true);
+    setCodeError("");
+    setResentNotice("");
+    try {
+      const res = await fetch("/api/auth/resend-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: pendingEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCodeError(data.error);
+        if (data.retryAfter) setResendIn(data.retryAfter);
+        if (data.expired) setStep("form");
+        return;
+      }
+      setResentNotice("Новый код отправлен на почту");
+      setResendIn(60);
+    } finally {
+      setResending(false);
     }
   }
 
@@ -186,6 +256,98 @@ function RegisterPageInner() {
             </span>
           </div>
 
+          {step === "code" ? (
+          <div>
+            {/* Heading */}
+            <div className="text-center mb-8">
+              <h1
+                className="text-3xl font-bold text-(--app-fg) mb-1.5"
+                style={{ fontFamily: "Cormorant Garamond, serif" }}
+              >
+                Подтвердите почту
+              </h1>
+              <p className="text-sm text-(--app-subtle)">
+                Мы отправили 6-значный код на{" "}
+                <span className="text-(--app-fg) font-semibold">{pendingEmail}</span>
+              </p>
+            </div>
+
+            {codeError && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center"
+              >
+                {codeError}
+              </motion.div>
+            )}
+            {resentNotice && !codeError && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-5 px-4 py-3 rounded-xl bg-(--site-accent)/10 border border-(--site-accent)/25 text-(--site-accent) text-sm text-center"
+              >
+                {resentNotice}
+              </motion.div>
+            )}
+
+            <form onSubmit={handleVerify} className="flex flex-col gap-4">
+              <input
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="______"
+                autoFocus
+                className="w-full bg-(--app-input-bg) border border-(--app-border) rounded-2xl py-3.5 text-center text-2xl font-bold tracking-[0.5em] text-(--app-fg) placeholder:text-(--app-faint) outline-none focus:border-(--site-accent)/60 focus:shadow-[0_0_0_3px_var(--site-ring)] transition-all duration-200"
+              />
+
+              <motion.button
+                type="submit"
+                disabled={verifying || code.length !== 6}
+                whileHover={{ scale: verifying ? 1 : 1.02 }}
+                whileTap={{ scale: verifying ? 1 : 0.98 }}
+                className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl bg-linear-to-r from-(--site-accent) to-(--site-accent-bright) text-(--site-on-accent) font-semibold text-sm shadow-[0_4px_20px_var(--site-shadow-soft)] hover:shadow-[0_4px_28px_var(--site-shadow-strong)] transition-shadow disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {verifying ? (
+                  <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                ) : (
+                  <>
+                    Подтвердить
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </motion.button>
+            </form>
+
+            <div className="mt-6 text-center text-sm text-(--app-subtle)">
+              Не пришёл код?{" "}
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendIn > 0 || resending}
+                className="text-(--site-accent) font-semibold hover:underline underline-offset-2 disabled:text-(--app-faint) disabled:no-underline disabled:cursor-not-allowed transition-colors"
+              >
+                {resendIn > 0 ? `Отправить заново через ${resendIn} сек.` : "Отправить заново"}
+              </button>
+            </div>
+
+            <p className="mt-4 text-center text-sm">
+              <button
+                type="button"
+                onClick={() => { setStep("form"); setCodeError(""); }}
+                className="text-(--app-subtle) hover:text-(--app-fg) transition-colors"
+              >
+                ← Изменить данные
+              </button>
+            </p>
+          </div>
+          ) : (
+          <>
           {/* Heading */}
           <div className="text-center mb-8">
             <h1
@@ -334,6 +496,8 @@ function RegisterPageInner() {
               Войти
             </Link>
           </p>
+          </>
+          )}
         </div>
       </motion.div>
     </div>

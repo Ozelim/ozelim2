@@ -1,7 +1,9 @@
 'use client'
-import { useState } from 'react'
-import { User, Mail, Phone, Lock, Eye, EyeOff, Save, Check, Info } from 'lucide-react'
+import { useRef, useState } from 'react'
+import Image from 'next/image'
+import { User, Mail, Phone, Lock, Eye, EyeOff, Save, Check, Info, Camera, Trash2, Loader2 } from 'lucide-react'
 import { Button, Input, Textarea, Card, CardHeader, CardBody, SectionHeader, Toast, cn } from './ui'
+import { compressAvatar } from '@/lib/compress-avatar'
 
 // Детерминированный hue по строке — у одного имени всегда один и тот же цвет.
 function hueFromString(str) {
@@ -21,13 +23,29 @@ function initialsFrom(name) {
     .toUpperCase()
 }
 
-function Monogram({ name, size = 'xl' }) {
+function Monogram({ name, src, size = 'xl' }) {
   const sizes = {
-    md: { box: 'w-12 h-12', text: 'text-base' },
-    lg: { box: 'w-20 h-20', text: 'text-2xl' },
-    xl: { box: 'w-28 h-28', text: 'text-4xl' },
+    md: { box: 'w-12 h-12', px: 48, text: 'text-base' },
+    lg: { box: 'w-20 h-20', px: 80, text: 'text-2xl' },
+    xl: { box: 'w-28 h-28', px: 112, text: 'text-4xl' },
   }
   const s = sizes[size] ?? sizes.xl
+
+  if (src) {
+    return (
+      <Image
+        src={src}
+        alt={`Аватар ${name || ''}`}
+        width={s.px}
+        height={s.px}
+        className={cn(
+          'rounded-full object-cover shadow-[0_10px_30px_rgba(0,0,0,0.35)] ring-2 ring-white/10 select-none',
+          s.box,
+        )}
+      />
+    )
+  }
+
   const hue = hueFromString(name)
   const bg = `linear-gradient(135deg, hsl(${hue} 70% 55%) 0%, hsl(${(hue + 45) % 360} 65% 38%) 100%)`
   return (
@@ -60,10 +78,58 @@ export function EditProfile({ user, onBack, onUpdated }) {
   const [savingPassword, setSavingPassword] = useState(false)
   const [savedProfile, setSavedProfile] = useState(false)
   const [savedPassword, setSavedPassword] = useState(false)
+  const [avatarBusy, setAvatarBusy] = useState(false)
+  const avatarInputRef = useRef(null)
 
   function showToast(message, type = 'success') {
     setToast({ message, type })
     setTimeout(() => setToast(null), 3000)
+  }
+
+  async function handleAvatarFile(e) {
+    const file = e.target.files?.[0]
+    if (avatarInputRef.current) avatarInputRef.current.value = ''
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      showToast('Можно загрузить только изображение', 'error')
+      return
+    }
+    setAvatarBusy(true)
+    try {
+      const compressed = await compressAvatar(file)
+      const fd = new FormData()
+      fd.append('file', compressed, compressed.name || 'avatar.webp')
+      const res = await fetch('/api/users/me/avatar', { method: 'POST', body: fd })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        showToast(data.error || 'Не удалось загрузить фото', 'error')
+        return
+      }
+      onUpdated?.(data.user)
+      showToast('Фото профиля обновлено', 'success')
+    } catch {
+      showToast('Ошибка сети', 'error')
+    } finally {
+      setAvatarBusy(false)
+    }
+  }
+
+  async function handleRemoveAvatar() {
+    setAvatarBusy(true)
+    try {
+      const res = await fetch('/api/users/me/avatar', { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        showToast(data.error || 'Не удалось удалить фото', 'error')
+        return
+      }
+      onUpdated?.(data.user)
+      showToast('Фото профиля удалено', 'success')
+    } catch {
+      showToast('Ошибка сети', 'error')
+    } finally {
+      setAvatarBusy(false)
+    }
   }
 
   function setF(key, val) { setForm(f => ({ ...f, [key]: val })); setErrors(e => ({ ...e, [key]: '' })) }
@@ -162,11 +228,53 @@ export function EditProfile({ user, onBack, onUpdated }) {
 
       {/* Avatar + Personal info */}
       <div className="grid lg:grid-cols-[auto_1fr] gap-6">
-        {/* Avatar (монограмма) */}
+        {/* Avatar — загруженное фото или монограмма */}
         <Card className="p-6 flex flex-col items-center justify-center min-w-[200px] gap-3">
-          <Monogram name={displayName} size="xl" />
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarFile}
+          />
+          <button
+            type="button"
+            onClick={() => !avatarBusy && avatarInputRef.current?.click()}
+            disabled={avatarBusy}
+            className="group relative rounded-full focus:outline-none focus:ring-2 focus:ring-(--profile-accent)/45 disabled:cursor-wait"
+            aria-label="Загрузить фото профиля"
+          >
+            <Monogram name={displayName} src={user.image} size="xl" />
+            <span className="absolute inset-0 rounded-full flex items-center justify-center bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity">
+              {avatarBusy
+                ? <Loader2 className="w-6 h-6 text-white animate-spin" />
+                : <Camera className="w-6 h-6 text-white" />}
+            </span>
+          </button>
+
+          <div className="flex flex-col items-center gap-2">
+            <Button variant="secondary" size="sm" onClick={() => avatarInputRef.current?.click()} disabled={avatarBusy}>
+              {avatarBusy
+                ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Загрузка…</>
+                : <><Camera className="w-3.5 h-3.5" /> {user.image ? 'Сменить фото' : 'Загрузить фото'}</>}
+            </Button>
+            {user.image && (
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                disabled={avatarBusy}
+                className="inline-flex items-center gap-1 text-xs text-app-faint dark:text-white/35 hover:text-red-400 transition-colors disabled:opacity-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Удалить фото
+              </button>
+            )}
+          </div>
+
           <p className="text-app-subtle dark:text-white/40 text-xs text-center max-w-[180px] leading-relaxed">
-            Аватар формируется автоматически<br />из первых букв вашего имени
+            {user.image
+              ? 'Изображение обрезается до квадрата 100×100'
+              : <>Аватар формируется автоматически<br />из первых букв вашего имени</>}
           </p>
         </Card>
 

@@ -2,11 +2,25 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import sb from "@/lib/supabase";
-import { generateUniqueReferralCode, findReferrerByCode } from "@/lib/referral";
-import { signSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/jwt";
+import { findReferrerByCode } from "@/lib/referral";
+import { mailerConfigured, sendVerificationCode } from "@/lib/mailer";
+import {
+  generateCode,
+  hashCode,
+  CODE_TTL_MS,
+} from "@/lib/verification";
 
+// Регистрация по паролю: НЕ создаём user, а кладём «недорега» в email_verifications
+// и шлём код на почту. Аккаунт создаётся только в /api/auth/verify-email.
 export async function POST(request) {
   try {
+    if (!mailerConfigured()) {
+      return NextResponse.json(
+        { error: "Отправка писем не настроена. Попробуйте позже." },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
     const { name, surname, email, password } = body;
     let { ref } = body;
@@ -18,12 +32,14 @@ export async function POST(request) {
       return NextResponse.json({ error: "Пароль должен быть не менее 8 символов" }, { status: 400 });
     }
 
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Email уже занят подтверждённым аккаунтом?
     const { data: existing } = await sb
       .from("users")
       .select("id")
-      .eq("email", email.toLowerCase())
+      .eq("email", normalizedEmail)
       .maybeSingle();
-
     if (existing) {
       return NextResponse.json({ error: "Этот email уже зарегистрирован" }, { status: 409 });
     }
@@ -43,53 +59,35 @@ export async function POST(request) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const referralCode = await generateUniqueReferralCode();
-    const referredAt = referrerId ? new Date().toISOString() : null;
+    const code = generateCode();
+    const now = Date.now();
 
-    const { data: user, error } = await sb
-      .from("users")
-      .insert({
-        name: name.trim().slice(0, 100),
-        surname: surname.trim().slice(0, 100),
-        email: email.toLowerCase(),
-        password_hash: passwordHash,
-        balance: 0,
-        bonus: 0,
-        referral_code: referralCode,
-        referred_by: referrerId,
-        referred_at: referredAt,
-      })
-      .select("id, name, surname, email, balance, bonus, referral_code")
-      .single();
-
+    // Один pending на email — upsert перезаписывает прошлую попытку.
+    const { error } = await sb
+      .from("email_verifications")
+      .upsert(
+        {
+          email: normalizedEmail,
+          name: name.trim().slice(0, 100),
+          surname: surname.trim().slice(0, 100),
+          password_hash: passwordHash,
+          referred_by: referrerId,
+          code_hash: hashCode(code),
+          attempts: 0,
+          expires_at: new Date(now + CODE_TTL_MS).toISOString(),
+          last_sent_at: new Date(now).toISOString(),
+        },
+        { onConflict: "email" }
+      );
     if (error) throw error;
 
-    const token = await signSession({
-      sub: String(user.id),
-      userId: user.id,
-      email: user.email,
-    });
-    cookieStore.set(SESSION_COOKIE, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: SESSION_MAX_AGE,
-      path: "/",
-    });
-    cookieStore.delete("session_user_id"); // legacy
-    cookieStore.delete("ref_code");
+    await sendVerificationCode(normalizedEmail, code);
 
     return NextResponse.json({
       ok: true,
-      user: {
-        id: user.id,
-        name: user.name,
-        surname: user.surname,
-        email: user.email,
-        referralCode: user.referral_code,
-      },
+      pending: true,
+      email: normalizedEmail,
       refInvalid,
-      referred: Boolean(referrerId),
     });
   } catch (err) {
     console.error("Register error:", err);
