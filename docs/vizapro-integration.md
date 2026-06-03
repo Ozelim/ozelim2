@@ -101,29 +101,36 @@ export async function POST(request) {
 ```
 
 **3. Из формы (браузер) слать на свой же роут** — без секретов и без CORS.
-Можно слать ровно тот JSON, что форма формирует сейчас:
+
+> **ВАЖНО про значения выпадающих списков.** Для полей-селектов
+> (`serviceType`, `tripPurpose`, `stayDuration`, `rvpBase`, `workType`,
+> `contractDuration` и т.п.) слать **русскую подпись выбранного пункта**
+> (тот текст, что видит пользователь), а НЕ внутренний код. Тогда в нашей
+> админке всё сразу читается по-русски и ничего не нужно синхронизировать.
+> Проще говоря — отправлять `option.label`, а не `option.value`.
 
 ```js
 await fetch("/api/lead-to-ozelim", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    serviceType: "visa",
+    serviceType: "Виза (краткосрочная/долгосрочная)",   // а НЕ "visa"
     country: "Германия",
-    tripPurpose: "tourism",
-    stayDuration: "30_90",
+    tripPurpose: "Туризм",                               // а НЕ "tourism"
+    stayDuration: "30–90 дней",                          // а НЕ "30_90"
+    rvpBase: "Трудовой договор",                         // а НЕ "work_contract"
     services: ["Заполнение анкеты", "Бронь отеля"],
-    name: "Иван",                          // обязательно
-    phone: "+7 (700) 123-45-67"            // нужен phone или email
+    name: "Иван",                                        // обязательно
+    phone: "+7 (700) 123-45-67"                          // нужен phone или email
     // …любые другие поля анкеты
   }),
 });
 ```
 
-> Обязательны только `name` и `phone` (или `email`). Все прочие поля
-> (`serviceType`, `country`, `tripPurpose`, `services` и т.д.) попадут в `data`
-> и покажутся в карточке заявки. `email`/`contactMethod` необязательны —
-> если их нет, ничего страшного.
+> Обязательны только `name` и `phone` (или `email`). Все прочие поля попадут в
+> `data` и покажутся в карточке заявки как есть. Ключи полей (`serviceType`,
+> `rvpBase`…) можно оставлять английскими — их подписи мы переводим у себя.
+> `email`/`contactMethod` необязательны.
 
 ---
 
