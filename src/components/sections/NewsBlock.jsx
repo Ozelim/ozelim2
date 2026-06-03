@@ -55,7 +55,6 @@ function NewsModal({ article, onClose }) {
               priority
             />
           )}
-          <div className="absolute inset-0 bg-linear-to-t from-[#0a2a0a] via-[#0a2a0a]/40 to-transparent" />
           <button
             onClick={onClose}
             aria-label="Закрыть"
@@ -65,17 +64,17 @@ function NewsModal({ article, onClose }) {
           </button>
         </div>
         <div className="p-6 md:p-10">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-3 mb-4">
             <span
-              className={`text-xs px-2.5 py-1 rounded-full border ${tagColor[article.tag] || defaultTagColor}`}
+              className={`text-sm px-3 py-1.5 rounded-full border ${tagColor[article.tag] || defaultTagColor}`}
             >
               {article.tag}
             </span>
-            <span className="flex items-center gap-1 text-white/40 text-xs">
-              <Calendar className="w-3 h-3" /> {article.date}
+            <span className="flex items-center gap-1.5 text-white/60 text-sm">
+              <Calendar className="w-4 h-4" /> {article.date}
             </span>
-            <span className="flex items-center gap-1 text-white/40 text-xs">
-              <Clock className="w-3 h-3" /> {article.readTime}
+            <span className="flex items-center gap-1.5 text-white/60 text-sm">
+              <Clock className="w-4 h-4" /> {article.readTime}
             </span>
           </div>
           <h2

@@ -32,12 +32,12 @@ const navLinks = [
 const serviceLinks = [
   { label: 'Туры',                               icon: Plane,                   href: '/trips' },
   { label: 'Визы',                               icon: FileCheck,               href: 'https://vizapro.kz', external: true },
-  { label: 'Halyk Life',                         icon: ShieldCheck,             href: '/insurance' },
-  { label: 'Фонд',                               icon: HandCoins,               href: '/endowment' },
+  { label: 'Halyk Life Страхование',             icon: ShieldCheck,             href: '/insurance' },
+  { label: 'Эндаумент Фонд',                     icon: HandCoins,               href: '/endowment' },
   { label: 'Ассоциация туристов Казахстана',     icon: UsersRound,              href: '/association' },
   { label: 'Правовая защита',                    icon: Scale,                   href: '/legal' },
-  { label: 'Nomad Insurance',                    icon: Waves,                   href: '/nomad-insurance' },
-  { label: 'АВИА ЖД билеты',                     icon: Ticket,                  href: '/tickets' },
+  { label: 'Nomad Insurance Страхование',        icon: Waves,                   href: '/nomad-insurance' },
+  { label: 'Авиа перелеты',                      icon: Ticket,                  href: '/tickets' },
   { label: 'О нас',                              icon: Users,                   href: '/about' },
   { label: 'Вопрос-ответ',                       icon: MessageCircleQuestion,   href: '/faq' },
 ]

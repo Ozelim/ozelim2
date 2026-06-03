@@ -39,22 +39,31 @@ const conditions = [
   },
 ];
 
-const destinations = ["Алматы", "Астана", "Шымкент", "Туркестан"];
+const destinations = [
+  { name: "Алматы", image: "/almighty.webp" },
+  { name: "Астана", image: "/satana.jpg" },
+  { name: "Шымкент", image: "/shymkent.webp" },
+  { name: "Туркестан", image: "/turk-capital.jpg" },
+];
 
 const departureCities = [
+  "Жезказган",
+  "Караганда",
+  "Конаев",
+  "Кызылорда",
+  "Талдыкорган",
+  "Тараз",
+  "Семей",
+  "Туркестан",
+  "Усть-Каменогорск",
   "Актау",
   "Актобе",
-  "Алматы",
-  "Астана",
   "Атырау",
-  "Караганда",
-  "Костанай",
-  "Кызылорда",
-  "Павлодар",
-  "Туркестан",
   "Уральск",
-  "Усть-Каменогорск",
-  "Шымкент",
+  "Кокшетау",
+  "Костанай",
+  "Павлодар",
+  "Петропавловск",
 ];
 
 const requiredDocs = [
@@ -228,19 +237,22 @@ export default function KidsGoFreePage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
             {destinations.map((d, i) => (
               <motion.div
-                key={d}
+                key={d.name}
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.06 }}
-                className="rounded-2xl border border-(--site-accent)/30 bg-linear-to-br from-(--site-gradient-from)/15 to-(--site-gradient-to)/10 p-6 flex flex-col items-center gap-3 text-center"
+                className="relative overflow-hidden rounded-2xl border border-(--site-accent)/30 bg-cover bg-center p-6 flex flex-col items-center gap-3 text-center"
+                style={{ backgroundImage: `url('${d.image}')` }}
               >
-                <MapPin className="w-6 h-6 text-(--site-accent)" />
+                {/* Лёгкое затемнение — чтобы текст читался, но картинка оставалась яркой */}
+                <div className="absolute inset-0 bg-black/25" />
+                <MapPin className="relative w-6 h-6 text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]" />
                 <div
-                  className="text-2xl font-bold text-app-fg"
+                  className="relative text-2xl font-bold text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)]"
                   style={{ fontFamily: "Cormorant Garamond, serif" }}
                 >
-                  {d}
+                  {d.name}
                 </div>
               </motion.div>
             ))}

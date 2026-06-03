@@ -21,6 +21,14 @@ function TikTokIcon({ className }) {
   );
 }
 
+function TelegramIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M21.94 4.3 18.78 19.2c-.24 1.05-.86 1.31-1.74.82l-4.82-3.55-2.32 2.24c-.26.26-.47.47-.96.47l.34-4.9 8.9-8.04c.39-.34-.08-.53-.6-.19L6.66 13.2l-4.74-1.48c-1.03-.32-1.05-1.03.21-1.52L20.62 2.9c.86-.32 1.61.19 1.32 1.4Z" />
+    </svg>
+  );
+}
+
 function WhatsAppIcon({ className }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -33,17 +41,21 @@ const NAV_LINKS = [
   { label: "Главная", href: "/" },
   { label: "Туры", href: "/trips" },
   { label: "Визы", href: "https://vizapro.kz", external: true },
-  { label: "Фонд", href: "/endowment" },
+  { label: "Эндаумент Фонд", href: "/endowment" },
   { label: "Вопрос-ответ", href: "/faq" },
   { label: "О нас", href: "/about" },
 ];
 
+// Чтобы убрать соцсеть — закомментируйте её строку (и иконку, и ссылку).
+// Пустые/закомментированные записи автоматически отфильтровываются ниже,
+// а оставшиеся иконки сами встанут в ряд без «дырок».
 const SOCIAL_LINKS = [
   { Icon: Instagram, label: "Instagram", href: "#" },
   { Icon: Youtube, label: "YouTube", href: "#" },
   { Icon: TikTokIcon, label: "TikTok", href: "#" },
   { Icon: WhatsAppIcon, label: "WhatsApp", href: "#" },
-];
+  { Icon: TelegramIcon, label: "Telegram", href: "#" },
+].filter((s) => s && s.Icon && s.href);
 
 const FALLBACK_ITEMS = [
   "Халык Банк",
