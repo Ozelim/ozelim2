@@ -79,6 +79,7 @@ function LoginPageInner() {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(() => oauthErrorMessage(searchParams.get("error")));
   const [loading, setLoading] = useState(false);
+  const resetSuccess = searchParams.get("reset") === "success";
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
@@ -155,6 +156,16 @@ function LoginPageInner() {
             <p className="text-sm text-(--app-subtle)">Войдите, чтобы продолжить путешествие</p>
           </div>
 
+          {resetSuccess && !serverError && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-5 px-4 py-3 rounded-xl bg-(--site-accent)/10 border border-(--site-accent)/25 text-(--site-accent) text-sm text-center"
+            >
+              Пароль изменён. Войдите с новым паролем.
+            </motion.div>
+          )}
+
           {serverError && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
@@ -187,6 +198,15 @@ function LoginPageInner() {
               placeholder="Ваш пароль"
               error={errors.password}
             />
+
+            <div className="-mt-1 text-right">
+              <Link
+                href="/forgot-password"
+                className="text-xs text-(--site-accent) hover:underline underline-offset-2 transition-colors"
+              >
+                Забыли пароль?
+              </Link>
+            </div>
 
             <motion.button
               type="submit"

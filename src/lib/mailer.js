@@ -49,3 +49,28 @@ function verificationHtml(code) {
     <p style="color:#888;font-size:13px;margin:24px 0 0">Код действует 10 минут. Если вы не регистрировались на Özelim — просто проигнорируйте это письмо.</p>
   </div>`;
 }
+
+export async function sendPasswordReset(to, link) {
+  const t = transport();
+  await t.sendMail({
+    from: `Özelim <${FROM}>`,
+    to,
+    subject: "Восстановление пароля — Özelim",
+    text: `Вы запросили восстановление пароля на Özelim.\n\nПерейдите по ссылке, чтобы задать новый пароль (действует 1 час):\n${link}\n\nЕсли вы не запрашивали восстановление — просто проигнорируйте это письмо, пароль останется прежним.`,
+    html: resetHtml(link),
+  });
+}
+
+function resetHtml(link) {
+  return `
+  <div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#1a1a1a">
+    <h1 style="font-size:22px;margin:0 0 8px">Восстановление пароля</h1>
+    <p style="color:#555;margin:0 0 24px">Вы запросили смену пароля на Özelim. Нажмите кнопку, чтобы задать новый пароль:</p>
+    <div style="text-align:center;margin:0 0 24px">
+      <a href="${link}" style="display:inline-block;background:#0ea5a4;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:12px">Задать новый пароль</a>
+    </div>
+    <p style="color:#888;font-size:13px;margin:0 0 8px">Ссылка действует 1 час. Если кнопка не работает, скопируйте адрес в браузер:</p>
+    <p style="color:#0ea5a4;font-size:12px;word-break:break-all;margin:0 0 24px">${link}</p>
+    <p style="color:#888;font-size:13px;margin:0">Если вы не запрашивали восстановление — просто проигнорируйте это письмо.</p>
+  </div>`;
+}

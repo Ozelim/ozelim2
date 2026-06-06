@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { getCurrentUser } from "@/lib/auth";
+import { signSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/jwt";
 import pool from "@/lib/pool";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +11,8 @@ export const dynamic = "force-dynamic";
 // body: { current, newPassword }
 //
 // Проверяем текущий пароль bcrypt'ом, хэшируем новый, обновляем.
-// Сессия остаётся валидной (JWT не привязан к хешу).
+// Чужие сессии инвалидируем (sessions_valid_after = NOW()), а текущую —
+// перевыпускаем, чтобы не разлогинить самого юзера.
 export async function POST(request) {
   const user = await getCurrentUser();
   if (!user) {
@@ -62,9 +65,25 @@ export async function POST(request) {
 
     const newHash = await bcrypt.hash(next, 10);
     await pool.query(
-      `UPDATE users SET password_hash = $2, updated_at = NOW() WHERE id = $1`,
+      `UPDATE users SET password_hash = $2, sessions_valid_after = NOW(), updated_at = NOW() WHERE id = $1`,
       [user.id, newHash],
     );
+
+    // Перевыпускаем куку текущего устройства (свежий iat > sessions_valid_after),
+    // иначе только что инвалидировали и свою сессию.
+    const token = await signSession({
+      sub: String(user.id),
+      userId: user.id,
+      email: user.email,
+    });
+    const c = await cookies();
+    c.set(SESSION_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: SESSION_MAX_AGE,
+      path: "/",
+    });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
