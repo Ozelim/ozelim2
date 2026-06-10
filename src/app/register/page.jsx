@@ -252,7 +252,7 @@ function RegisterPageInner() {
               className="text-xl font-bold text-(--app-fg)"
               style={{ fontFamily: "Cormorant Garamond, serif" }}
             >
-              Özelim
+              OzElim
             </span>
           </div>
 

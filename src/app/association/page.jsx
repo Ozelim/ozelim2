@@ -41,24 +41,24 @@ const directions = [
   },
   {
     id: "education",
-    title: "Дуальное обучение",
+    title: "Центр признания",
     icon: GraduationCap,
     text:
-      "Образовательные услуги Центра сертификации специалистов «САПА» — онлайн-курсы, подготовка и переподготовка кадров, повышение квалификации действующих работников, подбор персонала и трудоустройство.",
+      "Образовательные услуги Центра признания — сертификация выпускников Вузов, онлайн-курсы, подготовка и переподготовка кадров, повышение квалификации действующих работников, подбор персонала и трудоустройство.",
   },
   {
     id: "tours",
-    title: "Туры с Öz Elim",
+    title: "Туры с OzElim",
     icon: Plane,
     text:
-      "Туристические услуги членов Ассоциации и авторские туры «Öz Elim» направлены на популяризацию внутреннего туризма среди населения по всему Казахстану.",
+      "Туристические услуги членов Ассоциации и авторские туры «OzElim» направлены на популяризацию внутреннего туризма среди населения по всему Казахстану.",
   },
   {
     id: "insurance",
     title: "Страхование",
     icon: ShieldCheck,
     text:
-      "Страховые услуги HALYK Life — это финансовая защита от несчастных случаев в путешествиях. Страхование жизни помогает обезопасить себя и родных от возможных финансовых потерь в непредвиденных ситуациях.",
+      "Страховые услуги HALYK Life и Nomad Insurance — это финансовая защита от несчастных случаев в путешествиях. Страхование жизни помогает обезопасить себя и родных от возможных финансовых потерь в непредвиденных ситуациях.",
   },
   {
     id: "legal",
@@ -165,7 +165,7 @@ function DirectionsDiagram() {
           className="text-(--site-on-accent) text-2xl font-bold leading-none"
           style={{ fontFamily: "Cormorant Garamond, serif" }}
         >
-          Öz
+          Oz
         </span>
         <span
           className="text-(--site-on-accent) text-2xl font-bold leading-none mt-1"
@@ -222,7 +222,7 @@ export default function AssociationPage() {
             className="inline-flex items-center gap-2 text-(--site-accent-bright) text-xs uppercase tracking-widest mb-3"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            Öz Elim
+            OzElim
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -292,7 +292,7 @@ export default function AssociationPage() {
             className="text-2xl md:text-3xl font-bold text-(--site-accent-bright) text-center mb-10"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
-            Направления деятельности Ассоциации туристов Казахстана «Öz Elim»
+            Направления деятельности Ассоциации туристов Казахстана «OzElim»
           </motion.h2>
 
           <div className="flex justify-center mb-12">
@@ -337,6 +337,21 @@ export default function AssociationPage() {
           >
             Преимущество Ассоциации
           </motion.h2>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex justify-center mb-10"
+          >
+            <Image
+              src="/assots.png"
+              alt="Целевая аудитория Ассоциации"
+              width={520}
+              height={340}
+              className="w-full max-w-md h-auto object-contain"
+            />
+          </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <motion.div
@@ -415,7 +430,7 @@ export default function AssociationPage() {
                 Жанғазы Еркеғали Жұмабайұлы
               </h3>
               <p className="text-(--app-subtle) text-sm md:text-base leading-relaxed mb-5">
-                Директор Ассоциации туристов Казахстана «Öz Elim», член общественного
+                Руководитель Ассоциации туристов Казахстана, член общественного
                 Совета Павлодарской области, бухгалтер-экономист, опыт работы в
                 правоохранительных органах, обладатель Государственной награды — ордена
                 «Құрмет» за высокий профессионализм и преданность общественному делу.
@@ -437,7 +452,7 @@ export default function AssociationPage() {
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-linear-to-r from-(--site-gradient-from) to-(--site-gradient-to) text-(--site-on-accent) font-semibold text-sm hover:shadow-[0_0_24px_var(--site-shadow-glow)] transition-all"
                 >
                   <Award className="w-4 h-4" />
-                  Устав Ассоциации туристов Казахстана «Öz Elim»
+                  Устав Ассоциации туристов Казахстана «OzElim»
                 </a>
               </div>
             </motion.div>
@@ -455,7 +470,7 @@ export default function AssociationPage() {
             className="text-3xl md:text-4xl font-bold text-(--site-accent-bright) mb-3"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
-            Откройте свой отдел продаж вместе с Öz Elim!
+            Откройте свой отдел продаж вместе с OzElim!
           </motion.h2>
           <p className="text-(--app-subtle) text-sm mb-8">
             Приглашаем к сотрудничеству профессиональных гидов-экскурсоводов,

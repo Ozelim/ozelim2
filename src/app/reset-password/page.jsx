@@ -62,7 +62,7 @@ function Shell({ children }) {
               <Compass className="w-5 h-5 text-(--site-on-accent)" />
             </div>
             <span className="text-xl font-bold text-(--app-fg)" style={{ fontFamily: "Cormorant Garamond, serif" }}>
-              Özelim
+              OzElim
             </span>
           </div>
           {children}

@@ -286,7 +286,7 @@ export default function AssociationPage() {
             <div className="w-44 h-44 rounded-2xl overflow-hidden border border-(--site-accent)/30 shrink-0 mx-auto md:mx-0">
               <Image
                 src="/leg-1.png"
-                alt="Члены Ассоциации Öz Elim"
+                alt="Члены Ассоциации OzElim"
                 width={176}
                 height={176}
                 className="w-full h-full object-cover"
@@ -294,7 +294,7 @@ export default function AssociationPage() {
             </div>
             <div>
               <p className="text-app-muted leading-relaxed mb-4">
-                Члены Ассоциации «Öz Elim» на выгодных условиях имеют уникальный
+                Члены Ассоциации «OzElim» на выгодных условиях имеют уникальный
                 доступ к широкому спектру юридических услуг, которые направлены
                 на защиту их прав, поддержку туристических проектов, а также
                 содействие развитию туристической отрасли в Казахстане.

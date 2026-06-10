@@ -36,7 +36,7 @@ const coverageItems = [
 ];
 
 const conditions = [
-  { label: "Страховое покрытие", value: "до 10 000 USD", icon: ShieldCheck },
+  { label: "Страховое покрытие", value: "от 10 000 USD", icon: ShieldCheck },
   { label: "Срок действия", value: "Весь период поездки", icon: Clock },
   { label: "Возрастные ограничения", value: "Отсутствуют", icon: Users },
   { label: "Территория действия", value: "Зависит от страны пребывания", icon: Globe },

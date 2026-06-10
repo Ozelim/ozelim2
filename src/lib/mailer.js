@@ -32,10 +32,10 @@ function transport() {
 export async function sendVerificationCode(to, code) {
   const t = transport();
   await t.sendMail({
-    from: `Özelim <${FROM}>`,
+    from: `OzElim <${FROM}>`,
     to,
     subject: `Код подтверждения: ${code}`,
-    text: `Ваш код подтверждения регистрации на Özelim: ${code}\n\nКод действует 10 минут. Если вы не регистрировались — просто проигнорируйте это письмо.`,
+    text: `Ваш код подтверждения регистрации на OzElim: ${code}\n\nКод действует 10 минут. Если вы не регистрировались — просто проигнорируйте это письмо.`,
     html: verificationHtml(code),
   });
 }
@@ -44,19 +44,19 @@ function verificationHtml(code) {
   return `
   <div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#1a1a1a">
     <h1 style="font-size:22px;margin:0 0 8px">Подтверждение регистрации</h1>
-    <p style="color:#555;margin:0 0 24px">Введите этот код на сайте Özelim, чтобы завершить регистрацию:</p>
+    <p style="color:#555;margin:0 0 24px">Введите этот код на сайте OzElim, чтобы завершить регистрацию:</p>
     <div style="font-size:34px;font-weight:700;letter-spacing:8px;text-align:center;padding:18px;background:#f4f4f5;border-radius:12px">${code}</div>
-    <p style="color:#888;font-size:13px;margin:24px 0 0">Код действует 10 минут. Если вы не регистрировались на Özelim — просто проигнорируйте это письмо.</p>
+    <p style="color:#888;font-size:13px;margin:24px 0 0">Код действует 10 минут. Если вы не регистрировались на OzElim — просто проигнорируйте это письмо.</p>
   </div>`;
 }
 
 export async function sendPasswordReset(to, link) {
   const t = transport();
   await t.sendMail({
-    from: `Özelim <${FROM}>`,
+    from: `OzElim <${FROM}>`,
     to,
-    subject: "Восстановление пароля — Özelim",
-    text: `Вы запросили восстановление пароля на Özelim.\n\nПерейдите по ссылке, чтобы задать новый пароль (действует 1 час):\n${link}\n\nЕсли вы не запрашивали восстановление — просто проигнорируйте это письмо, пароль останется прежним.`,
+    subject: "Восстановление пароля — OzElim",
+    text: `Вы запросили восстановление пароля на OzElim.\n\nПерейдите по ссылке, чтобы задать новый пароль (действует 1 час):\n${link}\n\nЕсли вы не запрашивали восстановление — просто проигнорируйте это письмо, пароль останется прежним.`,
     html: resetHtml(link),
   });
 }
@@ -65,7 +65,7 @@ function resetHtml(link) {
   return `
   <div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#1a1a1a">
     <h1 style="font-size:22px;margin:0 0 8px">Восстановление пароля</h1>
-    <p style="color:#555;margin:0 0 24px">Вы запросили смену пароля на Özelim. Нажмите кнопку, чтобы задать новый пароль:</p>
+    <p style="color:#555;margin:0 0 24px">Вы запросили смену пароля на OzElim. Нажмите кнопку, чтобы задать новый пароль:</p>
     <div style="text-align:center;margin:0 0 24px">
       <a href="${link}" style="display:inline-block;background:#0ea5a4;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:12px">Задать новый пароль</a>
     </div>
