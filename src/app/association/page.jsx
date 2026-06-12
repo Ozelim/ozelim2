@@ -247,6 +247,22 @@ export default function AssociationPage() {
             которая даёт широкую возможность как членам Ассоциации, так и потребителям
             услуг в сфере внутреннего туризма.
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.15 }}
+            className="relative mt-10 aspect-[16/9] max-w-3xl mx-auto rounded-3xl overflow-hidden border border-(--app-border) bg-(--app-card)"
+          >
+            <Image
+              src="/atk.jpg"
+              alt="Ассоциация туристов Казахстана"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+            />
+          </motion.div>
         </div>
       </section>
 
@@ -338,21 +354,6 @@ export default function AssociationPage() {
             Преимущество Ассоциации
           </motion.h2>
 
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="flex justify-center mb-10"
-          >
-            <Image
-              src="/assots.png"
-              alt="Целевая аудитория Ассоциации"
-              width={520}
-              height={340}
-              className="w-full max-w-md h-auto object-contain"
-            />
-          </motion.div>
-
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <motion.div
               initial={{ opacity: 0, x: -24 }}
@@ -361,8 +362,8 @@ export default function AssociationPage() {
               className="relative aspect-video rounded-3xl overflow-hidden border border-(--app-border) bg-(--app-card)"
             >
               <Image
-                src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=900&q=80"
-                alt="Команда — рост вместе"
+                src="/preim.jpg"
+                alt="Преимущество Ассоциации"
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 50vw"
@@ -528,6 +529,21 @@ export default function AssociationPage() {
               </motion.div>
             ))}
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative mt-10 aspect-[16/9] max-w-3xl mx-auto rounded-3xl overflow-hidden border border-(--app-border) bg-(--app-card)"
+          >
+            <Image
+              src="/atk2.jpg"
+              alt="Члены Ассоциации туристов Казахстана"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+            />
+          </motion.div>
         </div>
       </section>
 

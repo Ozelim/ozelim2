@@ -164,8 +164,8 @@ export default function EndowmentPage() {
                 className="text-4xl md:text-5xl font-bold text-app-fg mb-6 leading-tight"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
-                Эндаумент фонд при Ассоциации туристов Казахстана{" "}
-                <span className="text-gradient">«OzElim»</span>
+                Эндаумент фонд при{" "}
+                <span className="text-gradient">Ассоциации туристов Казахстана</span>
               </h2>
               <p className="text-app-muted leading-relaxed mb-4">
                 Эндаумент фонд Ассоциации туристов Казахстана «OzElim» — это

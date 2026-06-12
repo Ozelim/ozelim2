@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import Footer, { MarqueeTicker } from "@/components/sections/Footer";
 import { ContactCtaDialog } from "@/components/contact-cta/contact-cta";
 import {
@@ -24,6 +25,7 @@ const ticketTypes = [
     subtitle: "По Казахстану и международным направлениям",
     desc: "Оформляем авиабилеты на рейсы по всему Казахстану и международным маршрутам. Широкий выбор направлений, гибкие тарифы, удобное оформление.",
     tag: "Авиа",
+    img: "/smlt.jpg",
   },
   {
     icon: Train,
@@ -31,6 +33,7 @@ const ticketTypes = [
     subtitle: "По территории Республики Казахстан",
     desc: "Бронируем и оформляем ж/д билеты на все направления внутри Казахстана. Актуальное расписание, выбор вагонов и мест, быстрое оформление.",
     tag: "ЖД",
+    img: "/poezd.jpg",
   },
 ];
 
@@ -115,15 +118,20 @@ export default function TicketsPage() {
               </div>
             </div>
 
-            {/* Hero image placeholder */}
+            {/* Hero image */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="aspect-[4/3] rounded-3xl border border-[#1a6b1a]/25 bg-[#061506]/60 flex flex-col items-center justify-center gap-3 text-app-faint"
+              className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60"
             >
-              <Plane className="w-16 h-16 text-(--site-accent)/30" />
-              <span className="text-sm">Изображение — самолёт / билеты</span>
+              <Image
+                src="/tprkns.jpg"
+                alt="Авиа- и железнодорожные билеты"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 40vw"
+              />
             </motion.div>
           </motion.div>
         </div>
@@ -143,12 +151,15 @@ export default function TicketsPage() {
                 transition={{ delay: i * 0.08 }}
                 className="rounded-3xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 overflow-hidden card-hover"
               >
-                {/* Image placeholder */}
-                <div className="aspect-[16/7] border-b border-[#1a6b1a]/20 bg-[#061506]/60 flex flex-col items-center justify-center gap-2 text-app-faint">
-                  <Icon className="w-12 h-12 text-(--site-accent)/30" />
-                  <span className="text-xs">
-                    {i === 0 ? "Фото — самолёт или аэропорт" : "Фото — поезд или вокзал"}
-                  </span>
+                {/* Image */}
+                <div className="relative aspect-[16/7] border-b border-[#1a6b1a]/20 bg-[#061506]/60">
+                  <Image
+                    src={t.img}
+                    alt={t.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
                 </div>
                 <div className="p-7">
                   <div className="flex items-center gap-3 mb-4">
@@ -227,15 +238,20 @@ export default function TicketsPage() {
               </div>
             </div>
 
-            {/* Transavia logo / image placeholder */}
+            {/* Transavia logo */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="aspect-[4/3] rounded-3xl border border-[#1a6b1a]/25 bg-[#061506]/60 flex flex-col items-center justify-center gap-3 text-app-faint"
+              className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60"
             >
-              <Plane className="w-14 h-14 text-(--site-accent)/30" />
-              <span className="text-sm">Логотип Transavia</span>
+              <Image
+                src="/transavia.jpg"
+                alt="Логотип Transavia"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 55vw"
+              />
             </motion.div>
           </motion.div>
         </div>
@@ -315,10 +331,15 @@ export default function TicketsPage() {
             viewport={{ once: true }}
             className="grid lg:grid-cols-[1.1fr_1fr] gap-8 items-center"
           >
-            {/* Image placeholder — map / route */}
-            <div className="aspect-video rounded-3xl border border-[#1a6b1a]/25 bg-[#061506]/60 flex flex-col items-center justify-center gap-3 text-app-faint">
-              <MapPin className="w-14 h-14 text-(--site-accent)/30" />
-              <span className="text-sm">Карта направлений / маршруты</span>
+            {/* Image — map / route */}
+            <div className="relative aspect-video rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60">
+              <Image
+                src="/knim.jpg"
+                alt="Карта направлений и маршрутов"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 55vw"
+              />
             </div>
 
             <motion.div

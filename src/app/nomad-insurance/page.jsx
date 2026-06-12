@@ -161,15 +161,20 @@ export default function NomadInsurancePage() {
               </motion.a>
             </div>
 
-            {/* Logo placeholder */}
+            {/* Hero image */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="aspect-[4/3] rounded-3xl border border-[#1a6b1a]/25 bg-[#061506]/60 flex flex-col items-center justify-center gap-3 text-app-faint"
+              className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60"
             >
-              <ShieldCheck className="w-16 h-16 text-(--site-accent)/30" />
-              <span className="text-sm">Логотип Nomad Insurance</span>
+              <Image
+                src="/nomad.jpg"
+                alt="Туристическое страхование Nomad Insurance"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 40vw"
+              />
             </motion.div>
           </motion.div>
         </div>
@@ -226,10 +231,15 @@ export default function NomadInsurancePage() {
             viewport={{ once: true }}
             className="grid lg:grid-cols-[1fr_1.1fr] gap-10 items-center"
           >
-            {/* Image placeholder */}
-            <div className="aspect-[4/3] rounded-3xl border border-[#1a6b1a]/25 bg-[#061506]/60 flex flex-col items-center justify-center gap-3 text-app-faint order-2 lg:order-1">
-              <Globe className="w-14 h-14 text-(--site-accent)/30" />
-              <span className="text-sm">Изображение страхования</span>
+            {/* Image */}
+            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60 order-2 lg:order-1">
+              <Image
+                src="/str.jpg"
+                alt="Параметры полиса"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 45vw"
+              />
             </div>
 
             <div className="order-1 lg:order-2">
@@ -373,15 +383,20 @@ export default function NomadInsurancePage() {
               </motion.div>
             </div>
 
-            {/* Image placeholder */}
+            {/* Image */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="aspect-[3/4] lg:aspect-auto lg:h-full min-h-[320px] rounded-3xl border border-[#1a6b1a]/25 bg-[#061506]/60 flex flex-col items-center justify-center gap-3 text-app-faint"
+              className="relative aspect-[3/4] lg:aspect-auto lg:h-full min-h-[320px] rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60"
             >
-              <PhoneCall className="w-14 h-14 text-(--site-accent)/30" />
-              <span className="text-sm">Фото — звонок в страховую</span>
+              <Image
+                src="/zvon.jpg"
+                alt="Звонок в страховую компанию"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 40vw"
+              />
             </motion.div>
           </motion.div>
         </div>
