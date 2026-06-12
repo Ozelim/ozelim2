@@ -22,7 +22,6 @@ import {
   LayoutGrid,
   FileText,
   HeartHandshake,
-  ArrowRight,
 } from "lucide-react";
 
 const mission = [
@@ -253,14 +252,15 @@ export default function AssociationPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.15 }}
-            className="relative mt-10 aspect-[16/9] max-w-3xl mx-auto rounded-3xl overflow-hidden border border-(--app-border) bg-(--app-card)"
+            className="relative mt-10 aspect-[1280/813] w-full max-w-4xl mx-auto rounded-3xl overflow-hidden border border-(--app-border) bg-(--app-card)"
           >
             <Image
               src="/atk.jpg"
               alt="Ассоциация туристов Казахстана"
               fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 768px"
+              quality={90}
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, 896px"
             />
           </motion.div>
         </div>
@@ -354,25 +354,21 @@ export default function AssociationPage() {
             Преимущество Ассоциации
           </motion.h2>
 
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div className="grid md:grid-cols-[1.5fr_1fr] gap-8 items-center">
             <motion.div
               initial={{ opacity: 0, x: -24 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative aspect-video rounded-3xl overflow-hidden border border-(--app-border) bg-(--app-card)"
+              className="relative aspect-[3/2] rounded-3xl overflow-hidden border border-(--app-border) bg-(--app-card)"
             >
               <Image
                 src="/preim.jpg"
                 alt="Преимущество Ассоциации"
                 fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
+                quality={90}
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 55vw"
               />
-              <div className="absolute inset-0 bg-linear-to-tr from-(--site-gradient-from)/30 via-transparent to-(--site-gradient-to)/30" />
-              <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 text-white text-sm font-semibold drop-shadow-lg">
-                <ArrowRight className="w-5 h-5 text-(--site-accent-bright)" />
-                Двигаемся вперёд вместе
-              </div>
             </motion.div>
 
             <div className="space-y-3">
@@ -413,6 +409,7 @@ export default function AssociationPage() {
                 src="/erkegali.jpeg"
                 alt="Жанғазы Еркеғали Жұмабайұлы"
                 fill
+                quality={90}
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 280px"
                 priority
@@ -540,6 +537,7 @@ export default function AssociationPage() {
               src="/atk2.jpg"
               alt="Члены Ассоциации туристов Казахстана"
               fill
+              quality={90}
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 768px"
             />

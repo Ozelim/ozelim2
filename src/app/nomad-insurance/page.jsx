@@ -172,6 +172,7 @@ export default function NomadInsurancePage() {
                 src="/nomad.jpg"
                 alt="Туристическое страхование Nomad Insurance"
                 fill
+                quality={90}
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 40vw"
               />
@@ -232,12 +233,13 @@ export default function NomadInsurancePage() {
             className="grid lg:grid-cols-[1fr_1.1fr] gap-10 items-center"
           >
             {/* Image */}
-            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60 order-2 lg:order-1">
+            <div className="relative aspect-video rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60 order-2 lg:order-1">
               <Image
                 src="/str.jpg"
                 alt="Параметры полиса"
                 fill
-                className="object-cover"
+                quality={90}
+                className="object-contain"
                 sizes="(max-width: 1024px) 100vw, 45vw"
               />
             </div>
@@ -388,13 +390,14 @@ export default function NomadInsurancePage() {
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="relative aspect-[3/4] lg:aspect-auto lg:h-full min-h-[320px] rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60"
+              className="relative aspect-video rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60"
             >
               <Image
                 src="/zvon.jpg"
                 alt="Звонок в страховую компанию"
                 fill
-                className="object-cover"
+                quality={90}
+                className="object-contain"
                 sizes="(max-width: 1024px) 100vw, 40vw"
               />
             </motion.div>

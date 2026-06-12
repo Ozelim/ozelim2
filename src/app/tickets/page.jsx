@@ -33,7 +33,7 @@ const ticketTypes = [
     subtitle: "По территории Республики Казахстан",
     desc: "Бронируем и оформляем ж/д билеты на все направления внутри Казахстана. Актуальное расписание, выбор вагонов и мест, быстрое оформление.",
     tag: "ЖД",
-    img: "/poezd.jpg",
+    img: "/poezd.webp",
   },
 ];
 
@@ -129,7 +129,8 @@ export default function TicketsPage() {
                 src="/tprkns.jpg"
                 alt="Авиа- и железнодорожные билеты"
                 fill
-                className="object-cover"
+                quality={90}
+                className="object-contain"
                 sizes="(max-width: 1024px) 100vw, 40vw"
               />
             </motion.div>
@@ -157,6 +158,7 @@ export default function TicketsPage() {
                     src={t.img}
                     alt={t.title}
                     fill
+                    quality={90}
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
@@ -243,14 +245,15 @@ export default function TicketsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60"
+              className="relative aspect-[4/3] w-full max-w-md mx-auto rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60"
             >
               <Image
                 src="/transavia.jpg"
                 alt="Логотип Transavia"
                 fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 55vw"
+                quality={90}
+                className="object-contain"
+                sizes="(max-width: 1024px) 100vw, 28rem"
               />
             </motion.div>
           </motion.div>
@@ -337,6 +340,7 @@ export default function TicketsPage() {
                 src="/knim.jpg"
                 alt="Карта направлений и маршрутов"
                 fill
+                quality={90}
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 55vw"
               />
