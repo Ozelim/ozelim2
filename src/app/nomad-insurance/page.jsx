@@ -368,6 +368,25 @@ export default function NomadInsurancePage() {
                   </motion.div>
                 ))}
               </div>
+            </div>
+
+            {/* Image + warning */}
+            <div className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="relative aspect-video rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60"
+              >
+                <Image
+                  src="/zvon.jpg"
+                  alt="Звонок в страховую компанию"
+                  fill
+                  quality={90}
+                  className="object-contain"
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                />
+              </motion.div>
 
               {/* Warning */}
               <motion.div
@@ -384,23 +403,6 @@ export default function NomadInsurancePage() {
                 </p>
               </motion.div>
             </div>
-
-            {/* Image */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="relative aspect-video rounded-3xl overflow-hidden border border-[#1a6b1a]/25 bg-[#061506]/60"
-            >
-              <Image
-                src="/zvon.jpg"
-                alt="Звонок в страховую компанию"
-                fill
-                quality={90}
-                className="object-contain"
-                sizes="(max-width: 1024px) 100vw, 40vw"
-              />
-            </motion.div>
           </motion.div>
         </div>
       </section>
