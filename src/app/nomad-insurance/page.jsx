@@ -99,7 +99,7 @@ const tourTypes = [
 const claimSteps = [
   {
     step: "01",
-    title: "Позвоните в ассистанскую компанию",
+    title: "Позвонить в страховую компанию",
     desc: "Свяжитесь по номеру, указанному в страховом полисе",
   },
   {
@@ -341,8 +341,8 @@ export default function NomadInsurancePage() {
                 className="text-3xl md:text-4xl font-bold text-app-fg mb-8"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
-                Что делать при страховом случае{" "}
-                <span className="text-gradient">за границей</span>
+                Что делать при{" "}
+                <span className="text-gradient">страховом случае</span>
               </h2>
 
               <div className="space-y-4 mb-8">
