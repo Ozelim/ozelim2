@@ -39,7 +39,7 @@ const conditions = [
   { label: "Страховое покрытие", value: "от 10 000 USD", icon: ShieldCheck },
   { label: "Срок действия", value: "Весь период поездки", icon: Clock },
   { label: "Возрастные ограничения", value: "Отсутствуют", icon: Users },
-  { label: "Территория действия", value: "Зависит от страны пребывания", icon: Globe },
+  { label: "Территория действия", value: "Весь Казахстан", icon: Globe },
   { label: "Тип страхования", value: "Медицинская страховка для туристов", icon: Stethoscope },
 ];
 

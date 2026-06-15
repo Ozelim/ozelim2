@@ -380,8 +380,9 @@ export default function EndowmentPage() {
               className="text-2xl md:text-3xl font-bold text-app-fg mb-6"
               style={{ fontFamily: "Cormorant Garamond, serif" }}
             >
-              Открыт сбор на социально значимый проект{" "}
-              <span className="text-gradient">«Цифровой ассистент Elim-AI»</span>
+              Открыт сбор на социально значимый проект
+              <br />
+              <span className="text-gradient whitespace-nowrap">«Цифровой ассистент Elim-AI»</span>
             </h3>
             <div className="grid md:grid-cols-2 gap-6 text-left">
               <div className="flex gap-4">

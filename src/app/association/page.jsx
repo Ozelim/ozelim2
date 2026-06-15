@@ -233,20 +233,6 @@ export default function AssociationPage() {
           >
             Ассоциация некоммерческая организация
           </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-(--app-subtle) text-base md:text-lg leading-relaxed"
-          >
-            «OzElim» — это платформа по формированию целевой аудитории потребителей
-            услуг в сфере туризма и путешествий. Основным преимуществом Ассоциации
-            является поддержка Эндаумент фонда. Фонд создан на территории МФЦА,
-            которая даёт широкую возможность как членам Ассоциации, так и потребителям
-            услуг в сфере внутреннего туризма.
-          </motion.p>
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
