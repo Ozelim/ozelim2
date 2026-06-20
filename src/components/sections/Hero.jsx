@@ -375,6 +375,31 @@ export default function Hero({ title, subtitle, highlight }) {
           </motion.h1>
 
           <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className="-mt-2 mb-6 italic text-white/75"
+            style={{
+              fontFamily: "Cormorant Garamond, serif",
+              fontSize: "clamp(1.5rem, 3.4vw, 2.4rem)",
+              lineHeight: 1.1,
+            }}
+          >
+            вместе с{" "}
+            <span
+              className="not-italic font-semibold"
+              style={{
+                background: "linear-gradient(135deg, #FFD700, #C8FF00)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              OzElim
+            </span>
+          </motion.p>
+
+          <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}

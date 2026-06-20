@@ -1082,11 +1082,8 @@ export default function TourClient({ tour }) {
                     </div>
                   </div>
                 </div>
-                {org.description && (
-                  <p className="text-app-subtle text-[13px] leading-relaxed mt-3 line-clamp-3">
-                    {org.description}
-                  </p>
-                )}
+                {/* Описание гида показываем только в админке (страница «Гиды»),
+                    на публичной странице тура его не выводим. */}
               </div>
             )}
 

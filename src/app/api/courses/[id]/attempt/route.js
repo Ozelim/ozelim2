@@ -66,8 +66,10 @@ export async function POST(request, { params }) {
       stored.push({ question_id: qid, selected: sel, correct, is_correct: isCorrect });
     }
 
-    const passed = score === total;
+    // Тест засчитан, если набрано не менее 70% правильных ответов.
+    const PASS_THRESHOLD = 0.7;
     const percent = total > 0 ? Math.round((score / total) * 100) : 0;
+    const passed = total > 0 && score / total >= PASS_THRESHOLD;
 
     const { data: ins, error: insErr } = await sb
       .from("course_attempts")

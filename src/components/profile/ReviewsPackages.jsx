@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Star, MessageSquare, Edit2, Trash2, Check, X, MapPin, ExternalLink, Clock, AlertCircle } from 'lucide-react'
+import { Star, MessageSquare, Edit2, Trash2, Check, MapPin, ExternalLink, Clock, AlertCircle } from 'lucide-react'
 import { Card, CardBody, Badge, Button, SectionHeader, EmptyState, Modal, Textarea, Toast, cn } from './ui'
 import { PACKAGE_FEATURES } from '../../lib/mockData'
 import Image from 'next/image'
@@ -67,12 +67,17 @@ function ReviewCard({ review, onEdit, onDelete }) {
               </div>
               <div className="flex gap-1.5 shrink-0 items-center">
                 {status && <Badge variant={status.variant}>{status.label}</Badge>}
-                <button onClick={() => onEdit(review)} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-(--profile-accent) hover:bg-(--profile-accent-soft) transition-all">
-                  <Edit2 className="w-3.5 h-3.5" />
-                </button>
-                <button onClick={() => onDelete(review.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-red-400 hover:bg-red-400/10 transition-all">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                {/* Опубликованный отзыв уже на сайте — править и удалять его нельзя. */}
+                {review.status !== 'visible' && (
+                  <>
+                    <button onClick={() => onEdit(review)} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-(--profile-accent) hover:bg-(--profile-accent-soft) transition-all">
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => onDelete(review.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-red-400 hover:bg-red-400/10 transition-all">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2 mb-2">
@@ -337,16 +342,19 @@ export function Reviews() {
 }
 
 // ─── PACKAGES ─────────────────────────────────────────────────────────────────
-const COMPARISON_FEATURES = [
-  { label: 'Участников', family: 'до 5', corporate: 'до 20', agent: '1 агент' },
-  { label: 'Скидка на туры', family: '15%', corporate: '20%', agent: 'B2B цены' },
-  { label: 'Реферальная программа', family: '—', corporate: '—', agent: '8% комиссия' },
-  { label: 'Приоритетная поддержка', family: '✓', corporate: '✓', agent: '✓' },
-  { label: 'Менеджер аккаунта', family: '—', corporate: '✓', agent: '—' },
-  { label: 'Корпоративные туры', family: '—', corporate: '✓', agent: '—' },
-]
+// Правила смены пакета (зеркалит сервер /api/package-applications):
+//   - нет пакета → доступны все;
+//   - family → можно только agent (corporate недоступен);
+//   - agent / corporate → финальные, ничего больше купить нельзя.
+function canApplyForPackage(current, target) {
+  if (!current) return true
+  if (current === target) return false
+  if (current === 'agent' || current === 'corporate') return false
+  if (current === 'family') return target === 'agent'
+  return true
+}
 
-function PackageCard({ pkgKey, info, isActive, pendingType, onApply, submitting }) {
+function PackageCard({ pkgKey, info, isActive, pendingType, activePackage, onApply, submitting }) {
   const colorMap = {
     emerald: { bg: 'from-emerald-500/10 to-emerald-500/5', border: 'border-emerald-500/25', text: 'text-emerald-400', btn: 'bg-emerald-500 text-white hover:bg-emerald-400' },
     blue:    { bg: 'from-blue-500/10 to-blue-500/5', border: 'border-blue-500/25', text: 'text-blue-400', btn: 'bg-blue-500 text-white hover:bg-blue-400' },
@@ -354,11 +362,13 @@ function PackageCard({ pkgKey, info, isActive, pendingType, onApply, submitting 
   }
   const c = colorMap[info.color]
   const isPending = pendingType === pkgKey
+  const blocked = !canApplyForPackage(activePackage, pkgKey)
 
   let label, disabled
   if (isActive) { label = 'Текущий пакет'; disabled = true }
   else if (isPending) { label = 'Заявка на проверке'; disabled = true }
   else if (pendingType) { label = 'У вас уже есть заявка'; disabled = true }
+  else if (blocked) { label = 'Недоступно'; disabled = true }
   else { label = submitting ? 'Отправляем…' : 'Отправить заявку'; disabled = !!submitting }
 
   return (
@@ -377,19 +387,48 @@ function PackageCard({ pkgKey, info, isActive, pendingType, onApply, submitting 
           <Badge variant="pending">На проверке</Badge>
         </div>
       )}
-      <div className="text-3xl">{info.icon}</div>
+      {/* Header */}
       <div>
-        <h3 className="text-app-fg dark:text-white font-bold text-xl mb-0.5" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{info.name}</h3>
-        <div className={cn('text-lg font-bold', c.text)}>{info.price}</div>
+        <div className="flex items-center gap-2 mb-0.5">
+          <span className="text-2xl leading-none">{info.icon}</span>
+          <h3 className="text-app-fg dark:text-white font-bold text-xl" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{info.name}</h3>
+        </div>
+        {info.subtitle && (
+          <div className={cn('text-sm font-semibold', c.text)}>{info.subtitle}</div>
+        )}
       </div>
+
+      {/* Features */}
       <ul className="space-y-1.5 flex-1">
         {info.features.map(f => (
-          <li key={f} className="flex items-center gap-2 text-sm text-app-subtle dark:text-white/60">
-            <Check className={cn('w-4 h-4 shrink-0', c.text)} />
+          <li key={f} className="flex items-start gap-2 text-sm text-app-subtle dark:text-white/60">
+            <Check className={cn('w-4 h-4 shrink-0 mt-0.5', c.text)} />
             {f}
           </li>
         ))}
       </ul>
+
+      {/* Реферальная программа (агент) */}
+      {info.referral && (
+        <div className={cn('rounded-xl border bg-white/5 dark:bg-white/5 p-3 flex items-start gap-3', c.border)}>
+          <div className={cn('shrink-0 rounded-lg px-2.5 py-1 text-base font-bold', c.btn)}>{info.referral.percent}</div>
+          <p className="text-xs text-app-subtle dark:text-white/60 leading-snug">{info.referral.text}</p>
+        </div>
+      )}
+
+      {/* Годовая подписка + подвал */}
+      <div>
+        <div className="text-center text-app-faint dark:text-white/40 text-xs mb-2">Годовая подписка</div>
+        {info.footer && (
+          <div className="flex flex-col gap-1.5">
+            {[info.footer.people, info.footer.price, info.footer.discount].map((cell, i) => (
+              <div key={i} className={cn('rounded-lg px-3 py-2 text-center text-sm font-semibold leading-tight', c.btn)}>
+                {cell}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <button
         onClick={() => onApply(pkgKey)}
         className={cn(
@@ -498,44 +537,13 @@ export function PackagesSection({ user }) {
             info={info}
             isActive={activePackage === key}
             pendingType={pending?.type ?? null}
+            activePackage={activePackage}
             onApply={apply}
             submitting={submitting || loading}
           />
         ))}
       </div>
 
-      {/* Comparison table */}
-      <div>
-        <h3 className="text-white/50 text-xs uppercase tracking-widest mb-4">Сравнение пакетов</h3>
-        <div className="rounded-2xl border border-[#1a6b1a]/20 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[#1a6b1a]/20 bg-[#0a2a0a]/60">
-                  <th className="text-left px-4 py-3 text-white/40 font-medium text-xs uppercase tracking-wide w-1/2">Возможность</th>
-                  <th className="text-center px-4 py-3 text-emerald-400 font-medium text-xs">👨‍👩‍👧‍👦 Семейный</th>
-                  <th className="text-center px-4 py-3 text-blue-400 font-medium text-xs">🏢 Корпоративный</th>
-                  <th className="text-center px-4 py-3 text-amber-400 font-medium text-xs">🤝 Агентский</th>
-                </tr>
-              </thead>
-              <tbody>
-                {COMPARISON_FEATURES.map((row, i) => (
-                  <tr key={row.label} className={cn('border-b border-[#1a6b1a]/10', i % 2 === 0 ? 'bg-transparent' : 'bg-[#0a2a0a]/20')}>
-                    <td className="px-4 py-3 text-white/60">{row.label}</td>
-                    {[row.family, row.corporate, row.agent].map((val, j) => (
-                      <td key={j} className="px-4 py-3 text-center">
-                        {val === '✓' ? <Check className="w-4 h-4 text-emerald-400 mx-auto" />
-                          : val === '—' ? <X className="w-4 h-4 text-white/20 mx-auto" />
-                          : <span className="text-white/70 text-xs">{val}</span>}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

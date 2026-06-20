@@ -25,6 +25,9 @@ import {
 
 // view: "list" | "course" | "test" | "result"
 
+// Проходной балл теста — должен совпадать с сервером (см. /api/courses/[id]/attempt).
+const PASS_PERCENT = 70;
+
 function youtubeEmbed(url) {
   if (!url) return null;
   try {
@@ -207,7 +210,7 @@ function CourseDetail({ course, onBack, onStartTest }) {
                   Тест по курсу
                 </div>
                 <div className="text-app-faint dark:text-white/35 text-xs mt-0.5">
-                  {course.questions.length} вопрос. Пройдите, чтобы получить результат.
+                  {course.questions.length} вопрос. Проходной балл — {PASS_PERCENT}%.
                 </div>
               </div>
               <Button onClick={onStartTest}>
@@ -373,8 +376,8 @@ function ResultView({ course, result, onBackToCourse, onRetry, onBackToList }) {
             </Badge>
             <p className="text-app-subtle dark:text-white/45 text-sm text-center max-w-md">
               {passed
-                ? "Поздравляем — вы ответили правильно на все вопросы."
-                : "Не страшно: повторите материал и попробуйте ещё раз."}
+                ? `Поздравляем — тест сдан! Проходной балл — ${PASS_PERCENT}%.`
+                : `Нужно набрать не менее ${PASS_PERCENT}%. Повторите материал и попробуйте ещё раз.`}
             </p>
           </div>
 

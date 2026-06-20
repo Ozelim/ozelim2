@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import sb from "@/lib/supabase";
 
 const MAX_ADULTS = 2;
-const MAX_CHILDREN = 3;
+const MAX_CHILDREN = 7;
 
 function serialize(row) {
   return {

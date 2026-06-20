@@ -16,9 +16,11 @@ export async function GET() {
   try {
     const [history, current] = await Promise.all([
       pool.query(
+        // Только начисления в бонусный карман. Реф-бонусы, начисленные в баланс
+        // (target='balance'), сюда не попадают — они меняют деньги, не бонусы.
         `SELECT id, amount, type, reason, created_at
          FROM bonus_history
-         WHERE user_id = $1
+         WHERE user_id = $1 AND target = 'bonus'
          ORDER BY created_at DESC
          LIMIT 100`,
         [user.id],

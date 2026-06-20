@@ -4,6 +4,10 @@ import { UserPlus, Trash2, Users, Check, BarChart2, User, Baby } from 'lucide-re
 import { Card, CardBody, Button, Input, Select, Badge, Modal, SectionHeader, Avatar, EmptyState, cn, Toast } from './ui'
 
 // ─── FAMILY PACKAGE ───────────────────────────────────────────────────────────
+// Лимиты семейного пакета (зеркалит /api/family).
+const MAX_ADULTS = 2;
+const MAX_CHILDREN = 7;
+
 export function FamilySection() {
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -40,16 +44,16 @@ export function FamilySection() {
 
   const adults = members.filter(m => m.type === 'adult')
   const children = members.filter(m => m.type === 'child')
-  const canAddAdult = adults.length < 2
-  const canAddChild = children.length < 3
+  const canAddAdult = adults.length < MAX_ADULTS
+  const canAddChild = children.length < MAX_CHILDREN
 
   function validate() {
     const e = {}
     if (!form.name.trim()) e.name = 'Введите имя'
     const ageNum = Number(form.age)
     if (!form.age || isNaN(ageNum) || ageNum < 0 || ageNum >= 150) e.age = 'Введите корректный возраст'
-    if (form.type === 'adult' && !canAddAdult) e.type = 'Максимум 2 взрослых'
-    if (form.type === 'child' && !canAddChild) e.type = 'Максимум 3 детей'
+    if (form.type === 'adult' && !canAddAdult) e.type = `Максимум ${MAX_ADULTS} взрослых`
+    if (form.type === 'child' && !canAddChild) e.type = `Максимум ${MAX_CHILDREN} детей`
     return e
   }
 
@@ -109,7 +113,7 @@ export function FamilySection() {
     <div className="space-y-5">
       <SectionHeader
         title="Семья"
-        subtitle="До 2 взрослых и 3 детей"
+        subtitle={`До ${MAX_ADULTS} взрослых и ${MAX_CHILDREN} детей`}
         action={
           <Button
             variant="primary"
@@ -156,13 +160,13 @@ export function FamilySection() {
             </div>
             <div>
               <div className="text-app-fg dark:text-white font-bold text-xl" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
-                {children.length} / 3
+                {children.length} / {MAX_CHILDREN}
               </div>
               <div className="text-app-subtle dark:text-white/40 text-xs">Детей</div>
             </div>
           </div>
           <div className="mt-3 h-1 rounded-full bg-[#1a6b1a]/20 overflow-hidden">
-            <div className="h-full rounded-full bg-pink-400 transition-all" style={{ width: `${(children.length / 3) * 100}%` }} />
+            <div className="h-full rounded-full bg-pink-400 transition-all" style={{ width: `${(children.length / MAX_CHILDREN) * 100}%` }} />
           </div>
         </Card>
       </div>
@@ -187,7 +191,7 @@ export function FamilySection() {
           return (
             <div key={type}>
               <div className="text-app-subtle dark:text-white/40 text-xs uppercase tracking-widest mb-3">
-                {type === 'adult' ? `Взрослые (${group.length}/2)` : `Дети (${group.length}/3)`}
+                {type === 'adult' ? `Взрослые (${group.length}/${MAX_ADULTS})` : `Дети (${group.length}/${MAX_CHILDREN})`}
               </div>
               <div className="space-y-2">
                 {group.map(member => {

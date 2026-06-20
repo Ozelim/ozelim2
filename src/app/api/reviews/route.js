@@ -227,6 +227,21 @@ export async function PATCH(request) {
 
     if (!id) return NextResponse.json({ error: "id обязателен" }, { status: 400 });
 
+    // Опубликованный (visible) отзыв править нельзя — он уже на сайте.
+    const { data: current } = await sb
+      .from("reviews")
+      .select("id, status")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!current) return NextResponse.json({ error: "Отзыв не найден" }, { status: 404 });
+    if (current.status === "visible") {
+      return NextResponse.json(
+        { error: "Опубликованный отзыв нельзя редактировать" },
+        { status: 409 },
+      );
+    }
+
     const patch = { status: "pending", rejection_reason: null };
     if (rating != null) {
       if (rating < 1 || rating > 5) {
@@ -287,6 +302,21 @@ export async function DELETE(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "id обязателен" }, { status: 400 });
+
+    // Опубликованный (visible) отзыв удалять нельзя.
+    const { data: current } = await sb
+      .from("reviews")
+      .select("id, status")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!current) return NextResponse.json({ error: "Отзыв не найден" }, { status: 404 });
+    if (current.status === "visible") {
+      return NextResponse.json(
+        { error: "Опубликованный отзыв нельзя удалить" },
+        { status: 409 },
+      );
+    }
 
     const { error } = await sb
       .from("reviews")

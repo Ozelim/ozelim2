@@ -26,14 +26,28 @@ export async function POST(request) {
     return NextResponse.json({ error: "Неизвестный тип пакета" }, { status: 400 });
   }
 
-  // Уже активен этот же пакет?
+  // Текущий пакет + правила смены:
+  //   - agent / corporate — финальные, сменить нельзя (никакой другой не купить);
+  //   - family — можно перейти только на agent (corporate недоступен);
+  //   - без пакета — доступны все.
   const { rows: userRows } = await pool.query(
     `SELECT pocket_type FROM users WHERE id = $1`,
     [user.id],
   );
-  if (userRows[0]?.pocket_type === type) {
+  const current = userRows[0]?.pocket_type ?? null;
+
+  if (current === type) {
+    return NextResponse.json({ error: "Этот пакет уже активен" }, { status: 409 });
+  }
+  if (current === "agent" || current === "corporate") {
     return NextResponse.json(
-      { error: "Этот пакет уже активен" },
+      { error: "Ваш пакет нельзя сменить или дополнить" },
+      { status: 409 },
+    );
+  }
+  if (current === "family" && type === "corporate") {
+    return NextResponse.json(
+      { error: "С семейного пакета доступен только агентский" },
       { status: 409 },
     );
   }
