@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { Input } from "../ui/input";
 import { useCurrentUser } from "@/lib/use-current-user";
+import { partnerView, normalizePct } from "@/lib/partner-pricing";
 
 function fullName(u) {
   if (!u) return "";
@@ -284,6 +285,10 @@ export function TourSelectionDialog() {
     }
     return sum;
   }, [selectedServiceIds, services, adultsCount, childrenCount]);
+
+  // Партнёрская скидка берётся с выбранного направления и применяется к итогу.
+  const partnerPct = normalizePct(selectedDirection?.partner_discount_pct);
+  const totalView = partnerView({ price: totalPrice, pct: partnerPct, loggedIn: !!user });
 
   const canProceed = (() => {
     switch (currentKey) {
@@ -735,14 +740,28 @@ export function TourSelectionDialog() {
                       })
                     )}
                   </div>
-                  <div className="flex items-center justify-between rounded-2xl border border-(--site-accent)/40 bg-linear-to-br from-(--site-gradient-from)/10 to-(--site-gradient-to)/5 px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Wallet className="w-4 h-4 text-(--site-accent-bright)" />
-                      <span className="text-sm font-semibold text-(--app-fg)">Итого</span>
+                  <div className="rounded-2xl border border-(--site-accent)/40 bg-linear-to-br from-(--site-gradient-from)/10 to-(--site-gradient-to)/5 px-4 py-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="w-4 h-4 text-(--site-accent-bright)" />
+                        <span className="text-sm font-semibold text-(--app-fg)">Итого</span>
+                      </div>
+                      <span className="flex items-baseline gap-2">
+                        {totalView.mode === "discounted" && (
+                          <span className="text-sm text-(--app-faint) line-through">
+                            {formatPrice(totalView.was)} ₸
+                          </span>
+                        )}
+                        <span className="text-lg font-bold text-(--app-fg)">
+                          {formatPrice(totalView.mode === "discounted" ? totalView.now : totalPrice)} ₸
+                        </span>
+                      </span>
                     </div>
-                    <span className="text-lg font-bold text-(--app-fg)">
-                      {formatPrice(totalPrice)} ₸
-                    </span>
+                    {(totalView.mode === "discounted" || totalView.mode === "teaser") && (
+                      <div className="mt-1.5 text-right text-[11px] font-medium text-amber-500">
+                        −{totalView.pct}% для партнёров OzElim
+                      </div>
+                    )}
                   </div>
                   <p className="text-xl font-semibold text-(--site-accent-bright) text-center leading-snug">
                     Расчёт: {adultsCount} взр. × цена + {childrenCount} реб. × цена

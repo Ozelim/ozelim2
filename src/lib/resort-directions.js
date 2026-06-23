@@ -7,14 +7,14 @@ const DIRECTION_COLUMNS = `
   id, name, sort_order, image_url, region, lat, lng,
   description_short, description_full,
   best_month_from, best_month_to,
-  price_adults, price_kids, price_youth,
+  price_adults, price_kids, price_youth, partner_discount_pct,
   published, created_at, updated_at
 `;
 
 export async function listDirections() {
   const { data } = await sb
     .from("resort_directions")
-    .select("id, name, sort_order")
+    .select("id, name, sort_order, partner_discount_pct")
     .order("sort_order")
     .order("name");
   return data ?? [];
@@ -43,6 +43,7 @@ function mapToCard(d) {
     city: d.region || "",
     short: d.description_short || "",
     price: Number(d.price_adults) || 0,
+    partnerDiscountPct: d.partner_discount_pct ?? null,
     group: "",
   };
 }
@@ -82,7 +83,7 @@ export async function getDirectionById(id) {
 export async function listToursForDirection(directionId, limit = 6) {
   const { data } = await sb
     .from("tours")
-    .select("id, title, country, city, group_min, group_max, price, gallery, hot")
+    .select("id, title, country, city, group_min, group_max, price, price_adult, partner_discount_pct, gallery, hot")
     .eq("direction_id", directionId)
     .eq("status", "approved")
     .is("deleted_at", null)

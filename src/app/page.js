@@ -3,7 +3,9 @@ export const dynamic = 'force-dynamic';
 import Hero from "@/components/sections/Hero";
 import KurortCards from "@/components/sections/KurortCards";
 import TourTabs from "@/components/sections/TourTabs";
+import HomePackages from "@/components/sections/HomePackages";
 import WhyUs from "@/components/sections/WhyUs";
+import { getCurrentUser } from "@/lib/auth";
 import Carousel1 from "@/components/sections/Carousel1";
 import Carousel2 from "@/components/sections/Carousel2";
 import NewsBlock from "@/components/sections/NewsBlock";
@@ -16,12 +18,13 @@ import { getMainPageStats } from "@/lib/stats";
 import { getHomeGallery } from "@/lib/home-gallery";
 
 export default async function HomePage() {
-  const [news, directions, tours, pageStats, homeGallery] = await Promise.all([
+  const [news, directions, tours, pageStats, homeGallery, currentUser] = await Promise.all([
     getLatestNews(5),
     listPublishedDirections(12),
     getLatestTours(9, { random: true }),
     getMainPageStats(),
     getHomeGallery(),
+    getCurrentUser(),
   ]);
 
   return (
@@ -62,6 +65,9 @@ export default async function HomePage() {
       <WhyUs stats={pageStats} />
 
       <Accordion />
+
+      <HomePackages isAuthed={!!currentUser} />
+
       <MarqueeTicker />
       <Footer />
     </main>

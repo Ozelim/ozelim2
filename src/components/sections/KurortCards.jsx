@@ -4,6 +4,7 @@ import { MapPin, Users, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import FavoriteButton from '@/components/favorite/FavoriteButton'
+import PartnerPrice from '@/components/PartnerPrice'
 
 export default function KurortCards({ items = [] }) {
   const kurorts = items;
@@ -92,9 +93,11 @@ export default function KurortCards({ items = [] }) {
                     {kurort.price ? (
                       <div>
                         <div className="text-white/40 text-xs">от</div>
-                        <div className="text-(--site-accent) font-bold text-xl">
-                          {Number(kurort.price).toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₸
-                        </div>
+                        <PartnerPrice
+                          price={kurort.price}
+                          pct={kurort.partnerDiscountPct}
+                          className="text-(--site-accent) font-bold text-xl"
+                        />
                       </div>
                     ) : <div />}
                     <motion.button

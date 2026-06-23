@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getDirectionById, listToursForDirection } from "@/lib/resort-directions";
+import { getCurrentUser } from "@/lib/auth";
 import DirectionClient from "./DirectionClient";
 
 export async function generateMetadata({ params }) {
@@ -18,6 +19,7 @@ export default async function Page({ params }) {
   if (!direction) notFound();
 
   const tours = await listToursForDirection(direction.id, 6);
+  const viewer = await getCurrentUser().catch(() => null);
 
-  return <DirectionClient direction={direction} tours={tours} />;
+  return <DirectionClient direction={direction} tours={tours} loggedIn={!!viewer} />;
 }

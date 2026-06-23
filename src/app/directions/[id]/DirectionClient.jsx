@@ -19,6 +19,7 @@ import {
 import Footer, { MarqueeTicker } from "@/components/sections/Footer";
 import { RequestFormDialog } from "@/components/request-form/request-form";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
+import { partnerView } from "@/lib/partner-pricing";
 
 const MONTH_LABELS = [
   "Янв", "Фев", "Мар", "Апр", "Май", "Июн",
@@ -28,6 +29,25 @@ const MONTH_LABELS = [
 function formatPrice(p) {
   if (!p) return null;
   return Number(p).toLocaleString("ru-RU") + " ₸";
+}
+
+// Строка цены с учётом партнёрской скидки. Видимость уже посчитана на сервере
+// (loggedIn), поэтому мерцания нет. valueClass — размер/цвет основной суммы.
+function PriceRow({ label, price, pct, loggedIn, valueClass }) {
+  if (!price) return null;
+  const view = partnerView({ price, pct, loggedIn });
+  const main = view.mode === "discounted" ? view.now : price;
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <span className="text-white/70 text-sm">{label}</span>
+      <span className="flex items-baseline gap-2 text-right">
+        {view.mode === "discounted" && (
+          <span className="text-white/40 text-sm line-through">{formatPrice(view.was)}</span>
+        )}
+        <span className={valueClass}>{formatPrice(main)}</span>
+      </span>
+    </div>
+  );
 }
 
 function seasonLabel(from, to) {
@@ -143,7 +163,7 @@ function PhotoCarousel({ images, alt }) {
   );
 }
 
-export default function DirectionClient({ direction, tours }) {
+export default function DirectionClient({ direction, tours, loggedIn = false }) {
   const season = seasonLabel(direction.best_month_from, direction.best_month_to);
 
   // Direction carousel images: основное фото + первые фото туров этого направления
@@ -222,25 +242,17 @@ export default function DirectionClient({ direction, tours }) {
             <div className="rounded-2xl border border-(--site-accent)/30 bg-[#0a2a0a]/50 p-6">
               <h2 className="text-(--site-accent) text-xs uppercase tracking-widest mb-4">Стоимость от</h2>
               <div className="space-y-2 text-white">
-                {direction.price_adults && (
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-white/70 text-sm">Взрослые</span>
-                    <span className="text-2xl font-bold text-(--site-accent)">{formatPrice(direction.price_adults)}</span>
-                  </div>
-                )}
-                {direction.price_youth && (
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-white/70 text-sm">Молодёжь</span>
-                    <span className="text-xl font-semibold">{formatPrice(direction.price_youth)}</span>
-                  </div>
-                )}
-                {direction.price_kids && (
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-white/70 text-sm">Дети</span>
-                    <span className="text-xl font-semibold">{formatPrice(direction.price_kids)}</span>
-                  </div>
-                )}
+                <PriceRow label="Взрослые" price={direction.price_adults} pct={direction.partner_discount_pct} loggedIn={loggedIn} valueClass="text-2xl font-bold text-(--site-accent)" />
+                <PriceRow label="Молодёжь" price={direction.price_youth} pct={direction.partner_discount_pct} loggedIn={loggedIn} valueClass="text-xl font-semibold" />
+                <PriceRow label="Дети" price={direction.price_kids} pct={direction.partner_discount_pct} loggedIn={loggedIn} valueClass="text-xl font-semibold" />
               </div>
+              {direction.partner_discount_pct && (
+                <div className="mt-3 inline-block rounded-full bg-amber-500/15 text-amber-300 text-[11px] font-medium px-2.5 py-1">
+                  {loggedIn
+                    ? `Цена партнёра: −${direction.partner_discount_pct}%`
+                    : `−${direction.partner_discount_pct}% для партнёров OzElim`}
+                </div>
+              )}
             </div>
           )}
 
@@ -371,11 +383,23 @@ export default function DirectionClient({ direction, tours }) {
                           <MapPin className="w-3 h-3" /> {t.city}
                         </p>
                       )}
-                      {t.price && (
-                        <div className="text-(--site-accent) text-lg font-bold pt-1">
-                          от {formatPrice(t.price)}
-                        </div>
-                      )}
+                      {(t.price_adult ?? t.price) && (() => {
+                        const tv = partnerView({ price: t.price_adult ?? t.price, pct: t.partner_discount_pct, loggedIn });
+                        const main = tv.mode === "discounted" ? tv.now : (t.price_adult ?? t.price);
+                        return (
+                          <div className="pt-1">
+                            <div className="text-(--site-accent) text-lg font-bold">
+                              от {formatPrice(main)}
+                              {tv.mode === "discounted" && (
+                                <span className="ml-2 text-white/40 text-sm font-normal line-through">{formatPrice(tv.was)}</span>
+                              )}
+                            </div>
+                            {(tv.mode === "discounted" || tv.mode === "teaser") && (
+                              <span className="text-[11px] font-medium text-amber-300">−{tv.pct}% для партнёров</span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                     </Link>
                   </div>

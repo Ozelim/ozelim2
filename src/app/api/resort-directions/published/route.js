@@ -9,7 +9,7 @@ export async function GET() {
     const { data, error } = await sb
       .from("resort_directions")
       .select(
-        "id, name, region, lat, lng, image_url, description_short, price_adults, best_month_from, best_month_to, sort_order"
+        "id, name, region, lat, lng, image_url, description_short, price_adults, partner_discount_pct, best_month_from, best_month_to, sort_order"
       )
       .eq("published", true)
       .order("sort_order")

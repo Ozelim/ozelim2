@@ -37,7 +37,7 @@ export async function getLatestTours(limit = 6, { random = false } = {}) {
   const { data } = await sb
     .from("tours")
     .select(
-      "id, title, country, city, days, duration_min_days, duration_max_days, group_min, group_max, price, price_adult, gallery, hot, is_popular, popular_order, hotel_class, season_from, season_to, created_at, resort_directions(name)",
+      "id, title, country, city, days, duration_min_days, duration_max_days, group_min, group_max, price, price_adult, partner_discount_pct, gallery, hot, is_popular, popular_order, hotel_class, season_from, season_to, created_at, resort_directions(name)",
     )
     .eq("status", "approved")
     .is("deleted_at", null)
@@ -68,6 +68,8 @@ export async function getLatestTours(limit = 6, { random = false } = {}) {
       duration: formatDuration(r),
       group: formatGroup(r.group_min, r.group_max),
       price: priceValue != null ? formatPrice(priceValue) : null,
+      priceRaw: priceValue != null ? Number(priceValue) : null,
+      partnerDiscountPct: r.partner_discount_pct ?? null,
       hot: r.hot ?? false,
       seasonFrom: r.season_from ?? null,
       seasonTo: r.season_to ?? null,

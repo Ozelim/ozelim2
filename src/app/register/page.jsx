@@ -45,10 +45,10 @@ function InputField({ label, type: initialType, id, value, onChange, icon: Icon,
   );
 }
 
-function GoogleButton() {
+function GoogleButton({ next = "/" }) {
   return (
     <a
-      href="/api/auth/google?next=/"
+      href={`/api/auth/google?next=${encodeURIComponent(next)}`}
       className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl border border-(--app-border) bg-(--app-input-bg) text-(--app-fg) font-semibold text-sm hover:border-(--site-accent)/60 transition-colors"
     >
       <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
@@ -80,6 +80,9 @@ function writeRefCookie(code) {
 function RegisterPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Куда вернуть после регистрации (например, /profile?tab=packages с главной).
+  const nextRaw = searchParams.get("next") || "/";
+  const safeNext = nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/";
   const [form, setForm] = useState({ name: "", surname: "", email: "", password: "", confirm: "" });
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
@@ -192,7 +195,7 @@ function RegisterPageInner() {
         return;
       }
       try { localStorage.removeItem("ref_code"); } catch {}
-      router.push("/");
+      router.push(safeNext);
     } finally {
       setVerifying(false);
     }
@@ -485,12 +488,12 @@ function RegisterPageInner() {
             <div className="h-px flex-1 bg-(--app-border)" />
           </div>
 
-          <GoogleButton />
+          <GoogleButton next={safeNext} />
 
           <p className="mt-6 text-center text-sm text-(--app-subtle)">
             Уже есть аккаунт?{" "}
             <Link
-              href="/login"
+              href={`/login?next=${encodeURIComponent(safeNext)}`}
               className="text-(--site-accent) font-semibold hover:underline underline-offset-2 transition-colors"
             >
               Войти

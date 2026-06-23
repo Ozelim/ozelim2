@@ -24,6 +24,7 @@ import { usePathname } from "next/navigation";
 import { TourSelectionDialog } from "../tour-selection/tour-selection";
 import { RequestFormDialog } from "../request-form/request-form";
 import FavoriteButton from "../favorite/FavoriteButton";
+import PartnerPrice from "@/components/PartnerPrice";
 
 // ─── Service tiles ────────────────────────────────────────────────────────────
 const TILES = [
@@ -101,9 +102,11 @@ function PopularTourCard({ tour, i }) {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-white/40 text-xs">от</div>
-            <div className="text-(--site-accent) font-bold text-xl">
-              {price != null ? Number(price).toLocaleString("ru-RU") : "—"} ₸
-            </div>
+            <PartnerPrice
+              price={price}
+              pct={tour.partner_discount_pct}
+              className="text-(--site-accent) font-bold text-xl"
+            />
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}

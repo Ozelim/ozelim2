@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import sb from "@/lib/supabase";
+import { getCurrentUser } from "@/lib/auth";
 import TourClient from "./TourClient";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +29,9 @@ export default async function TourPage({ params }) {
     .is("deleted_at", null)
     .single();
   if (error || !tour) notFound();
+
+  // Партнёрскую видимость считаем на сервере → на детальной странице нет мерцания.
+  const viewer = await getCurrentUser().catch(() => null);
 
   // Resolve accommodation_slugs + meal_plan from lookup tables in parallel.
   const [accommodationsRes, mealPlanRes, reviewsRes] = await Promise.all([
@@ -65,5 +69,5 @@ export default async function TourPage({ params }) {
     }),
   };
 
-  return <TourClient tour={enriched} />;
+  return <TourClient tour={enriched} loggedIn={!!viewer} />;
 }

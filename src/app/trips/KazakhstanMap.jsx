@@ -20,6 +20,8 @@ import Image from "next/image";
 import Link from "next/link";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
 import { isTourBurning } from "@/lib/utils";
+import { useCurrentUser } from "@/lib/use-current-user";
+import { partnerView } from "@/lib/partner-pricing";
 
 const KZ_REGIONS = [
   { name: "Абайская", coords: [48.5, 80.0] },
@@ -117,6 +119,7 @@ function toItem(kind, raw) {
       image: raw.image_url || PLACEHOLDER_IMG,
       description: raw.description_short || "",
       price: raw.price_adults != null ? Number(raw.price_adults) : null,
+      partnerDiscountPct: raw.partner_discount_pct ?? null,
       popular: false,
       hot: false,
       tags: [],
@@ -144,6 +147,7 @@ function toItem(kind, raw) {
         : raw.price != null
           ? Number(raw.price)
           : null,
+    partnerDiscountPct: raw.partner_discount_pct ?? null,
     popular: !!raw.is_popular,
     hot: !!raw.hot,
     burning: isTourBurning(raw.season_from, raw.season_to),
@@ -263,6 +267,7 @@ function ItemCarousel({ images, accent }) {
 // CARD
 // ─────────────────────────────────────────────────────────────────────────────
 function ItemCard({ item, isSelected, onClick, animIdx }) {
+  const { user, loading } = useCurrentUser();
   const isTour = item.kind === "tour";
   const accent = isTour ? TOUR_COLOR : DIRECTION_COLOR;
   const accentSoft = isTour ? "rgba(34,197,94,0.18)" : "rgba(251,191,36,0.18)";
@@ -337,14 +342,28 @@ function ItemCard({ item, isSelected, onClick, animIdx }) {
         </div>
 
         <div className="shrink-0">
-          {item.price != null && (
-            <div className="mb-1 flex items-baseline gap-1.5">
-              <span className="text-[10px] text-primary-foreground/55">цена от</span>
-              <span className="text-sm font-bold" style={{ color: accent }}>
-                {Number(item.price).toLocaleString()} ₸
-              </span>
-            </div>
-          )}
+          {item.price != null && (() => {
+            const pv = partnerView({ price: item.price, pct: item.partnerDiscountPct, loggedIn: !!user, loading });
+            const main = pv.mode === "discounted" ? pv.now : item.price;
+            return (
+              <div className="mb-1">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[10px] text-primary-foreground/55">цена от</span>
+                  <span className="text-sm font-bold" style={{ color: accent }}>
+                    {Number(main).toLocaleString()} ₸
+                  </span>
+                  {pv.mode === "discounted" && (
+                    <span className="text-[10px] text-primary-foreground/45 line-through">
+                      {Number(pv.was).toLocaleString()} ₸
+                    </span>
+                  )}
+                </div>
+                {(pv.mode === "discounted" || pv.mode === "teaser") && (
+                  <span className="text-[9px] font-medium text-amber-300">−{pv.pct}% партнёрам</span>
+                )}
+              </div>
+            );
+          })()}
 
           <div className="flex items-center gap-2 mt-1">
             <Link

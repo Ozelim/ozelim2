@@ -78,7 +78,7 @@ export default function WhyUs({ stats: initialData } = {}) {
 
   const stats = buildStats(statsData)
   return (
-    <section className="py-28 px-6">
+    <section className="pt-12 pb-28 px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -86,7 +86,7 @@ export default function WhyUs({ stats: initialData } = {}) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="text-center mb-20"
+          className="text-center mb-10"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-(--site-accent)/20 bg-(--site-accent)/5 text-(--site-accent) text-xs uppercase tracking-widest mb-6">
             <Star className="w-3 h-3" /> Почему выбирают нас

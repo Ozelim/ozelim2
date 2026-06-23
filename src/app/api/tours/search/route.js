@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 const TOUR_COLUMNS = `
   id, title, subtitle, country, region, city, location,
   lat, lng, days, nights, hotel_class, rating, hot, is_popular,
-  price, price_adult, price_child,
+  price, price_adult, price_child, partner_discount_pct,
   duration_min_days, duration_max_days,
   season_from, season_to,
   description, gallery, direction_id,

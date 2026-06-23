@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import FavoriteButton from '@/components/favorite/FavoriteButton'
 import { isTourBurning } from '@/lib/utils'
+import PartnerPrice from '@/components/PartnerPrice'
 
 function TourCard({ tour, i }) {
   const burning = isTourBurning(tour.seasonFrom, tour.seasonTo)
@@ -85,7 +86,11 @@ function TourCard({ tour, i }) {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-white/40 text-xs">от</div>
-            <div className="text-(--site-accent) font-bold text-xl">{tour.price ? `${tour.price} ₸` : "—"}</div>
+            <PartnerPrice
+              price={tour.priceRaw}
+              pct={tour.partnerDiscountPct}
+              className="text-(--site-accent) font-bold text-xl"
+            />
           </div>
           <motion.span
             whileHover={{ scale: 1.05 }}

@@ -46,6 +46,7 @@ import Footer from "@/components/sections/Footer";
 import { RequestFormDialog } from "@/components/request-form/request-form";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
 import { isTourBurning } from "@/lib/utils";
+import { partnerView } from "@/lib/partner-pricing";
 
 const ICON_MAP = {
   Sunrise, Bus, TreePine, Mountain, Waves, Compass, Tent, Coffee, Utensils, Bed,
@@ -918,7 +919,7 @@ function TourTabsSection({ tour, itinerary, reviews }) {
 
 // ─── Main Client Component ─────────────────────────────────────────────────────
 
-export default function TourClient({ tour }) {
+export default function TourClient({ tour, loggedIn = false }) {
   const gallery = useMemo(() => normalizeGallery(tour.gallery), [tour.gallery]);
   const itinerary = Array.isArray(tour.itinerary) ? tour.itinerary.filter(Boolean) : [];
   const includes = Array.isArray(tour.includes) ? tour.includes.filter(Boolean) : [];
@@ -947,6 +948,9 @@ export default function TourClient({ tour }) {
     : Number(tour.rating) || 0;
   const price = tour.price_adult ?? tour.price;
   const priceChild = tour.price_child;
+  // Партнёрская скидка: видимость посчитана на сервере (loggedIn), без мерцания.
+  const partnerPrice = partnerView({ price, pct: tour.partner_discount_pct, loggedIn });
+  const partnerPriceChild = partnerView({ price: priceChild, pct: tour.partner_discount_pct, loggedIn });
   const locationParts = [tour.city, tour.region, tour.country, direction?.region].filter(Boolean);
   const location = locationParts.length
     ? [...new Set(locationParts)].join(", ")
@@ -1092,14 +1096,26 @@ export default function TourClient({ tour }) {
               <div className="flex items-end justify-between gap-3 mb-3">
                 <div>
                   <div className="text-app-faint text-[11px] uppercase tracking-wider">Стоимость от</div>
-                  <div
-                    className="text-3xl font-bold text-(--site-accent) leading-tight"
-                    style={{ fontFamily: "Cormorant Garamond, serif" }}
-                  >
-                    {Number(price || 0).toLocaleString("ru-RU")} ₸
+                  <div className="flex items-baseline gap-2">
+                    <div
+                      className="text-3xl font-bold text-(--site-accent) leading-tight"
+                      style={{ fontFamily: "Cormorant Garamond, serif" }}
+                    >
+                      {Number((partnerPrice.mode === "discounted" ? partnerPrice.now : price) || 0).toLocaleString("ru-RU")} ₸
+                    </div>
+                    {partnerPrice.mode === "discounted" && (
+                      <span className="text-app-faint text-base line-through">
+                        {Number(partnerPrice.was).toLocaleString("ru-RU")} ₸
+                      </span>
+                    )}
                   </div>
+                  {(partnerPrice.mode === "discounted" || partnerPrice.mode === "teaser") && (
+                    <div className="mt-1 inline-block rounded-full bg-amber-100 text-amber-700 text-[11px] font-medium px-2 py-0.5">
+                      −{partnerPrice.pct}% для партнёров OzElim
+                    </div>
+                  )}
                   <div className="text-app-faint text-[11px] mt-0.5">
-                    за взрослого{priceChild ? ` · детский ${Number(priceChild).toLocaleString("ru-RU")} ₸` : ""}
+                    за взрослого{priceChild ? ` · детский ${Number((partnerPriceChild.mode === "discounted" ? partnerPriceChild.now : priceChild)).toLocaleString("ru-RU")} ₸` : ""}
                   </div>
                 </div>
               </div>

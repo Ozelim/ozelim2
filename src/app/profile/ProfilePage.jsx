@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -279,6 +279,15 @@ export default function ProfilePage({ dbUser }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const nav = buildNav(user.pocket_type);
+
+  // Deep-link: /profile?tab=packages открывает нужную вкладку (например, при
+  // переходе с главной страницы из блока пакетов).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    if (tab && nav.some((n) => n.id === tab)) setActiveSection(tab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const currentNavItem = nav.find((n) => n.id === activeSection);
 
   function navigate(sectionId) {
