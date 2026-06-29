@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
@@ -33,6 +33,17 @@ export default function Carousel1({ items }) {
     setDir(next > current ? 1 : -1)
     setCurrent((next + slides.length) % slides.length)
   }
+
+  // Автопрокрутка каждые 6 секунд. Пауза, когда открыт лайтбокс. Сброс таймера
+  // на каждой смене слайда — чтобы после ручного клика снова шло 6 секунд.
+  useEffect(() => {
+    if (lightboxOpen || slides.length <= 1) return
+    const t = setInterval(() => {
+      setDir(1)
+      setCurrent((c) => (c + 1) % slides.length)
+    }, 6000)
+    return () => clearInterval(t)
+  }, [current, lightboxOpen, slides.length])
 
   return (
     <div className="relative rounded-3xl overflow-hidden h-[500px] group media-contrast">

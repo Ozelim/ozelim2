@@ -20,6 +20,7 @@ import {
 } from "./ui";
 import Image from "next/image";
 import Link from "next/link";
+import { KIND_LABELS, STATUS_META, LeadTarget, LeadDetails } from "./leadDisplay";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const FALLBACK_IMG =
@@ -39,33 +40,9 @@ function formatDate(iso) {
 }
 
 // ─── REQUESTS HISTORY ─────────────────────────────────────────────────────────
-const KIND_LABELS = {
-  tour_request: "Заявка на тур",
-  tour_calculator: "Расчёт тура",
-  tour_booking: "Бронирование тура",
-  endowment: "Эндаумент",
-  legal_consult: "Юр. консультация",
-  insurance_request: "Страхование",
-  tickets_request: "Билеты",
-  kids_go_free: "Kids Go Free",
-};
-
-const STATUS_META = {
-  new: { label: "Новая", variant: "pending" },
-  in_progress: { label: "В работе", variant: "active" },
-  done: { label: "Обработана", variant: "completed" },
-  rejected: { label: "Отклонена", variant: "danger" },
-};
-
 function RequestRow({ lead }) {
   const kindLabel = KIND_LABELS[lead.kind] || lead.kind;
   const status = STATUS_META[lead.status] || { label: lead.status, variant: "default" };
-  const targetName = lead.tour_title || lead.direction_title || null;
-  const targetHref = lead.tour_id
-    ? `/tours/${lead.tour_id}`
-    : lead.resort_direction_id
-    ? `/directions/${lead.resort_direction_id}`
-    : null;
 
   return (
     <Card>
@@ -80,24 +57,12 @@ function RequestRow({ lead }) {
             </div>
             <Badge variant={status.variant}>{status.label}</Badge>
           </div>
-          {targetName && (
-            <div className="text-app-subtle dark:text-white/55 text-sm flex items-center gap-1 mb-1">
-              <MapPin className="w-3 h-3 shrink-0" />
-              <span className="truncate">{targetName}</span>
-              {targetHref && (
-                <Link
-                  href={targetHref}
-                  className="ml-1 text-app-faint hover:text-(--profile-accent)"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                </Link>
-              )}
-            </div>
-          )}
+          <div className="mb-1"><LeadTarget lead={lead} /></div>
           <div className="text-app-faint dark:text-white/35 text-xs flex items-center gap-1">
             <Calendar className="w-3 h-3" />
             {formatDate(lead.created_at)}
           </div>
+          <LeadDetails lead={lead} />
         </div>
       </CardBody>
     </Card>

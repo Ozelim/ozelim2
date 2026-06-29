@@ -20,6 +20,8 @@ import Footer, { MarqueeTicker } from "@/components/sections/Footer";
 import { RequestFormDialog } from "@/components/request-form/request-form";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
 import { partnerView } from "@/lib/partner-pricing";
+import { childDiscountedPrice, childGroupLabel } from "@/lib/child-discounts";
+import { fmtNum } from "@/lib/format-price";
 
 const MONTH_LABELS = [
   "Янв", "Фев", "Мар", "Апр", "Май", "Июн",
@@ -28,7 +30,7 @@ const MONTH_LABELS = [
 
 function formatPrice(p) {
   if (!p) return null;
-  return Number(p).toLocaleString("ru-RU") + " ₸";
+  return fmtNum(p) + " ₸";
 }
 
 // Строка цены с учётом партнёрской скидки. Видимость уже посчитана на сервере
@@ -242,15 +244,33 @@ export default function DirectionClient({ direction, tours, loggedIn = false }) 
             <div className="rounded-2xl border border-(--site-accent)/30 bg-[#0a2a0a]/50 p-6">
               <h2 className="text-(--site-accent) text-xs uppercase tracking-widest mb-4">Стоимость от</h2>
               <div className="space-y-2 text-white">
+                {/* Партнёрская скидка — только на взрослых. */}
                 <PriceRow label="Взрослые" price={direction.price_adults} pct={direction.partner_discount_pct} loggedIn={loggedIn} valueClass="text-2xl font-bold text-(--site-accent)" />
-                <PriceRow label="Молодёжь" price={direction.price_youth} pct={direction.partner_discount_pct} loggedIn={loggedIn} valueClass="text-xl font-semibold" />
-                <PriceRow label="Дети" price={direction.price_kids} pct={direction.partner_discount_pct} loggedIn={loggedIn} valueClass="text-xl font-semibold" />
+                <PriceRow label="Молодёжь" price={direction.price_youth} pct={null} loggedIn={loggedIn} valueClass="text-xl font-semibold" />
+                <PriceRow label="Дети" price={direction.price_kids} pct={null} loggedIn={loggedIn} valueClass="text-xl font-semibold" />
               </div>
               {direction.partner_discount_pct && (
                 <div className="mt-3 inline-block rounded-full bg-amber-500/15 text-amber-300 text-[11px] font-medium px-2.5 py-1">
                   {loggedIn
-                    ? `Цена партнёра: −${direction.partner_discount_pct}%`
-                    : `−${direction.partner_discount_pct}% для партнёров OzElim`}
+                    ? `Цена взрослых партнёра: −${direction.partner_discount_pct}%`
+                    : `−${direction.partner_discount_pct}% для партнёров OzElim (на взрослых)`}
+                </div>
+              )}
+              {/* Детские скидки по возрасту. */}
+              {Array.isArray(direction.child_discounts) && direction.child_discounts.length > 0 && direction.price_kids != null && (
+                <div className="mt-4 pt-3 border-t border-white/10 space-y-1.5">
+                  <p className="text-white/50 text-[11px] uppercase tracking-wider">Скидки для детей</p>
+                  {direction.child_discounts.map((g, i) => {
+                    const fp = childDiscountedPrice(direction.price_kids, g.discount);
+                    return (
+                      <div key={i} className="flex items-center justify-between gap-2 text-sm">
+                        <span className="text-white/70">{childGroupLabel(g)}</span>
+                        <span className="font-semibold text-(--site-accent)">
+                          {g.discount === "free" ? "Бесплатно" : `${fmtNum(fp)} ₸`}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

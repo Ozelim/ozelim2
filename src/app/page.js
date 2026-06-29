@@ -16,15 +16,17 @@ import { listPublishedDirections } from "@/lib/resort-directions";
 import { getLatestTours } from "@/lib/tours";
 import { getMainPageStats } from "@/lib/stats";
 import { getHomeGallery } from "@/lib/home-gallery";
+import { getPackagePrices } from "@/lib/package-prices";
 
 export default async function HomePage() {
-  const [news, directions, tours, pageStats, homeGallery, currentUser] = await Promise.all([
+  const [news, directions, tours, pageStats, homeGallery, currentUser, packagePrices] = await Promise.all([
     getLatestNews(5),
     listPublishedDirections(12),
     getLatestTours(9, { random: true }),
     getMainPageStats(),
     getHomeGallery(),
     getCurrentUser(),
+    getPackagePrices(),
   ]);
 
   return (
@@ -66,7 +68,7 @@ export default async function HomePage() {
 
       <Accordion />
 
-      <HomePackages isAuthed={!!currentUser} />
+      <HomePackages isAuthed={!!currentUser} prices={packagePrices} />
 
       <MarqueeTicker />
       <Footer />

@@ -10,7 +10,6 @@ import {
   Users,
   Building2,
   LogOut,
-  Mountain,
   ChevronRight,
   Menu,
   X,
@@ -37,6 +36,7 @@ import { BalanceSection } from "../../components/profile/BalanceSection";
 import { ReferralsSection } from "../../components/profile/ReferralsSection";
 import { CoursesSection } from "../../components/profile/CoursesSection";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
@@ -203,16 +203,20 @@ function MobileHeader({ currentLabel, onMenuToggle, menuOpen }) {
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-app-border bg-app-surface-deep/95 backdrop-blur-md sticky top-0 z-30 lg:hidden">
       <div className="flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-full bg-linear-to-br from-(--profile-gradient-from) to-(--profile-gradient-to) flex items-center justify-center shrink-0">
-          <Mountain className="w-3.5 h-3.5 text-(--profile-on-accent)" />
-        </div>
+        <Link href="/" aria-label="На главную" className="shrink-0">
+          <div className="w-8 h-8 rounded-full bg-linear-to-br from-(--profile-gradient-from) to-(--profile-gradient-to) flex items-center justify-center overflow-hidden">
+            <Image src="/logo-light.svg" alt="OzElim" width={28} height={28} className="w-7 h-7 block dark:hidden" />
+            <Image src="/logo.svg" alt="OzElim" width={28} height={28} className="w-7 h-7 hidden dark:block" />
+          </div>
+        </Link>
         <div>
-          <div
-            className="text-app-fg text-sm font-semibold leading-tight"
+          <Link
+            href="/"
+            className="text-app-fg text-sm font-semibold leading-tight block"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
             OzElim
-          </div>
+          </Link>
           <div className="text-app-faint text-[10px] uppercase tracking-wider dark:text-white/35">
             {currentLabel}
           </div>
@@ -349,19 +353,19 @@ export default function ProfilePage({ dbUser }) {
         <div className="flex-1 overflow-y-auto min-w-0">
           {/* Desktop page header */}
           <div className="hidden lg:flex items-center justify-between px-8 py-4 border-b border-app-border bg-app-bg/80 backdrop-blur-sm sticky top-0 z-20">
-            {/* Logo */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-linear-to-br from-(--profile-gradient-from) to-(--profile-gradient-to) flex items-center justify-center">
-                <Mountain className="w-3.5 h-3.5 text-(--profile-on-accent)" />
+            {/* Logo → на главную */}
+            <Link href="/" className="flex items-center gap-2.5 group" aria-label="На главную">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-(--profile-gradient-from) to-(--profile-gradient-to) flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
+                <Image src="/logo-light.svg" alt="OzElim" width={28} height={28} className="w-7 h-7 block dark:hidden" />
+                <Image src="/logo.svg" alt="OzElim" width={28} height={28} className="w-7 h-7 hidden dark:block" />
               </div>
-              <Link
-                href="/"
+              <span
                 className="text-app-muted text-sm font-medium"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
                 Oz<span className="text-(--profile-accent)">Elim</span>
-              </Link>
-            </div>
+              </span>
+            </Link>
             <ThemeToggle />
           </div>
 

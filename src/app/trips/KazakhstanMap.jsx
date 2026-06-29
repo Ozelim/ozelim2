@@ -22,6 +22,7 @@ import FavoriteButton from "@/components/favorite/FavoriteButton";
 import { isTourBurning } from "@/lib/utils";
 import { useCurrentUser } from "@/lib/use-current-user";
 import { partnerView } from "@/lib/partner-pricing";
+import { fmtNum } from "@/lib/format-price";
 
 const KZ_REGIONS = [
   { name: "Абайская", coords: [48.5, 80.0] },
@@ -350,11 +351,11 @@ function ItemCard({ item, isSelected, onClick, animIdx }) {
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-[10px] text-primary-foreground/55">цена от</span>
                   <span className="text-sm font-bold" style={{ color: accent }}>
-                    {Number(main).toLocaleString()} ₸
+                    {fmtNum(main)} ₸
                   </span>
                   {pv.mode === "discounted" && (
                     <span className="text-[10px] text-primary-foreground/45 line-through">
-                      {Number(pv.was).toLocaleString()} ₸
+                      {fmtNum(pv.was)} ₸
                     </span>
                   )}
                 </div>

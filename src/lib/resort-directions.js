@@ -7,7 +7,7 @@ const DIRECTION_COLUMNS = `
   id, name, sort_order, image_url, region, lat, lng,
   description_short, description_full,
   best_month_from, best_month_to,
-  price_adults, price_kids, price_youth, partner_discount_pct,
+  price_adults, price_kids, price_youth, partner_discount_pct, child_discounts,
   published, created_at, updated_at
 `;
 

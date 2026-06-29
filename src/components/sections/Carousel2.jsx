@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import ImageLightbox from "@/components/lightbox/ImageLightbox";
@@ -43,6 +43,15 @@ export default function Carousel2({ items: itemsProp }) {
   const items = Array.isArray(itemsProp) && itemsProp.length > 0 ? itemsProp : FALLBACK_ITEMS;
   const [current, setCurrent] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  // Автопрокрутка каждые 6 секунд, пауза при открытом лайтбоксе.
+  useEffect(() => {
+    if (lightboxOpen || items.length <= 1) return;
+    const t = setInterval(() => {
+      setCurrent((c) => (c + 1) % items.length);
+    }, 6000);
+    return () => clearInterval(t);
+  }, [current, lightboxOpen, items.length]);
 
   return (
     <div className="relative rounded-3xl overflow-hidden">

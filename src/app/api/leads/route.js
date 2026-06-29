@@ -108,14 +108,12 @@ export async function POST(request) {
       let lines = [];
       if (tourId) {
         const { rows: pr } = await pool.query(
-          `SELECT price_adult, price_child, partner_discount_pct FROM tours WHERE id = $1`,
+          `SELECT price_adult, partner_discount_pct FROM tours WHERE id = $1`,
           [tourId],
         );
         snapPct = pr[0]?.partner_discount_pct ?? null;
-        lines = [
-          { label: "Взрослый", price: pr[0]?.price_adult },
-          { label: "Детский", price: pr[0]?.price_child },
-        ];
+        // Партнёрская скидка действует только на взрослых.
+        lines = [{ label: "Взрослый", price: pr[0]?.price_adult }];
       } else if (resortDirectionId) {
         const { rows: dr } = await pool.query(
           `SELECT partner_discount_pct, price_adults, price_kids, price_youth
@@ -126,11 +124,8 @@ export async function POST(request) {
         if (kind === "tour_calculator") {
           lines = [{ label: "Итого", price: calculatorBaseTotal(data) }];
         } else {
-          lines = [
-            { label: "Взрослые", price: dr[0]?.price_adults },
-            { label: "Молодёжь", price: dr[0]?.price_youth },
-            { label: "Дети", price: dr[0]?.price_kids },
-          ];
+          // Партнёрская скидка действует только на взрослых.
+          lines = [{ label: "Взрослые", price: dr[0]?.price_adults }];
         }
       }
       data.partner = partnerSnapshot({ lines, pct: snapPct, user });

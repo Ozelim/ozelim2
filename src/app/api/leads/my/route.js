@@ -27,11 +27,20 @@ export async function GET(request) {
          l.created_at,
          l.tour_id,
          l.resort_direction_id,
+         l.resort_base_id,
+         l.name,
+         l.phone,
+         l.email,
+         l.contact_method,
+         l.message,
+         l.data,
          t.title AS tour_title,
-         d.name  AS direction_title
+         d.name  AS direction_title,
+         b.name  AS base_title
        FROM leads l
        LEFT JOIN tours t ON t.id = l.tour_id
        LEFT JOIN resort_directions d ON d.id = l.resort_direction_id
+       LEFT JOIN resort_bases b ON b.id = l.resort_base_id
        WHERE l.user_id = $1
        ORDER BY l.created_at DESC
        LIMIT $2`,

@@ -4,24 +4,7 @@ import { ClipboardList, Heart, MessageSquare, Star, ChevronRight, Zap, Calendar,
 import { Card, CardBody, Avatar, Badge, Button, StatCard } from './ui'
 import { PACKAGE_FEATURES } from '../../lib/mockData'
 import Link from 'next/link'
-
-const KIND_LABELS = {
-  tour_request: 'Заявка на тур',
-  tour_calculator: 'Расчёт тура',
-  tour_booking: 'Бронирование тура',
-  endowment: 'Эндаумент',
-  legal_consult: 'Юр. консультация',
-  insurance_request: 'Страхование',
-  tickets_request: 'Билеты',
-  kids_go_free: 'Kids Go Free',
-}
-
-const STATUS_META = {
-  new: { label: 'Новая', variant: 'pending' },
-  in_progress: { label: 'В работе', variant: 'active' },
-  closed: { label: 'Закрыта', variant: 'completed' },
-  rejected: { label: 'Отклонена', variant: 'danger' },
-}
+import { KIND_LABELS, STATUS_META, LeadTarget, LeadDetails } from './leadDisplay'
 
 function fullName(user) {
   return [user.name, user.surname].filter(Boolean).join(' ') || user.email || '—'
@@ -77,36 +60,26 @@ function ActivePackageBadge({ pkg }) {
 function RecentLeadRow({ lead }) {
   const kindLabel = KIND_LABELS[lead.kind] || lead.kind
   const status = STATUS_META[lead.status] || { label: lead.status, variant: 'default' }
-  const targetName = lead.tour_title || lead.direction_title
-  const href = lead.tour_id
-    ? `/tours/${lead.tour_id}`
-    : lead.resort_direction_id
-    ? `/directions/${lead.resort_direction_id}`
-    : null
 
-  const Row = (
-    <div className="flex items-center gap-3 p-3 rounded-xl border border-app-border bg-app-card/70 dark:bg-[#0a2a0a]/40 hover:border-(--profile-accent)/40 transition-colors group">
+  return (
+    <div className="flex items-start gap-3 p-3 rounded-xl border border-app-border bg-app-card/70 dark:bg-[#0a2a0a]/40 hover:border-(--profile-accent)/40 transition-colors group">
       <div className="w-10 h-10 rounded-xl bg-(--profile-accent-soft) border border-(--profile-accent-border) flex items-center justify-center shrink-0">
         <ClipboardList className="w-4 h-4 text-(--profile-accent)" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-app-fg dark:text-white font-medium text-sm truncate">{kindLabel}</div>
+        <div className="flex items-start justify-between gap-2">
+          <div className="text-app-fg dark:text-white font-medium text-sm truncate">{kindLabel}</div>
+          <Badge variant={status.variant}>{status.label}</Badge>
+        </div>
         <div className="flex items-center gap-2 mt-0.5">
-          {targetName && (
-            <span className="text-app-subtle dark:text-white/45 text-xs truncate flex items-center gap-1">
-              <MapPin className="w-3 h-3 shrink-0" />
-              {targetName}
-            </span>
-          )}
+          <LeadTarget lead={lead} />
           <Calendar className="w-3 h-3 text-app-faint dark:text-white/30 shrink-0" />
           <span className="text-app-faint dark:text-white/40 text-xs">{formatDate(lead.created_at)}</span>
         </div>
+        <LeadDetails lead={lead} />
       </div>
-      <Badge variant={status.variant}>{status.label}</Badge>
     </div>
   )
-
-  return href ? <Link href={href}>{Row}</Link> : Row
 }
 
 export function Dashboard({ user, onNavigate }) {

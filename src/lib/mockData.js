@@ -54,7 +54,7 @@ export const PACKAGE_FEATURES = {
     icon: '🏢',
     color: 'blue',
     subtitle: '«Все включено»',
-    price: '199 990 ₸',
+    price: '200 000 ₸',
     features: [
       'Трансфер',
       'Проживание и питание',
@@ -66,7 +66,7 @@ export const PACKAGE_FEATURES = {
     ],
     footer: {
       people: 'От 20 человек',
-      price: '199 990 ₸',
+      price: '200 000 ₸',
       discount: 'Скидки на туры до 30%',
     },
   },

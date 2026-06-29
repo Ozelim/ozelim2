@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Check, Gift, ArrowRight } from "lucide-react";
 import { PACKAGE_FEATURES } from "@/lib/mockData";
+import { fmtPrice as formatPackagePrice } from "@/lib/format-price";
 
 // Цветовые акценты пакетов под тёмную тему главной.
 const COLORS = {
@@ -15,8 +16,9 @@ const COLORS = {
 // Куда ведёт кнопка пакета — вкладка «Пакеты» в профиле.
 const DEST = "/profile?tab=packages";
 
-function PackageCard({ info, color, onChoose }) {
+function PackageCard({ info, color, onChoose, priceLabel }) {
   const c = COLORS[color] ?? COLORS.emerald;
+  const footerPrice = priceLabel ?? info.footer?.price;
   return (
     <div className="flex flex-col gap-4 rounded-3xl border border-[#1a6b1a]/25 bg-[#0a2a0a]/40 p-6 hover:border-(--site-accent)/30 transition-colors duration-300">
       {/* Header */}
@@ -56,7 +58,7 @@ function PackageCard({ info, color, onChoose }) {
         <div className="text-center text-white/40 text-xs mb-2">Годовая подписка</div>
         {info.footer && (
           <div className="flex flex-col gap-1.5">
-            {[info.footer.people, info.footer.price, info.footer.discount].map((cell, i) => (
+            {[info.footer.people, footerPrice, info.footer.discount].map((cell, i) => (
               <div key={i} className={`rounded-lg px-3 py-2 text-center text-sm font-semibold leading-tight ${c.cell}`}>
                 {cell}
               </div>
@@ -77,7 +79,7 @@ function PackageCard({ info, color, onChoose }) {
   );
 }
 
-export default function HomePackages({ isAuthed = false }) {
+export default function HomePackages({ isAuthed = false, prices = null }) {
   const router = useRouter();
 
   // Залогинен → сразу в профиль на вкладку пакетов.
@@ -110,7 +112,13 @@ export default function HomePackages({ isAuthed = false }) {
           className="grid md:grid-cols-3 gap-6"
         >
           {entries.map(([key, info]) => (
-            <PackageCard key={key} info={info} color={info.color} onChoose={choose} />
+            <PackageCard
+              key={key}
+              info={info}
+              color={info.color}
+              onChoose={choose}
+              priceLabel={prices?.[key] != null ? formatPackagePrice(prices[key]) : undefined}
+            />
           ))}
         </motion.div>
       </div>

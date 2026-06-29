@@ -10,8 +10,9 @@
 
 import { useCurrentUser } from "@/lib/use-current-user";
 import { partnerView } from "@/lib/partner-pricing";
+import { fmtNum } from "@/lib/format-price";
 
-const fmt = (n) => Number(n || 0).toLocaleString("ru-RU");
+const fmt = (n) => fmtNum(n);
 
 export default function PartnerPrice({
   price,

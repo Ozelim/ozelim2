@@ -38,6 +38,7 @@ import {
 import { Input } from "../ui/input";
 import { useCurrentUser } from "@/lib/use-current-user";
 import { partnerView, normalizePct } from "@/lib/partner-pricing";
+import { fmtNum } from "@/lib/format-price";
 
 function fullName(u) {
   if (!u) return "";
@@ -131,7 +132,7 @@ function OptionCard({ selected, onClick, children }) {
 }
 
 function formatPrice(value) {
-  return Number(value || 0).toLocaleString("ru-RU");
+  return fmtNum(value);
 }
 
 export function TourSelectionDialog() {
@@ -144,7 +145,7 @@ export function TourSelectionDialog() {
   const [childrenCount, setChildrenCount] = React.useState(0);
   const [selectedTimeframe, setSelectedTimeframe] = React.useState("");
   const [tourDuration, setTourDuration] = React.useState(3);
-  const [selectedContact, setSelectedContact] = React.useState("");
+  const [selectedContact, setSelectedContact] = React.useState("wa");
   const [name, setName] = React.useState("");
   const [phone, setPhone] = React.useState("");
 
@@ -256,7 +257,7 @@ export function TourSelectionDialog() {
         keys.push("services");
       }
     }
-    keys.push("contactMethod", "contacts");
+    keys.push("contacts");
     return keys;
   }, [selectedDirection, selectedBase, bases.length, services.length]);
 
@@ -298,8 +299,7 @@ export function TourSelectionDialog() {
       case "direction": return Boolean(selectedDirection);
       case "base": return Boolean(selectedBase);
       case "services": return true;
-      case "contactMethod": return Boolean(selectedContact);
-      case "contacts": return Boolean(name && phone);
+      case "contacts": return Boolean(name && phone && selectedContact);
       default: return false;
     }
   })();
@@ -315,7 +315,7 @@ export function TourSelectionDialog() {
     setSelectedDirection(null);
     setSelectedBase(null);
     setSelectedServiceIds([]);
-    setSelectedContact("");
+    setSelectedContact("wa");
     setName("");
     setPhone("");
     setSubmitting(false);
@@ -394,7 +394,6 @@ export function TourSelectionDialog() {
     direction: "Курортное направление",
     base: "Курортная база",
     services: "Выбор услуг",
-    contactMethod: "Способ связи",
     contacts: "Ваши контакты",
   };
 
@@ -545,23 +544,35 @@ export function TourSelectionDialog() {
 
               {currentKey === "duration" && (
                 <div className="space-y-6">
-                  <div className="text-center">
-                    <span className="text-6xl font-bold bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) bg-clip-text text-transparent">
-                      {tourDuration}
-                    </span>
-                    <span className="text-(--app-subtle) text-lg ml-2">
-                      {dayWord(tourDuration)}
-                    </span>
+                  <div className="flex items-center justify-center gap-6">
+                    <button
+                      type="button"
+                      onClick={() => setTourDuration(Math.max(2, tourDuration - 1))}
+                      disabled={tourDuration <= 2}
+                      className="w-11 h-11 rounded-full border border-(--app-border) text-(--app-fg) flex items-center justify-center disabled:opacity-30 hover:border-(--site-accent)/60 transition-colors"
+                    >
+                      <Minus className="w-5 h-5" />
+                    </button>
+                    <div className="text-center">
+                      <span className="text-6xl font-bold bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) bg-clip-text text-transparent">
+                        {tourDuration}
+                      </span>
+                      <span className="text-(--app-subtle) text-lg ml-2">
+                        {dayWord(tourDuration)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTourDuration(Math.min(7, tourDuration + 1))}
+                      disabled={tourDuration >= 7}
+                      className="w-11 h-11 rounded-full border border-(--app-border) text-(--app-fg) flex items-center justify-center disabled:opacity-30 hover:border-(--site-accent)/60 transition-colors"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
                   </div>
-                  <CounterRow
-                    icon={Clock}
-                    label="Количество дней"
-                    hint="от 2 до 7 дней"
-                    value={tourDuration}
-                    onChange={setTourDuration}
-                    min={2}
-                    max={7}
-                  />
+                  <div className="w-full text-center text-sm text-(--app-subtle) px-4 py-3 rounded-2xl border border-(--app-border) bg-(--app-panel)">
+                    Укажите количество дней для тура, от 2 до 7 дней
+                  </div>
                   <div className="grid grid-cols-6 gap-2">
                     {[2, 3, 4, 5, 6, 7].map((d) => (
                       <button
@@ -769,31 +780,22 @@ export function TourSelectionDialog() {
                 </div>
               )}
 
-              {currentKey === "contactMethod" && (
-                <div className="grid grid-cols-2 gap-3">
-                  {contacts.map((c) => (
-                    <OptionCard
-                      key={c.id}
-                      selected={selectedContact === c.id}
-                      onClick={() => {
-                        setSelectedContact(c.id);
-                        autoNext();
-                      }}
-                    >
-                      <span className="flex flex-col items-center gap-3 py-4">
-                        <c.icon className="w-8 h-8 text-(--site-accent-bright)" />
-                        <span className="text-sm font-semibold text-(--app-fg)">{c.label}</span>
-                      </span>
-                    </OptionCard>
-                  ))}
-                </div>
-              )}
-
               {currentKey === "contacts" && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-(--app-subtle) uppercase tracking-wider">
-                      Номер телефона
+                      Ваше имя
+                    </label>
+                    <Input
+                      placeholder="Введите имя"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="bg-(--app-panel) border-(--app-border) text-(--app-fg) placeholder:text-(--app-faint) rounded-xl h-12 focus-visible:ring-(--site-accent)/50 focus-visible:border-(--site-accent)"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-(--app-subtle) uppercase tracking-wider">
+                      Телефон / WhatsApp
                     </label>
                     <Input
                       type="tel"
@@ -805,14 +807,22 @@ export function TourSelectionDialog() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-(--app-subtle) uppercase tracking-wider">
-                      Ваше имя
+                      Удобный способ связи
                     </label>
-                    <Input
-                      placeholder="Введите имя"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="bg-(--app-panel) border-(--app-border) text-(--app-fg) placeholder:text-(--app-faint) rounded-xl h-12 focus-visible:ring-(--site-accent)/50 focus-visible:border-(--site-accent)"
-                    />
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {contacts.map((c) => (
+                        <OptionCard
+                          key={c.id}
+                          selected={selectedContact === c.id}
+                          onClick={() => setSelectedContact(c.id)}
+                        >
+                          <span className="flex items-center gap-2">
+                            <c.icon className="w-4 h-4 text-(--site-accent-bright)" />
+                            <span className="text-sm font-semibold text-(--app-fg)">{c.label}</span>
+                          </span>
+                        </OptionCard>
+                      ))}
+                    </div>
                   </div>
                   <p className="text-xs text-(--app-faint)">
                     Нажимая кнопку, вы соглашаетесь с обработкой персональных данных

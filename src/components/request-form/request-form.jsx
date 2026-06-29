@@ -593,25 +593,37 @@ export function RequestFormDialog({
 
               {step === 4 && (
                 <div className="space-y-6">
-                  <div className="text-center">
-                    <span className="text-6xl font-bold bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) bg-clip-text text-transparent">
-                      {duration}
-                    </span>
-                    <span className="text-(--app-subtle) text-lg ml-2">
-                      {dayWord(duration)}
-                    </span>
+                  <div className="flex items-center justify-center gap-6">
+                    <button
+                      type="button"
+                      onClick={() => setDuration(Math.max(1, duration - 1))}
+                      disabled={duration <= 1}
+                      className="w-11 h-11 rounded-full border border-(--app-border) text-(--app-fg) flex items-center justify-center disabled:opacity-30 hover:border-(--site-accent)/60 transition-colors"
+                    >
+                      <Minus className="w-5 h-5" />
+                    </button>
+                    <div className="text-center">
+                      <span className="text-6xl font-bold bg-linear-to-br from-(--site-gradient-from) to-(--site-gradient-to) bg-clip-text text-transparent">
+                        {duration}
+                      </span>
+                      <span className="text-(--app-subtle) text-lg ml-2">
+                        {dayWord(duration)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setDuration(Math.min(10, duration + 1))}
+                      disabled={duration >= 10}
+                      className="w-11 h-11 rounded-full border border-(--app-border) text-(--app-fg) flex items-center justify-center disabled:opacity-30 hover:border-(--site-accent)/60 transition-colors"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
                   </div>
-                  <CounterRow
-                    icon={Clock}
-                    label="Количество дней"
-                    hint="от 1 до 10 дней"
-                    value={duration}
-                    onChange={setDuration}
-                    min={1}
-                    max={10}
-                  />
+                  <div className="w-full text-center text-sm text-(--app-subtle) px-4 py-3 rounded-2xl border border-(--app-border) bg-(--app-panel)">
+                    Укажите количество дней для тура, от 1 до 10 дней
+                  </div>
                   <div className="grid grid-cols-5 gap-2">
-                    {[1, 3, 5, 7, 10].map((d) => (
+                    {[2, 3, 5, 7, 10].map((d) => (
                       <button
                         key={d}
                         type="button"

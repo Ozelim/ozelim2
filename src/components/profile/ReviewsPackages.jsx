@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { Star, MessageSquare, Edit2, Trash2, Check, MapPin, ExternalLink, Clock, AlertCircle } from 'lucide-react'
 import { Card, CardBody, Badge, Button, SectionHeader, EmptyState, Modal, Textarea, Toast, cn } from './ui'
 import { PACKAGE_FEATURES } from '../../lib/mockData'
+import { fmtPrice } from '../../lib/format-price'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -354,7 +355,8 @@ function canApplyForPackage(current, target) {
   return true
 }
 
-function PackageCard({ pkgKey, info, isActive, pendingType, activePackage, onApply, submitting }) {
+function PackageCard({ pkgKey, info, isActive, pendingType, activePackage, onApply, submitting, priceLabel }) {
+  const footerPrice = priceLabel ?? info.footer?.price;
   const colorMap = {
     emerald: { bg: 'from-emerald-500/10 to-emerald-500/5', border: 'border-emerald-500/25', text: 'text-emerald-400', btn: 'bg-emerald-500 text-white hover:bg-emerald-400' },
     blue:    { bg: 'from-blue-500/10 to-blue-500/5', border: 'border-blue-500/25', text: 'text-blue-400', btn: 'bg-blue-500 text-white hover:bg-blue-400' },
@@ -421,7 +423,7 @@ function PackageCard({ pkgKey, info, isActive, pendingType, activePackage, onApp
         <div className="text-center text-app-faint dark:text-white/40 text-xs mb-2">Годовая подписка</div>
         {info.footer && (
           <div className="flex flex-col gap-1.5">
-            {[info.footer.people, info.footer.price, info.footer.discount].map((cell, i) => (
+            {[info.footer.people, footerPrice, info.footer.discount].map((cell, i) => (
               <div key={i} className={cn('rounded-lg px-3 py-2 text-center text-sm font-semibold leading-tight', c.btn)}>
                 {cell}
               </div>
@@ -449,6 +451,7 @@ export function PackagesSection({ user }) {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState(null)
+  const [prices, setPrices] = useState(null) // { family, agent, corporate } | null
 
   function showToast(message, type = 'success') {
     setToast({ message, type })
@@ -465,8 +468,15 @@ export function PackagesSection({ user }) {
       })
       .catch(() => {})
       .finally(() => alive && setLoading(false))
+    fetch('/api/package-prices', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => { if (alive) setPrices(data.prices ?? null) })
+      .catch(() => {})
     return () => { alive = false }
   }, [])
+
+  const priceLabel = (key) =>
+    prices?.[key] != null ? fmtPrice(prices[key]) : undefined
 
   async function apply(pkgKey) {
     if (submitting) return
@@ -540,6 +550,7 @@ export function PackagesSection({ user }) {
             activePackage={activePackage}
             onApply={apply}
             submitting={submitting || loading}
+            priceLabel={priceLabel(key)}
           />
         ))}
       </div>

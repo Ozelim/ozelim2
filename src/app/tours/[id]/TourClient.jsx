@@ -47,6 +47,8 @@ import { RequestFormDialog } from "@/components/request-form/request-form";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
 import { isTourBurning } from "@/lib/utils";
 import { partnerView } from "@/lib/partner-pricing";
+import { childDiscountedPrice, childGroupLabel } from "@/lib/child-discounts";
+import { fmtNum } from "@/lib/format-price";
 
 const ICON_MAP = {
   Sunrise, Bus, TreePine, Mountain, Waves, Compass, Tent, Coffee, Utensils, Bed,
@@ -948,9 +950,10 @@ export default function TourClient({ tour, loggedIn = false }) {
     : Number(tour.rating) || 0;
   const price = tour.price_adult ?? tour.price;
   const priceChild = tour.price_child;
-  // Партнёрская скидка: видимость посчитана на сервере (loggedIn), без мерцания.
+  // Партнёрская скидка действует ТОЛЬКО на цену взрослых. Видимость посчитана на
+  // сервере (loggedIn), без мерцания. Для детей — отдельные возрастные группы.
   const partnerPrice = partnerView({ price, pct: tour.partner_discount_pct, loggedIn });
-  const partnerPriceChild = partnerView({ price: priceChild, pct: tour.partner_discount_pct, loggedIn });
+  const childGroups = Array.isArray(tour.child_discounts) ? tour.child_discounts : [];
   const locationParts = [tour.city, tour.region, tour.country, direction?.region].filter(Boolean);
   const location = locationParts.length
     ? [...new Set(locationParts)].join(", ")
@@ -1101,11 +1104,11 @@ export default function TourClient({ tour, loggedIn = false }) {
                       className="text-3xl font-bold text-(--site-accent) leading-tight"
                       style={{ fontFamily: "Cormorant Garamond, serif" }}
                     >
-                      {Number((partnerPrice.mode === "discounted" ? partnerPrice.now : price) || 0).toLocaleString("ru-RU")} ₸
+                      {fmtNum(partnerPrice.mode === "discounted" ? partnerPrice.now : price)} ₸
                     </div>
                     {partnerPrice.mode === "discounted" && (
                       <span className="text-app-faint text-base line-through">
-                        {Number(partnerPrice.was).toLocaleString("ru-RU")} ₸
+                        {fmtNum(partnerPrice.was)} ₸
                       </span>
                     )}
                   </div>
@@ -1115,8 +1118,26 @@ export default function TourClient({ tour, loggedIn = false }) {
                     </div>
                   )}
                   <div className="text-app-faint text-[11px] mt-0.5">
-                    за взрослого{priceChild ? ` · детский ${Number((partnerPriceChild.mode === "discounted" ? partnerPriceChild.now : priceChild)).toLocaleString("ru-RU")} ₸` : ""}
+                    за взрослого{priceChild ? ` · детский ${fmtNum(priceChild)} ₸` : ""}
                   </div>
+                  {/* Детские скидки по возрасту (партнёрская скидка на них не действует) */}
+                  {childGroups.length > 0 && priceChild != null && (
+                    <div className="mt-2 space-y-1">
+                      {childGroups.map((g, i) => {
+                        const fp = childDiscountedPrice(priceChild, g.discount);
+                        return (
+                          <div key={i} className="flex items-center justify-between gap-2 text-[11px]">
+                            <span className="text-app-subtle">{childGroupLabel(g)}</span>
+                            <span className="font-semibold text-(--site-accent)">
+                              {g.discount === "free"
+                                ? "Бесплатно"
+                                : `${fmtNum(fp)} ₸`}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 

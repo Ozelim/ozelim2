@@ -198,7 +198,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2.5 text-app-subtle text-sm">
                 <Mail className="w-4 h-4 text-(--site-accent) shrink-0" />
-                support@oz-elim.kz
+                ozelim.pv@mail.ru
               </li>
               <li className="flex items-center gap-2.5 text-app-subtle text-sm">
                 <Globe className="w-4 h-4 text-(--site-accent) shrink-0" />

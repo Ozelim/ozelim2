@@ -294,7 +294,7 @@ export default function AssociationPage() {
             className="text-2xl md:text-3xl font-bold text-(--site-accent-bright) text-center mb-10"
             style={{ fontFamily: "Cormorant Garamond, serif" }}
           >
-            Направления деятельности Ассоциации туристов Казахстана «OzElim»
+            Направления деятельности Ассоциации туристов Казахстана
           </motion.h2>
 
           <div className="flex justify-center mb-12">
