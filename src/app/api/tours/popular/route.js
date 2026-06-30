@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const { data, error } = await sb
       .from("tours")
-      .select("id, title, gallery, price_adult, price, price_child, partner_discount_pct, duration_min_days, duration_max_days, hotel_class, is_popular, popular_order, season_from, season_to, hot, created_at, resort_directions(name)")
+      .select("id, title, gallery, price_adult, price, price_child, partner_discount_pct, duration_min_days, duration_max_days, hotel_class, is_popular, popular_order, season_from, season_to, hot, created_at, resort_directions(name, region)")
       .eq("status", "approved")
       .is("deleted_at", null)
       .eq("is_popular", true)
@@ -19,6 +19,7 @@ export async function GET() {
     const tours = (data ?? []).map(({ resort_directions: dir, ...t }) => ({
       ...t,
       direction_name: dir?.name ?? null,
+      direction_region: dir?.region ?? null,
     }));
 
     return Response.json(tours);

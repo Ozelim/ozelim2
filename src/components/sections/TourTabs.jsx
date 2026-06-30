@@ -56,7 +56,9 @@ function TourCard({ tour, i }) {
         {(tour.direction || tour.city || tour.country) && (
           <div className="flex items-center gap-1.5 text-white/50 text-xs mb-2">
             <MapPin className="w-3 h-3" />
-            {tour.direction || [tour.city, tour.country].filter(Boolean).join(', ')}
+            {tour.direction
+              ? `${tour.direction}${tour.directionRegion && tour.directionRegion !== tour.direction ? ` (${tour.directionRegion})` : ""}`
+              : [tour.city, tour.country].filter(Boolean).join(', ')}
           </div>
         )}
         <h3

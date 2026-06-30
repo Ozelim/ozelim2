@@ -88,7 +88,8 @@ function PopularTourCard({ tour, i }) {
       <div className="p-5 tour-card-body">
         {tour.direction_name && (
           <div className="flex items-center gap-1.5 text-white/50 text-xs mb-2">
-            <MapPin className="w-3 h-3" />{tour.direction_name}
+            <MapPin className="w-3 h-3" />
+            {`${tour.direction_name}${tour.direction_region && tour.direction_region !== tour.direction_name ? ` (${tour.direction_region})` : ""}`}
           </div>
         )}
         <h3 className="text-white font-bold text-xl mb-4" style={{ fontFamily: "Cormorant Garamond, serif" }}>

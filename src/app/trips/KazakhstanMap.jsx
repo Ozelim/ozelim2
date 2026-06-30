@@ -138,7 +138,9 @@ function toItem(kind, raw) {
     id: raw.id,
     key: `tour-${raw.id}`,
     name: raw.title,
-    region: raw.region || raw.direction_name || raw.city || "",
+    region: raw.direction_name
+      ? `${raw.direction_name}${raw.direction_region && raw.direction_region !== raw.direction_name ? ` (${raw.direction_region})` : ""}`
+      : raw.region || raw.city || "",
     coords: raw.lat != null && raw.lng != null ? [Number(raw.lat), Number(raw.lng)] : null,
     image: firstImg || PLACEHOLDER_IMG,
     description: raw.description || raw.subtitle || "",

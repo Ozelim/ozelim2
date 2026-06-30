@@ -9,7 +9,7 @@ const TOUR_COLUMNS = `
   duration_min_days, duration_max_days,
   season_from, season_to,
   description, gallery, direction_id,
-  resort_directions(name),
+  resort_directions(name, region),
   tour_relax_types(relax_type_id)
 `;
 
@@ -111,6 +111,7 @@ export async function GET(req) {
     const result = tours.map(({ resort_directions: dir, tour_relax_types, ...t }) => ({
       ...t,
       direction_name: dir?.name ?? null,
+      direction_region: dir?.region ?? null,
     }));
 
     return Response.json({ tours: result });
