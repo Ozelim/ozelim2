@@ -297,6 +297,15 @@ function ActiveChips({ filter, directions, relaxTypes, onRemove, onReset }) {
     const h = HOTEL_CLASSES.find(x => x.value === filter.hotelClass)
     chips.push({ label: h?.label || filter.hotelClass, onRemove: () => onRemove('hotelClass') })
   }
+  if (
+    filter.durationMinDays !== DEFAULT_FILTER.durationMinDays ||
+    filter.durationMaxDays !== DEFAULT_FILTER.durationMaxDays
+  ) {
+    chips.push({
+      label: `${filter.durationMinDays}—${filter.durationMaxDays} дн.`,
+      onRemove: () => onRemove("duration"),
+    })
+  }
   if (filter.onlyHot) {
 
   }
@@ -369,6 +378,13 @@ export default function TourFilter({ onSearch }) {
     setFilter(prev => {
       if (key === 'tourTypes' && val) {
         return { ...prev, tourTypes: prev.tourTypes.filter(v => v !== val) }
+      }
+      if (key === "duration") {
+        return {
+          ...prev,
+          durationMinDays: DEFAULT_FILTER.durationMinDays,
+          durationMaxDays: DEFAULT_FILTER.durationMaxDays,
+        }
       }
       if (key === 'dateFrom') {
         return { ...prev, dateFrom: null, dateTo: null }

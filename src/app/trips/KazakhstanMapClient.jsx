@@ -3,7 +3,11 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import TourFilter from "@/components/filter/TourFilter";
-import { DEFAULT_FILTER } from "@/components/filter/FilterState";
+import {
+  DEFAULT_FILTER,
+  DURATION_MIN_DAYS,
+  DURATION_MAX_DAYS,
+} from "@/components/filter/FilterState";
 
 // next/dynamic c ssr:false можно использовать только из клиентских компонентов.
 // Сама карта Leaflet — browser-only, поэтому подгружаем её здесь.
@@ -31,19 +35,16 @@ function buildSearchParams(filter) {
   if (filter.hotelClass) sp.set("hotelClass", String(filter.hotelClass));
   if (filter.onlyHot) sp.set("onlyHot", "1");
   if (filter.onlyPopular) sp.set("onlyPopular", "1");
-  // Диапазоны отправляем только если пользователь явно изменил их относительно дефолта,
-  // иначе сервер просто пропустит фильтр и покажет все туры.
-  if (
-    filter.durationMinDays != null &&
-    filter.durationMinDays !== DEFAULT_FILTER.durationMinDays
-  ) {
-    sp.set("durationMin", String(filter.durationMinDays));
-  }
-  if (
-    filter.durationMaxDays != null &&
-    filter.durationMaxDays !== DEFAULT_FILTER.durationMaxDays
-  ) {
-    sp.set("durationMax", String(filter.durationMaxDays));
+  // Длительность уходит на сервер всегда, кроме случая «весь диапазон 1—30»,
+  // который фильтром не является. Первичная выдача сюда не попадает вообще:
+  // она грузится с filter === null и показывает все туры.
+  {
+    const lo = filter.durationMinDays ?? DURATION_MIN_DAYS;
+    const hi = filter.durationMaxDays ?? DURATION_MAX_DAYS;
+    if (!(lo <= DURATION_MIN_DAYS && hi >= DURATION_MAX_DAYS)) {
+      sp.set("durationMin", String(lo));
+      sp.set("durationMax", String(hi));
+    }
   }
   if (filter.priceMin != null && filter.priceMin !== DEFAULT_FILTER.priceMin) {
     sp.set("priceMin", String(filter.priceMin));

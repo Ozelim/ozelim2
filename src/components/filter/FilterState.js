@@ -17,6 +17,11 @@ export const HOTEL_CLASSES = [
   { value: '5', label: '5 ★★★★★' },
 ]
 
+// ─── Duration ─────────────────────────────────────────────────────────────────
+// Физический предел шкалы: туры бывают от 1 до 30 дней.
+export const DURATION_MIN_DAYS = 1
+export const DURATION_MAX_DAYS = 30
+
 // ─── Filter state defaults ────────────────────────────────────────────────────
 // Валюты в системе нет — все цены безразмерные числа.
 export const DEFAULT_FILTER = {
@@ -25,7 +30,9 @@ export const DEFAULT_FILTER = {
   dateFrom: null,
   dateTo: null,
   hotelClass: '',
-  durationMinDays: 1,
+  // Стартовая позиция бегунков. На первую выдачу не влияет (она грузится без
+  // фильтра вообще), но подставляется в первый же поиск по кнопке.
+  durationMinDays: 2,
   durationMaxDays: 7,
   priceMin: 0,
   priceMax: 500000,
