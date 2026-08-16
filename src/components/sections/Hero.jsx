@@ -260,15 +260,15 @@ function TourCarousel() {
 }
 
 // ─── Kids Go Free animated banner ─────────────────────────────────────────────
-// Стоит под плитками: ширина в 3 плитки (col-span-3), двойная высота относительно
-// плитки. Текст — про бесплатный авиаперелёт детям при покупке тура.
+// Стоит под плитками во всю ширину сетки (col-span-5): иконки по краям,
+// текст — про бесплатный авиаперелёт детям при покупке тура.
 function KidsGoFreeBanner() {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="md:col-start-2 md:col-span-3 relative overflow-hidden rounded-2xl border border-(--site-accent)/40 bg-linear-to-r from-(--site-gradient-from)/30 via-(--site-accent-bright)/35 to-(--site-gradient-to)/30 backdrop-blur-sm shadow-[0_0_30px_var(--site-shadow-soft)] cursor-pointer hover:border-(--site-accent)/70 transition-colors flex items-center justify-center text-center p-6 min-h-[152px]"
+      className="col-span-2 md:col-span-5 relative overflow-hidden rounded-2xl border border-(--site-accent)/40 bg-linear-to-r from-(--site-gradient-from)/30 via-(--site-accent-bright)/35 to-(--site-gradient-to)/30 backdrop-blur-sm shadow-[0_0_30px_var(--site-shadow-soft)] cursor-pointer hover:border-(--site-accent)/70 transition-colors flex items-center justify-center text-center px-5 py-6 md:px-10 min-h-[132px]"
     >
       <Link href="/kidsgofree" className="absolute inset-0 z-20" aria-label="Подробнее о бесплатном авиаперелёте детям" />
       <motion.div
@@ -277,34 +277,32 @@ function KidsGoFreeBanner() {
         animate={{ x: ["-120%", "420%"] }}
         transition={{ duration: 3.2, repeat: Infinity, ease: "linear" }}
       />
-      <div className="relative z-10 flex flex-col items-center justify-center gap-3">
-        <div className="flex items-center gap-3">
-          <motion.span
-            animate={{ rotate: [0, 12, -12, 0], y: [0, -2, 0] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            className="inline-flex"
-          >
-            <Baby className="w-6 h-6 text-(--site-accent-bright)" />
-          </motion.span>
-          <motion.span
-            animate={{ rotate: [0, -360], scale: [1, 1.15, 1] }}
-            transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
-            className="inline-flex"
-          >
-            <Sparkles className="w-6 h-6 text-(--site-accent-bright)" />
-          </motion.span>
-        </div>
+      <div className="relative z-10 flex w-full items-center justify-center gap-4 md:gap-8">
+        <motion.span
+          animate={{ rotate: [0, 12, -12, 0], y: [0, -2, 0] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+          className="inline-flex shrink-0"
+        >
+          <Baby className="w-8 h-8 md:w-11 md:h-11 text-(--site-accent-bright)" />
+        </motion.span>
         <motion.span
           animate={{ backgroundPosition: ["0% 50%", "200% 50%"] }}
           transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-          className="bg-clip-text text-transparent font-bold text-lg md:text-xl leading-snug max-w-md"
+          className="bg-clip-text text-transparent font-bold text-base md:text-2xl leading-snug max-w-2xl"
           style={{
             backgroundImage:
               "linear-gradient(90deg, var(--site-accent-bright), #ffffff, var(--site-accent-bright), #ffffff, var(--site-accent-bright))",
             backgroundSize: "200% 100%",
           }}
         >
-          При приобретении тура, детям АВИА перелет бесплатно
+          Детям от 2 до 17 лет при покупке тура авиаперелет бесплатно
+        </motion.span>
+        <motion.span
+          animate={{ rotate: [0, -360], scale: [1, 1.15, 1] }}
+          transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
+          className="inline-flex shrink-0"
+        >
+          <Sparkles className="w-8 h-8 md:w-11 md:h-11 text-(--site-accent-bright)" />
         </motion.span>
       </div>
     </motion.div>

@@ -41,6 +41,22 @@ import {
   AlertCircle,
   CheckCircle2,
   Lock,
+  Plane,
+  Sun,
+  Umbrella,
+  Fish,
+  Heart,
+  Gift,
+  Shield,
+  Music,
+  Ticket,
+  Globe,
+  Backpack,
+  Bike,
+  Droplets,
+  Flame,
+  Leaf,
+  Wine,
 } from "lucide-react";
 import Footer from "@/components/sections/Footer";
 import { RequestFormDialog } from "@/components/request-form/request-form";
@@ -50,8 +66,12 @@ import { partnerView } from "@/lib/partner-pricing";
 import { childDiscountedPrice, childGroupLabel } from "@/lib/child-discounts";
 import { fmtNum } from "@/lib/format-price";
 
+// Должен покрывать весь список иконок из кабинета гида (TOUR_ICONS)
 const ICON_MAP = {
-  Sunrise, Bus, TreePine, Mountain, Waves, Compass, Tent, Coffee, Utensils, Bed,
+  Plane, Hotel, Utensils, Bus, Camera, Waves, Mountain, Compass, MapPin,
+  Sunrise, Sun, Umbrella, Fish, TreePine, Tent, Star, Heart, Gift, Shield,
+  Clock, Coffee, Music, Ticket, Globe, Backpack, Bike, Droplets, Flame, Leaf, Wine,
+  Bed,
 };
 
 const FALLBACK_IMG =

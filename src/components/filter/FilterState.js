@@ -26,7 +26,7 @@ export const DEFAULT_FILTER = {
   dateTo: null,
   hotelClass: '',
   durationMinDays: 1,
-  durationMaxDays: 30,
+  durationMaxDays: 7,
   priceMin: 0,
   priceMax: 500000,
   onlyPopular: false,

@@ -113,7 +113,7 @@ export default function WhyUs({ stats: initialData } = {}) {
           <Link
             href="/kidsgofree"
             aria-label="Подробнее о бесплатном авиаперелёте детям"
-            className="w-full max-w-xl relative overflow-hidden rounded-2xl border border-(--site-accent)/40 bg-linear-to-r from-(--site-gradient-from)/30 via-(--site-accent-bright)/35 to-(--site-gradient-to)/30 backdrop-blur-sm py-5 px-6 shadow-[0_0_30px_var(--site-shadow-soft)] block hover:border-(--site-accent)/70 transition-colors"
+            className="w-full max-w-5xl relative overflow-hidden rounded-2xl border border-(--site-accent)/40 bg-linear-to-r from-(--site-gradient-from)/30 via-(--site-accent-bright)/35 to-(--site-gradient-to)/30 backdrop-blur-sm py-6 px-5 md:px-10 shadow-[0_0_30px_var(--site-shadow-soft)] block hover:border-(--site-accent)/70 transition-colors"
           >
             <motion.div
               aria-hidden
@@ -121,31 +121,31 @@ export default function WhyUs({ stats: initialData } = {}) {
               animate={{ x: ["-120%", "420%"] }}
               transition={{ duration: 3.2, repeat: Infinity, ease: "linear" }}
             />
-            <div className="relative z-10 flex justify-center items-center gap-3 font-bold text-center">
+            <div className="relative z-10 flex w-full justify-center items-center gap-4 md:gap-8 font-bold text-center">
               <motion.span
                 animate={{ rotate: [0, 12, -12, 0], y: [0, -2, 0] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                 className="inline-flex shrink-0"
               >
-                <Baby className="w-6 h-6 text-(--site-accent-bright)" />
+                <Baby className="w-8 h-8 md:w-11 md:h-11 text-(--site-accent-bright)" />
               </motion.span>
               <motion.span
                 animate={{ backgroundPosition: ["0% 50%", "200% 50%"] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                className="bg-clip-text text-transparent text-lg leading-snug"
+                className="bg-clip-text text-transparent text-base md:text-2xl leading-snug max-w-2xl"
                 style={{
                   backgroundImage: "linear-gradient(90deg, var(--site-accent-bright), #ffffff, var(--site-accent-bright), #ffffff, var(--site-accent-bright))",
                   backgroundSize: "200% 100%",
                 }}
               >
-                При приобретении тура, детям АВИА перелет бесплатно
+                Детям от 2 до 17 лет при покупке тура авиаперелет бесплатно
               </motion.span>
               <motion.span
                 animate={{ rotate: [0, -360], scale: [1, 1.15, 1] }}
                 transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
                 className="inline-flex shrink-0"
               >
-                <Sparkles className="w-6 h-6 text-(--site-accent-bright)" />
+                <Sparkles className="w-8 h-8 md:w-11 md:h-11 text-(--site-accent-bright)" />
               </motion.span>
             </div>
           </Link>
