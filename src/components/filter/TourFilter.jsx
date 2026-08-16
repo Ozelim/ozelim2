@@ -162,20 +162,8 @@ function FilterPanel({ filter, setFilter, directions, relaxTypes, onSearch, onCl
           />
         </div>
 
-        {/* ── Класс отеля ─────────────────────────────────────────────────── */}
-        <div className="space-y-2 flex-1 lg:min-w-[200px]">
-          <FilterLabel>Класс отеля</FilterLabel>
-          <CustomSelect
-            options={HOTEL_CLASSES}
-            value={filter.hotelClass}
-            onChange={v => set('hotelClass', v)}
-            placeholder="Любой класс"
-            icon={<Star className="w-4 h-4" />}
-          />
-        </div>
-
         {/* ── Длительность тура ───────────────────────────────────────────── */}
-        <div className="space-y-2 flex-1 lg:min-w-[200px]">
+        <div className="space-y-2 flex-1 lg:min-w-[240px]">
           <FilterLabel>
             <span className="inline-flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-(--site-accent)" />
@@ -187,6 +175,18 @@ function FilterPanel({ filter, setFilter, directions, relaxTypes, onSearch, onCl
             maxDays={filter.durationMaxDays}
             onMinChange={v => set('durationMinDays', v)}
             onMaxChange={v => set('durationMaxDays', v)}
+          />
+        </div>
+
+        {/* ── Класс отеля ─────────────────────────────────────────────────── */}
+        <div className="space-y-2 flex-1 lg:min-w-[200px]">
+          <FilterLabel>Класс отеля</FilterLabel>
+          <CustomSelect
+            options={HOTEL_CLASSES}
+            value={filter.hotelClass}
+            onChange={v => set('hotelClass', v)}
+            placeholder="Любой класс"
+            icon={<Star className="w-4 h-4" />}
           />
         </div>
 
